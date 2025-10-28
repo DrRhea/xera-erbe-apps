@@ -1,4 +1,7 @@
 import React, { FC } from 'react';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+
 import {
   Image,
   ImageBackground,
