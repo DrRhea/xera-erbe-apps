@@ -1,18 +1,9 @@
-import React, { FC } from 'react';
+import React, { FC, useCallback } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-
-import {
-  Image,
-  ImageBackground,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
+import { Image, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
 
 const colors = {
   background: '#F0F0F0',
@@ -22,19 +13,37 @@ const colors = {
   darkText: '#202020',
   mutedText: '#7C7C7C',
   sectionTitle: '#004559',
+  greenLight: '#00BFAC',
 };
 
-const images = {
+const fontFamilies = {
+  regular: 'Montserrat-Regular',
+  medium: 'Montserrat-Medium',
+  semiBold: 'Montserrat-SemiBold',
+  bold: 'Montserrat-Bold',
+  extraBold: 'Montserrat-ExtraBold',
+  hero: 'PlaypenSans-ExtraBold',
+};
+
+const svgAssets = {
   search: 'http://10.0.2.2:3845/assets/f7f0dc22c9b9602acb60bfe30b7e41f27cd0d12b.svg',
   notification: 'http://10.0.2.2:3845/assets/49c36e52ab0a5681320f5698a3a206404d2e026c.svg',
-  avatar: 'http://10.0.2.2:3845/assets/51ad82a6f14baa088dad217f874e47606c5c00a6.png',
-  poweredLogo: 'http://10.0.2.2:3845/assets/12313bf145d987dc0516e6d9c533797bc743e7c2.png',
-  weekly: 'http://10.0.2.2:3845/assets/6b59a3c8d22878946d5ddb8f2d8ba256efb171d4.png',
-  tryOut: 'http://10.0.2.2:3845/assets/1c22dbacc2c0394f329214f0c02ceddc369359a5.png',
   recommendations: 'http://10.0.2.2:3845/assets/16a2c4e5b5d54dc0aba781452be9c22b5d527668.svg',
   leaderboardSlot1: 'http://10.0.2.2:3845/assets/3780f0853b87cf6bcfc573344afee361875cbf6b.svg',
   leaderboardSlot2: 'http://10.0.2.2:3845/assets/cd1d69bab0fba009f02e67c19da50b34dea86ed3.svg',
   leaderboardSlot3: 'http://10.0.2.2:3845/assets/98d976360b447f05f0bc7fb55505d91528c4ed62.svg',
+  arrowRight: 'http://10.0.2.2:3845/assets/303884bbebac8a4731e3cb61cc65a0d5b7384acc.svg',
+  navHome: 'http://10.0.2.2:3845/assets/c726690482855c6d88c6e283539e029272a67038.svg',
+  navAnalysis: 'http://10.0.2.2:3845/assets/da4c47e1d588f767e532f0998599df7e85a6e067.svg',
+  navWallet: 'http://10.0.2.2:3845/assets/cd1d69bab0fba009f02e67c19da50b34dea86ed3.svg',
+  navProfile: 'http://10.0.2.2:3845/assets/d4a265aad65890f79ceb182b69b8252a04d7bdbd.svg',
+};
+
+const rasterImages = {
+  avatar: 'http://10.0.2.2:3845/assets/51ad82a6f14baa088dad217f874e47606c5c00a6.png',
+  poweredLogo: 'http://10.0.2.2:3845/assets/12313bf145d987dc0516e6d9c533797bc743e7c2.png',
+  weekly: 'http://10.0.2.2:3845/assets/6b59a3c8d22878946d5ddb8f2d8ba256efb171d4.png',
+  tryOut: 'http://10.0.2.2:3845/assets/1c22dbacc2c0394f329214f0c02ceddc369359a5.png',
   avatar1: 'http://10.0.2.2:3845/assets/6b21d479f4905b231785e65fb75b12ae6f2d353a.png',
   avatar2: 'http://10.0.2.2:3845/assets/1a0543c993968f63085e4c1f1bde11b9e9afd99c.png',
   avatar3: 'http://10.0.2.2:3845/assets/5aca32bd9bcd92427c37c620d1ca71cb62c71a49.png',
@@ -44,9 +53,24 @@ const images = {
   materi: 'http://10.0.2.2:3845/assets/2299b8e7f2bd00ef68f6652ec24c62ff1036314d.png',
   literasik: 'http://10.0.2.2:3845/assets/2eef3da1172f2a3617dfabba39336092b19ca210.png',
   admin: 'http://10.0.2.2:3845/assets/c620c8792e7c15c01b319237bf9b204b85ac0503.png',
-  arrowRight: 'http://10.0.2.2:3845/assets/303884bbebac8a4731e3cb61cc65a0d5b7384acc.svg',
-  heroMask: 'http://10.0.2.2:3845/assets/33d93cd60300f92de488b143f8dbdc2e9b089754.svg',
 };
+
+const leaderboardGradients: Record<number, [string, string]> = {
+  1: ['#CCF3ED', '#7FC9BA'],
+  2: ['#B8E5DE', '#62BCAE'],
+  3: ['#B8E5DE', '#62BCAE'],
+};
+
+const navItems = [
+  { key: 'home', label: 'Home', icon: svgAssets.navHome, active: true },
+  { key: 'analysis', label: 'Analysis', icon: svgAssets.navAnalysis, active: false },
+  { key: 'wallet', label: 'Wallet', icon: svgAssets.navWallet, active: false },
+  { key: 'profile', label: 'Profile', icon: svgAssets.navProfile, active: false },
+];
+
+type PercentString = `${number}%`;
+
+SplashScreen.preventAutoHideAsync().catch(() => null);
 
 type ProgressCardProps = {
   title: string;
@@ -73,12 +97,11 @@ const progressData: ProgressCardProps[] = [
 type QuickAction = {
   title: string;
   image: string;
-  align: 'left' | 'right';
 };
 
 const quickActions: QuickAction[] = [
-  { title: "Let's DIGIDAW", image: images.weekly, align: 'left' },
-  { title: "Let's Try Out", image: images.tryOut, align: 'right' },
+  { title: "Let's DIGIDAW", image: rasterImages.weekly },
+  { title: "Let's Try Out", image: rasterImages.tryOut },
 ];
 
 type LeaderboardEntry = {
@@ -97,8 +120,8 @@ const leaderboardEntries: LeaderboardEntry[] = [
     grade: '9 SMP',
     score: 981,
     rank: 1,
-    avatar: images.avatar1,
-    badge: images.leaderboardSlot1,
+    avatar: rasterImages.avatar1,
+    badge: svgAssets.leaderboardSlot1,
     scoreColor: '#EF0F0F',
   },
   {
@@ -106,8 +129,8 @@ const leaderboardEntries: LeaderboardEntry[] = [
     grade: '12 SMA',
     score: 865,
     rank: 2,
-    avatar: images.avatar2,
-    badge: images.leaderboardSlot2,
+    avatar: rasterImages.avatar2,
+    badge: svgAssets.leaderboardSlot2,
     scoreColor: colors.accent,
   },
   {
@@ -115,17 +138,17 @@ const leaderboardEntries: LeaderboardEntry[] = [
     grade: '8 SMP',
     score: 546,
     rank: 3,
-    avatar: images.avatar3,
-    badge: images.leaderboardSlot3,
+    avatar: rasterImages.avatar3,
+    badge: svgAssets.leaderboardSlot3,
     scoreColor: colors.primary,
   },
 ];
 
 const lifeAtErbeCards = [
-  { title: 'SNack-BT', image: images.snackBt, backgroundColor: '#FFEDD2' },
-  { title: 'PoKe', image: images.poke, backgroundColor: '#CDFEE2' },
-  { title: 'ImEng', image: images.imEng, backgroundColor: '#F6C2DB' },
-  { title: 'Materi', image: images.materi, backgroundColor: '#E0F5FF' },
+  { title: 'SNack-BT', image: rasterImages.snackBt, backgroundColor: '#FFEDD2' },
+  { title: 'PoKe', image: rasterImages.poke, backgroundColor: '#CDFEE2' },
+  { title: 'ImEng', image: rasterImages.imEng, backgroundColor: '#F6C2DB' },
+  { title: 'Materi', image: rasterImages.materi, backgroundColor: '#E0F5FF' },
 ];
 
 const literasikCards = [
@@ -144,18 +167,14 @@ const literasikCards = [
 ];
 
 const ProgressCard: FC<ProgressCardProps> = ({ title, progress, accentLabel, footerLabel }) => {
-  const cappedProgress = Math.min(progress, 1);
-  const overflow = Math.max(progress - 1, 0);
+  const widthPercent: PercentString = `${Math.min(progress, 1) * 100}%`;
 
   return (
     <View style={styles.progressCard}>
       <Text style={styles.progressTitle}>{title}</Text>
       <View style={styles.progressRow}>
         <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${cappedProgress * 100}%` }]} />
-          {overflow > 0 && (
-            <View style={[styles.progressOverflow, { width: `${overflow * 100}%` }]} />
-          )}
+          <View style={[styles.progressFill, { width: widthPercent }]} />
           <Text style={styles.progressValue}>{`${Math.round(progress * 100)}%`}</Text>
         </View>
         <Text style={styles.progressFooter}>
@@ -171,33 +190,37 @@ type QuickActionCardProps = QuickAction & {
   index: number;
 };
 
-const QuickActionCard: FC<QuickActionCardProps> = ({ title, image, align, index }) => (
+const QuickActionCard: FC<QuickActionCardProps> = ({ title, image, index }) => (
   <Pressable key={`${title}-${index}`} style={styles.quickActionCard}>
-    <Image
-      source={{ uri: image }}
-      style={[styles.quickActionImage, align === 'left' ? styles.quickImageLeft : styles.quickImageRight]}
-      resizeMode="contain"
-    />
-    <Text style={[styles.quickActionLabel, align === 'left' ? styles.actionLabelLeft : styles.actionLabelRight]}>
-      {title}
-    </Text>
+    <Image source={{ uri: image }} style={styles.quickActionImage} resizeMode="contain" />
+    <Text style={styles.quickActionLabel}>{title}</Text>
   </Pressable>
 );
 
-const LeaderboardColumn: FC<LeaderboardEntry> = ({ name, grade, score, rank, avatar, badge, scoreColor }) => (
-  <View style={styles.leaderboardColumn}>
-    <Image source={{ uri: badge }} style={styles.leaderboardBadge} resizeMode="contain" />
-    <Image source={{ uri: avatar }} style={styles.leaderboardAvatar} resizeMode="contain" />
-    <View style={styles.leaderboardRankBadge}>
-      <Text style={styles.leaderboardRankText}>{rank}</Text>
+const LeaderboardColumn: FC<LeaderboardEntry> = ({ name, grade, score, rank, avatar, badge, scoreColor }) => {
+  const gradient = leaderboardGradients[rank] ?? leaderboardGradients[2];
+
+  return (
+    <View style={styles.leaderboardColumn}>
+      <LinearGradient colors={gradient} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.leaderboardGradient}>
+        <View style={styles.leaderboardBadgeWrapper}>
+          <View style={styles.leaderboardBadge}>
+            <SvgUri uri={badge} width="100%" height="100%" />
+          </View>
+          <View style={styles.leaderboardRankBadge}>
+            <Text style={styles.leaderboardRankText}>{rank}</Text>
+          </View>
+        </View>
+        <Image source={{ uri: avatar }} style={styles.leaderboardAvatar} resizeMode="contain" />
+      </LinearGradient>
+      <View style={styles.leaderboardMeta}>
+        <Text style={styles.leaderboardName}>{name}</Text>
+        <Text style={styles.leaderboardGrade}>{grade}</Text>
+        <Text style={[styles.leaderboardScore, { color: scoreColor }]}>{score}</Text>
+      </View>
     </View>
-    <View style={styles.leaderboardMeta}>
-      <Text style={styles.leaderboardName}>{name}</Text>
-      <Text style={styles.leaderboardGrade}>{grade}</Text>
-      <Text style={[styles.leaderboardScore, { color: scoreColor }]}>{score}</Text>
-    </View>
-  </View>
-);
+  );
+};
 
 const LifeCard: FC<(typeof lifeAtErbeCards)[number]> = ({ title, image, backgroundColor }) => (
   <View style={[styles.lifeCard, { backgroundColor }]}>
@@ -211,11 +234,13 @@ const LiterasikCard: FC<(typeof literasikCards)[number]> = ({ title, description
     <View style={styles.literasikBadge}>
       <Text style={styles.literasikBadgeText}>{tag}</Text>
     </View>
-    <Image source={{ uri: images.literasik }} style={styles.literasikImage} resizeMode="contain" />
+    <Image source={{ uri: rasterImages.literasik }} style={styles.literasikImage} resizeMode="contain" />
     <Text style={styles.literasikTitle}>{title}</Text>
     <Text style={styles.literasikDescription}>{description}</Text>
     <View style={styles.literasikFooter}>
-      <Image source={{ uri: images.arrowRight }} style={styles.literasikArrow} resizeMode="contain" />
+      <View style={styles.literasikArrow}>
+        <SvgUri uri={svgAssets.arrowRight} width="100%" height="100%" />
+      </View>
       <Text style={styles.literasikLink}>Lanjutkan Baca</Text>
     </View>
   </View>
@@ -223,84 +248,96 @@ const LiterasikCard: FC<(typeof literasikCards)[number]> = ({ title, description
 
 const AdminCard: FC = () => (
   <View style={styles.adminCard}>
-    <Image source={{ uri: images.admin }} style={styles.adminImage} resizeMode="contain" />
-    <View style={styles.adminCopy}>
-      <Text style={styles.adminTitle}>{'Tanya & Kepo Erbe!'}</Text>
-      <Text style={styles.adminDescription}>
-        Mau tau program belajar di erbe atau promo menarik paket belajar di erbe? Gas kepoin lewat chat admin erbe yaakkk
-      </Text>
-      <Pressable style={styles.adminButton}>
-        <Text style={styles.adminButtonText}>Chat Admin</Text>
-      </Pressable>
-    </View>
+    <LinearGradient colors={['#004559', colors.greenLight]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.adminGradient}>
+      <Image source={{ uri: rasterImages.admin }} style={styles.adminImage} resizeMode="contain" />
+      <View style={styles.adminCopy}>
+        <Text style={styles.adminTitle}>{'Tanya & Kepo Erbe!'}</Text>
+        <Text style={styles.adminDescription}>
+          Mau tau program belajar di erbe atau promo menarik paket belajar di erbe? Gas kepoin lewat chat admin erbe yaakkk
+        </Text>
+        <Pressable style={styles.adminButton}>
+          <Text style={styles.adminButtonText}>Chat Admin</Text>
+        </Pressable>
+      </View>
+    </LinearGradient>
   </View>
 );
 
 const BottomNavigation: FC = () => (
   <View style={styles.bottomNav}>
-    <View style={[styles.bottomNavItem, styles.bottomNavActive]}>
-      <View style={styles.bottomNavIndicator} />
-      <Text style={styles.bottomNavLabel}>Home</Text>
-    </View>
-    <Text style={styles.bottomNavLabelMuted}>Analysis</Text>
-    <Text style={styles.bottomNavLabelMuted}>Wallet</Text>
-    <Text style={styles.bottomNavLabelMuted}>Profile</Text>
+    {navItems.map(({ key, label, icon, active }) => (
+      <Pressable key={key} style={[styles.bottomNavItem, active && styles.bottomNavActive]}>
+        <View style={styles.bottomNavIcon}>
+          <SvgUri uri={icon} width="100%" height="100%" />
+        </View>
+        <Text style={active ? styles.bottomNavLabel : styles.bottomNavLabelMuted}>{label}</Text>
+      </Pressable>
+    ))}
   </View>
 );
 
 const HomescreenHeader: FC = () => (
-  <ImageBackground source={{ uri: images.heroMask }} style={styles.heroContainer} imageStyle={styles.heroImage}>
-    <View style={styles.searchRow}>
-      <View style={styles.searchBar}>
-        <Text style={styles.searchPlaceholder}>Mau belajar apa nih?</Text>
-        <Image source={{ uri: images.search }} style={styles.searchIcon} resizeMode="contain" />
+  <View style={styles.heroWrapper}>
+    <LinearGradient colors={['#1C637B', '#9EE0BF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.heroContainer}>
+      <View style={styles.searchRow}>
+        <View style={styles.searchBar}>
+          <Text style={styles.searchPlaceholder}>Mau belajar apa nih?</Text>
+          <View style={styles.searchIcon}>
+            <SvgUri uri={svgAssets.search} width="100%" height="100%" />
+          </View>
+        </View>
+        <Pressable style={styles.notificationButton}>
+          <View style={styles.notificationIcon}>
+            <SvgUri uri={svgAssets.notification} width="100%" height="100%" />
+          </View>
+        </Pressable>
       </View>
-      <Pressable style={styles.notificationButton}>
-        <Image source={{ uri: images.notification }} style={styles.notificationIcon} resizeMode="contain" />
-      </Pressable>
-    </View>
-    <View style={styles.profileRow}>
-      <Image source={{ uri: images.avatar }} style={styles.profileAvatar} resizeMode="contain" />
-      <View style={styles.profileMeta}>
-        <Text style={styles.profileGreeting}>Hi, Nataa!</Text>
-        <View style={styles.profileBadge}>
-          <Text style={styles.profileBadgeText}>RBD0925015 - Idaman UI</Text>
+      <View style={styles.profileRow}>
+        <Image source={{ uri: rasterImages.avatar }} style={styles.profileAvatar} resizeMode="contain" />
+        <View style={styles.profileMeta}>
+          <Text style={styles.profileGreeting}>Hi, Nataa!</Text>
+          <View style={styles.profileBadge}>
+            <Text style={styles.profileBadgeText}>RBD0925015 - Idaman UI</Text>
+          </View>
         </View>
       </View>
-    </View>
-    <Text style={styles.heroHeadline}>Let’s Start Your Academic Era!</Text>
-    <View style={styles.progressGrid}>
-      {progressData.map((item) => (
-        <ProgressCard key={item.title} {...item} />
-      ))}
-    </View>
-    <View style={styles.quickActionsRow}>
-      {quickActions.map((item, index) => (
-        <QuickActionCard key={item.title} {...item} index={index} />
-      ))}
-    </View>
-    <View style={styles.poweredRow}>
-      <Text style={styles.poweredText}>Powered by</Text>
-      <Image source={{ uri: images.poweredLogo }} style={styles.poweredLogo} resizeMode="contain" />
-    </View>
-  </ImageBackground>
+  <Text style={styles.heroHeadline}>{"Let's Start Your Academic Era!"}</Text>
+      <View style={styles.progressGrid}>
+        {progressData.map((item) => (
+          <ProgressCard key={item.title} {...item} />
+        ))}
+      </View>
+      <View style={styles.quickActionsRow}>
+        {quickActions.map((item, index) => (
+          <QuickActionCard key={item.title} {...item} index={index} />
+        ))}
+      </View>
+      <View style={styles.poweredRow}>
+        <Text style={styles.poweredText}>Powered by</Text>
+        <Image source={{ uri: rasterImages.poweredLogo }} style={styles.poweredLogo} resizeMode="contain" />
+      </View>
+    </LinearGradient>
+  </View>
 );
 
 const RecommendationsCard: FC = () => (
   <View style={styles.recommendationCard}>
-    <ImageBackground source={{ uri: images.recommendations }} style={styles.recommendationImage}>
-      <Text style={styles.recommendationSuper}>{`SUPER\nPTN!`}</Text>
-      <Text style={styles.recommendationDiscount}>30%</Text>
-      <Text style={styles.recommendationSuffix}>off</Text>
-      <View style={styles.recommendationCodeWrapper}>
-        <View style={styles.recommendationCodeLabel}>
-          <Text style={styles.recommendationCodeLabelText}>{`KODE\nPROMO`}</Text>
-        </View>
-        <View style={styles.recommendationCodeBadge}>
-          <Text style={styles.recommendationCodeText}>SUPERPTN</Text>
+    <View style={styles.recommendationImage}>
+      <SvgUri uri={svgAssets.recommendations} width="100%" height="100%" />
+      <View style={styles.recommendationOverlay}>
+        <Text style={styles.recommendationSuper}>{`SUPER\nPTN!`}</Text>
+        <Text style={styles.recommendationDiscount}>30%</Text>
+        <Text style={styles.recommendationSuffix}>off</Text>
+        <View style={styles.recommendationCodeWrapper}>
+          <View style={styles.recommendationCodeLabel}>
+            <Text style={styles.recommendationCodeLabelText}>{`KODE\nPROMO`}</Text>
+          </View>
+          <View style={styles.recommendationCodeBadge}>
+            <Text style={styles.recommendationCodeText}>SUPERPTN</Text>
+          </View>
         </View>
       </View>
-    </ImageBackground>
+    </View>
   </View>
 );
 
@@ -341,8 +378,27 @@ const LiterasikSection: FC = () => (
 );
 
 const HomeScreen: FC = () => {
+  const [fontsLoaded, fontError] = useFonts({
+    [fontFamilies.regular]: require('../../../assets/fonts/montserrat/Montserrat-Regular.ttf'),
+    [fontFamilies.medium]: require('../../../assets/fonts/montserrat/Montserrat-Medium.ttf'),
+    [fontFamilies.semiBold]: require('../../../assets/fonts/montserrat/Montserrat-SemiBold.ttf'),
+    [fontFamilies.bold]: require('../../../assets/fonts/montserrat/Montserrat-Bold.ttf'),
+    [fontFamilies.extraBold]: require('../../../assets/fonts/montserrat/Montserrat-ExtraBold.ttf'),
+    [fontFamilies.hero]: require('../../../assets/fonts/playpensans/PlaypenSans-ExtraBold.ttf'),
+  });
+
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded || fontError) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} onLayout={onLayoutRootView}>
       <StatusBar barStyle="light-content" />
       <ScrollView style={styles.screen} contentContainerStyle={styles.contentContainer}>
         <HomescreenHeader />
@@ -382,14 +438,15 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 120,
   },
+  heroWrapper: {
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    overflow: 'hidden',
+  },
   heroContainer: {
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 32,
-  },
-  heroImage: {
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
   },
   searchRow: {
     flexDirection: 'row',
@@ -399,7 +456,7 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: 'rgba(255,255,255,0.85)',
     borderRadius: 18,
     paddingHorizontal: 18,
     paddingVertical: 10,
@@ -414,10 +471,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: 'rgba(0,0,0,0.8)',
+    fontFamily: fontFamilies.medium,
   },
   searchIcon: {
     width: 18,
     height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   notificationButton: {
     width: 38,
@@ -428,6 +488,8 @@ const styles = StyleSheet.create({
   notificationIcon: {
     width: 24,
     height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileRow: {
     flexDirection: 'row',
@@ -443,8 +505,8 @@ const styles = StyleSheet.create({
   },
   profileGreeting: {
     fontSize: 22,
-    fontWeight: '700',
     color: colors.white,
+    fontFamily: fontFamilies.bold,
   },
   profileBadge: {
     marginTop: 8,
@@ -455,15 +517,15 @@ const styles = StyleSheet.create({
   },
   profileBadgeText: {
     fontSize: 14,
-    fontWeight: '700',
     color: colors.white,
+    fontFamily: fontFamilies.bold,
   },
   heroHeadline: {
     marginTop: 28,
     textAlign: 'center',
     fontSize: 18,
-    fontWeight: '800',
     color: colors.white,
+    fontFamily: fontFamilies.hero,
   },
   progressGrid: {
     marginTop: 24,
@@ -480,9 +542,9 @@ const styles = StyleSheet.create({
   },
   progressTitle: {
     fontSize: 13,
-    fontWeight: '700',
     color: colors.darkText,
     textAlign: 'center',
+    fontFamily: fontFamilies.bold,
   },
   progressRow: {
     marginTop: 10,
@@ -496,6 +558,8 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: '#D9D9D9',
     justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
   progressFill: {
     position: 'absolute',
@@ -505,29 +569,21 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: colors.accent,
   },
-  progressOverflow: {
-    position: 'absolute',
-    right: -4,
-    top: 0,
-    bottom: 0,
-    borderRadius: 50,
-    backgroundColor: colors.accent,
-  },
   progressValue: {
     fontSize: 9,
-    fontWeight: '700',
     color: colors.white,
-    textAlign: 'center',
+    fontFamily: fontFamilies.bold,
   },
   progressFooter: {
     fontSize: 9,
     color: colors.mutedText,
     textAlign: 'center',
+    fontFamily: fontFamilies.medium,
   },
   progressFooterAccent: {
     fontSize: 12,
     color: colors.accent,
-    fontWeight: '700',
+    fontFamily: fontFamilies.bold,
   },
   quickActionsRow: {
     marginTop: 16,
@@ -545,30 +601,18 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    overflow: 'hidden',
     gap: 12,
   },
   quickActionImage: {
     width: 46,
     height: 46,
   },
-  quickImageLeft: {
-    marginRight: 12,
-  },
-  quickImageRight: {
-    marginRight: 12,
-  },
   quickActionLabel: {
     flex: 1,
     fontSize: 14,
-    fontWeight: '700',
-    color: colors.accent,
-  },
-  actionLabelLeft: {
-    textAlign: 'left',
-  },
-  actionLabelRight: {
+    color: '#F18C1E',
     textAlign: 'right',
+    fontFamily: fontFamilies.bold,
   },
   poweredRow: {
     marginTop: 18,
@@ -579,8 +623,8 @@ const styles = StyleSheet.create({
   },
   poweredText: {
     fontSize: 13,
-    fontWeight: '600',
     color: colors.white,
+    fontFamily: fontFamilies.semiBold,
   },
   poweredLogo: {
     width: 60,
@@ -597,13 +641,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 15,
-    fontWeight: '700',
     color: colors.sectionTitle,
+    fontFamily: fontFamilies.bold,
   },
   sectionCta: {
     fontSize: 12,
-    fontWeight: '600',
     color: colors.accent,
+    fontFamily: fontFamilies.bold,
   },
   recommendationCard: {
     marginTop: 20,
@@ -611,37 +655,45 @@ const styles = StyleSheet.create({
   recommendationImage: {
     borderRadius: 20,
     overflow: 'hidden',
-    padding: 20,
     height: 157,
     justifyContent: 'flex-start',
+    position: 'relative',
+  },
+  recommendationOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    padding: 20,
   },
   recommendationSuper: {
     fontSize: 25,
-    fontWeight: '700',
     color: colors.white,
     textShadowColor: colors.primary,
     textShadowRadius: 0,
     textShadowOffset: { width: 3, height: 3 },
+    fontFamily: fontFamilies.extraBold,
   },
   recommendationDiscount: {
     position: 'absolute',
     right: 60,
     top: 30,
     fontSize: 50,
-    fontWeight: '700',
     color: colors.white,
     textShadowColor: colors.accent,
     textShadowOffset: { width: 3, height: 3 },
+    fontFamily: fontFamilies.extraBold,
   },
   recommendationSuffix: {
     position: 'absolute',
     right: 40,
     bottom: 32,
     fontSize: 15,
-    fontWeight: '700',
     color: colors.white,
     textShadowColor: colors.primary,
     textShadowOffset: { width: 1, height: 1 },
+    fontFamily: fontFamilies.bold,
   },
   recommendationCodeWrapper: {
     position: 'absolute',
@@ -664,8 +716,8 @@ const styles = StyleSheet.create({
   recommendationCodeLabelText: {
     fontSize: 9,
     color: colors.primary,
-    fontWeight: '700',
     textAlign: 'center',
+    fontFamily: fontFamilies.bold,
   },
   recommendationCodeBadge: {
     height: 31,
@@ -677,8 +729,8 @@ const styles = StyleSheet.create({
   },
   recommendationCodeText: {
     fontSize: 13,
-    fontWeight: '700',
     color: colors.white,
+    fontFamily: fontFamilies.bold,
   },
   leaderboardCard: {
     marginTop: 20,
@@ -690,56 +742,70 @@ const styles = StyleSheet.create({
   leaderboardColumns: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 12,
   },
   leaderboardColumn: {
     alignItems: 'center',
-    width: 110,
-    paddingTop: 10,
+    width: 112,
+  },
+  leaderboardGradient: {
+    width: '100%',
+    height: 160,
+    borderRadius: 40,
+    alignItems: 'center',
+    paddingTop: 34,
+    paddingBottom: 16,
+  },
+  leaderboardBadgeWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   leaderboardBadge: {
-    width: 70,
-    height: 75,
-    marginBottom: -20,
-  },
-  leaderboardAvatar: {
-    width: 64,
-    height: 64,
-    marginBottom: 8,
+    width: 72,
+    height: 72,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   leaderboardRankBadge: {
     position: 'absolute',
-    top: 20,
-    right: 38,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: -10,
+    right: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   leaderboardRankText: {
     color: colors.white,
-    fontWeight: '700',
-    fontSize: 10,
+    fontFamily: fontFamilies.bold,
+    fontSize: 12,
+  },
+  leaderboardAvatar: {
+    width: 68,
+    height: 68,
+    marginTop: 8,
   },
   leaderboardMeta: {
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 12,
   },
   leaderboardName: {
     fontSize: 14,
-    fontWeight: '600',
     color: colors.darkText,
+    fontFamily: fontFamilies.semiBold,
   },
   leaderboardGrade: {
     fontSize: 10,
     color: '#617283',
     marginTop: 4,
+    fontFamily: fontFamilies.semiBold,
   },
   leaderboardScore: {
     fontSize: 16,
-    fontWeight: '700',
     marginTop: 12,
+    fontFamily: fontFamilies.bold,
   },
   leaderboardButton: {
     marginTop: 24,
@@ -751,7 +817,7 @@ const styles = StyleSheet.create({
   },
   leaderboardButtonText: {
     color: colors.white,
-    fontWeight: '700',
+    fontFamily: fontFamilies.bold,
     fontSize: 14,
   },
   lifeRow: {
@@ -772,14 +838,14 @@ const styles = StyleSheet.create({
   lifeCardTitle: {
     marginTop: 10,
     fontSize: 12,
-    fontWeight: '700',
     color: colors.sectionTitle,
+    fontFamily: fontFamilies.bold,
   },
   literasikRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
-    gap: 16,
+    gap: 15,
   },
   literasikCard: {
     flex: 1,
@@ -796,8 +862,8 @@ const styles = StyleSheet.create({
   },
   literasikBadgeText: {
     fontSize: 9,
-    fontWeight: '700',
     color: colors.white,
+    fontFamily: fontFamilies.bold,
   },
   literasikImage: {
     width: 84,
@@ -808,14 +874,15 @@ const styles = StyleSheet.create({
   literasikTitle: {
     marginTop: 16,
     fontSize: 12,
-    fontWeight: '700',
     color: colors.sectionTitle,
+    fontFamily: fontFamilies.bold,
   },
   literasikDescription: {
     marginTop: 8,
     fontSize: 9,
     color: colors.sectionTitle,
     lineHeight: 14,
+    fontFamily: fontFamilies.medium,
   },
   literasikFooter: {
     marginTop: 16,
@@ -826,22 +893,26 @@ const styles = StyleSheet.create({
   literasikArrow: {
     width: 13,
     height: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   literasikLink: {
     fontSize: 10,
-    fontWeight: '700',
     color: colors.sectionTitle,
+    fontFamily: fontFamilies.bold,
   },
   adminCard: {
     marginHorizontal: 24,
     marginTop: 32,
-    backgroundColor: '#00BFAC',
     borderRadius: 20,
-    padding: 20,
-    flexDirection: 'row',
-    gap: 16,
-    alignItems: 'center',
+    overflow: 'hidden',
     marginBottom: 32,
+  },
+  adminGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    padding: 20,
   },
   adminImage: {
     width: 112,
@@ -852,14 +923,15 @@ const styles = StyleSheet.create({
   },
   adminTitle: {
     fontSize: 15,
-    fontWeight: '700',
     color: colors.white,
+    fontFamily: fontFamilies.bold,
   },
   adminDescription: {
     marginTop: 8,
     fontSize: 10,
     color: colors.white,
     lineHeight: 16,
+    fontFamily: fontFamilies.medium,
   },
   adminButton: {
     marginTop: 16,
@@ -872,7 +944,7 @@ const styles = StyleSheet.create({
   adminButtonText: {
     color: colors.white,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: fontFamilies.bold,
   },
   bottomNav: {
     position: 'absolute',
@@ -890,33 +962,32 @@ const styles = StyleSheet.create({
   },
   bottomNavItem: {
     alignItems: 'center',
+    paddingTop: 8,
   },
   bottomNavActive: {
     borderTopWidth: 2,
     borderTopColor: colors.primary,
-    paddingTop: 6,
   },
-  bottomNavIndicator: {
+  bottomNavIcon: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
     marginBottom: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   bottomNavLabel: {
     color: colors.primary,
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: fontFamilies.bold,
   },
   bottomNavLabelMuted: {
     color: '#617283',
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fontFamilies.semiBold,
   },
 });
 
 // NOVA'S DEV NOTES:
-// 1. Homescreen is broken into composable pieces (header, cards, sections, bottom nav) to simplify later state integration.
-// 2. Figma assets are consumed via Image URLs for quick visual parity checks; swap to local assets as they become available.
-// 3. Gradients are simulated through the exported mask; replace with expo-linear-gradient when that package is introduced.
-// 4. Components remain UI-only so we can wire real data sources and navigation actions in follow-up iterations.
+// 1. Integrated Montserrat + Playpen Sans through expo-font and gated initial paint behind SplashScreen to avoid fallback flicker.
+// 2. Recreated hero, leaderboard, and admin modules with expo-linear-gradient so the mobile UI mirrors the Figma depth and soft edges.
+// 3. Applied consistent typography + spacing tokens while keeping sections modular for upcoming data, navigation, and analytics hooks.
