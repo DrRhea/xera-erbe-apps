@@ -185,7 +185,7 @@ const useResponsiveLayout = () => {
   const safeWidth = Math.max(width, 320);
   const contentWidth = Math.min(safeWidth, 440);
 
-  const horizontalPadding = clamp(moderateScale(24, safeWidth, 0.5), 16, 28);
+  const horizontalPadding = clamp(moderateScale(22, safeWidth, 0.45), 14, 26);
   const sectionSpacing = clamp(moderateScale(32, safeWidth, 0.4), 24, 40);
   const innerContentWidth = Math.max(0, contentWidth - horizontalPadding * 2);
 
@@ -219,13 +219,17 @@ const useResponsiveLayout = () => {
   const adminButtonPaddingHorizontal = clamp(moderateScale(24, safeWidth, 0.5), 18, 30);
   const adminButtonPaddingVertical = clamp(moderateScale(8, safeWidth, 0.5), 6, 12);
 
-  const lifeCardSpacing = clamp(moderateScale(12, safeWidth, 0.5), 8, 14);
-  const lifeCardColumns = lifeAtErbeCards.length || 1;
-  const lifeCardWidth = clamp(
-    (innerContentWidth - lifeCardSpacing * Math.max(lifeCardColumns - 1, 0)) / lifeCardColumns,
-    60,
-    112
-  );
+  const lifeContainerPaddingHorizontal = clamp(moderateScale(14, safeWidth, 0.4), 9, 18);
+  const lifeContainerPaddingVertical = clamp(moderateScale(14, safeWidth, 0.45), 10, 18);
+  const lifeCardSpacing = clamp(moderateScale(12, safeWidth, 0.45), 8, 14);
+  const lifeCardColumns = Math.max(lifeAtErbeCards.length, 1);
+  const lifeSpacingTotal = lifeCardSpacing * Math.max(lifeCardColumns - 1, 0);
+  const lifeAvailableWidth = Math.max(innerContentWidth - lifeContainerPaddingHorizontal * 2 - lifeSpacingTotal, lifeCardColumns);
+  const rawLifeCardWidth = lifeAvailableWidth / lifeCardColumns;
+  const lifeCardMaxWidth = clamp(moderateScale(128, safeWidth, 0.35), 110, 144);
+  const lifeCardWidth = Math.min(rawLifeCardWidth, lifeCardMaxWidth);
+  const lifeCardVerticalPadding = clamp(rawLifeCardWidth * 0.18, 10, 18);
+  const lifeCardTitleFontSize = clamp(rawLifeCardWidth * 0.16, 9.5, 12.5);
   const recommendationDotsGap = clamp(moderateScale(12, safeWidth, 0.4), 8, 14);
 
   return {
@@ -259,8 +263,12 @@ const useResponsiveLayout = () => {
     adminImageSize,
     adminButtonPaddingHorizontal,
     adminButtonPaddingVertical,
+    lifeContainerPaddingHorizontal,
+    lifeContainerPaddingVertical,
     lifeCardSpacing,
     lifeCardWidth,
+    lifeCardVerticalPadding,
+    lifeCardTitleFontSize,
     recommendationDotsGap,
   };
 };
@@ -390,11 +398,13 @@ const ThirdPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
 type LifeCardProps = (typeof lifeAtErbeCards)[number] & {
   width: number;
   paddingVertical: number;
+  titleFontSize: number;
 };
 
-const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, paddingVertical }) => {
+const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, paddingVertical, titleFontSize }) => {
   const cardHeight = width * LIFE_CARD_HEIGHT_RATIO;
-  const imageSize = width * LIFE_CARD_IMAGE_RATIO;
+  const availableImageWidth = Math.max(width - 16, 48);
+  const imageSize = Math.min(availableImageWidth, width * LIFE_CARD_IMAGE_RATIO);
   const titleMarginTop = Math.max(6, width * LIFE_CARD_TITLE_MARGIN_RATIO);
 
   return (
@@ -411,8 +421,19 @@ const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, pad
         },
       ]}
     >
-      <Image source={image} style={[styles.lifeCardImage, { width: imageSize, height: imageSize }]} resizeMode="contain" />
-      <Text style={[styles.lifeCardTitle, { marginTop: titleMarginTop }]}>{title}</Text>
+      <Image
+        source={image}
+        style={[styles.lifeCardImage, { width: imageSize, height: imageSize }]}
+        resizeMode="contain"
+      />
+      <Text
+        style={[styles.lifeCardTitle, { marginTop: titleMarginTop, fontSize: titleFontSize, maxWidth: width - 12 }]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+      >
+        {title}
+      </Text>
     </Pressable>
   );
 };
@@ -705,42 +726,39 @@ const LeaderboardSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
   );
 };
 
-const LifeAtErbeSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
-  const cardsCount = lifeAtErbeCards.length || 1;
-  const availableWidth = layout.innerContentWidth - layout.lifeCardSpacing * (cardsCount - 1);
-  const cardWidth = clamp(availableWidth / cardsCount, 60, layout.lifeCardWidth);
-  const verticalPadding = Math.max(10, cardWidth * 0.16);
-  const containerWidth = layout.innerContentWidth;
-
-  return (
+const LifeAtErbeSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
+  <View
+    style={[
+      styles.lifeContainer,
+      {
+        width: layout.innerContentWidth,
+        alignSelf: 'center',
+        paddingHorizontal: layout.lifeContainerPaddingHorizontal,
+        paddingVertical: layout.lifeContainerPaddingVertical,
+      },
+    ]}
+  >
     <View
       style={[
-        styles.lifeContainer,
+        styles.lifeRow,
         {
-          width: containerWidth,
-          alignSelf: 'center',
-          paddingHorizontal: clamp(layout.horizontalPadding * 0.45, 10, 20),
-          paddingVertical: clamp(cardWidth * 0.15, 10, 16),
+          columnGap: layout.lifeCardSpacing,
+          gap: layout.lifeCardSpacing,
         },
       ]}
     >
-      <View
-        style={[
-          styles.lifeRow,
-          {
-            columnGap: layout.lifeCardSpacing,
-            flexWrap: 'nowrap',
-            justifyContent: 'space-between',
-          },
-        ]}
-      >
-        {lifeAtErbeCards.map((card) => (
-          <LifeCard key={card.title} {...card} width={cardWidth} paddingVertical={verticalPadding} />
-        ))}
-      </View>
+      {lifeAtErbeCards.map((card) => (
+        <LifeCard
+          key={card.title}
+          {...card}
+          width={layout.lifeCardWidth}
+          paddingVertical={layout.lifeCardVerticalPadding}
+          titleFontSize={layout.lifeCardTitleFontSize}
+        />
+      ))}
     </View>
-  );
-};
+  </View>
+);
 
 const LiterasikSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
   <View
@@ -1361,6 +1379,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
+    flexWrap: 'nowrap',
+    width: '100%',
   },
   lifeCard: {
     alignItems: 'center',
