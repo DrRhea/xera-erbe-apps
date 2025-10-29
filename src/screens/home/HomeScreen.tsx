@@ -347,14 +347,10 @@ const RecommendationCarouselIndicators: FC = () => (
   </View>
 );
 
-const SectionHeader: FC<{ title: string; cta?: string }> = ({ title, cta }) => (
-  <View style={styles.sectionHeader}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    {cta ? (
-      <View style={styles.sectionCtaWrapper}>
-        <Text style={styles.sectionCta}>{cta}</Text>
-      </View>
-    ) : null}
+const SectionHeader: FC<{ title: string; cta?: string; centered?: boolean }> = ({ title, cta, centered }) => (
+  <View style={[styles.sectionHeader, centered && styles.sectionHeaderCentered]}>
+    <Text style={[styles.sectionTitle, centered && styles.sectionTitleCentered]}>{title}</Text>
+    {cta ? <Text style={styles.sectionCta}>{cta}</Text> : null}
   </View>
 );
 
@@ -424,11 +420,11 @@ const HomeScreen: FC = () => {
           <RecommendationCarouselIndicators />
         </View>
         <View style={styles.sectionSpacing}>
-          <SectionHeader title="Leaderboard" />
+          <SectionHeader title="Leaderboard" centered />
           <LeaderboardSection />
         </View>
         <View style={styles.sectionSpacing}>
-          <SectionHeader title="Life at Erbe" />
+          <SectionHeader title="Life at Erbe" centered />
           <LifeAtErbeSection />
         </View>
         <View style={styles.sectionSpacing}>
@@ -651,10 +647,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  sectionHeaderCentered: {
+    justifyContent: 'center',
+  },
   sectionTitle: {
     fontSize: 15,
     color: colors.sectionTitle,
     fontFamily: fontFamilies.bold,
+  },
+  sectionTitleCentered: {
+    textAlign: 'center',
   },
   sectionCta: {
     fontSize: 12,
