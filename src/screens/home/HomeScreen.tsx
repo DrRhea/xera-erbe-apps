@@ -2,7 +2,7 @@ import React, { FC, useCallback } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, ImageSourcePropType, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageSourcePropType, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
 import type { SvgProps } from 'react-native-svg';
@@ -153,6 +153,14 @@ const lifeAtErbeCards = [
   { title: 'Materi', image: MateriImage, backgroundColor: '#E0F5FF' },
 ];
 
+const SECTION_HORIZONTAL_PADDING = 24;
+const LIFE_CONTAINER_HORIZONTAL_PADDING = 13;
+const LIFE_AT_ERBE_CARD_GAP = 12;
+const LIFE_CARD_MAX_WIDTH = 82;
+const LIFE_CARD_HEIGHT_RATIO = 107 / 82;
+const LIFE_CARD_IMAGE_RATIO = 64 / 82;
+const LIFE_CARD_TITLE_MARGIN_RATIO = 10 / 82;
+
 const literasikCards = [
   {
     title: '5 Cara Upgrade Skill\nTanpa Stuck Lama-Lama',
@@ -273,12 +281,35 @@ const ThirdPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
   </View>
 );
 
-const LifeCard: FC<(typeof lifeAtErbeCards)[number]> = ({ title, image, backgroundColor }) => (
-  <View style={[styles.lifeCard, { backgroundColor }]}>
-    <Image source={image} style={styles.lifeCardImage} resizeMode="contain" />
-    <Text style={styles.lifeCardTitle}>{title}</Text>
-  </View>
-);
+type LifeCardProps = (typeof lifeAtErbeCards)[number] & {
+  width: number;
+  spacing: number;
+  isLastCard: boolean;
+};
+
+const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, spacing, isLastCard }) => {
+  const cardHeight = width * LIFE_CARD_HEIGHT_RATIO;
+  const imageSize = width * LIFE_CARD_IMAGE_RATIO;
+  const titleMarginTop = Math.max(6, width * LIFE_CARD_TITLE_MARGIN_RATIO);
+
+  return (
+    <Pressable
+      style={[
+        styles.lifeCard,
+        {
+          backgroundColor,
+          width,
+          height: cardHeight,
+          marginRight: isLastCard ? 0 : spacing,
+          paddingVertical: Math.max(12, width * 0.18),
+        },
+      ]}
+    >
+      <Image source={image} style={[styles.lifeCardImage, { width: imageSize, height: imageSize }]} resizeMode="contain" />
+      <Text style={[styles.lifeCardTitle, { marginTop: titleMarginTop }]}>{title}</Text>
+    </Pressable>
+  );
+};
 
 const LiterasikCard: FC<(typeof literasikCards)[number]> = ({ title, description, tag, image }) => (
   <View style={styles.literasikCard}>
@@ -411,13 +442,33 @@ const LeaderboardSection: FC = () => {
   );
 };
 
-const LifeAtErbeSection: FC = () => (
-  <View style={styles.lifeRow}>
-    {lifeAtErbeCards.map((card) => (
-      <LifeCard key={card.title} {...card} />
-    ))}
-  </View>
-);
+const LifeAtErbeSection: FC = () => {
+  const { width: screenWidth } = useWindowDimensions();
+  const cardsCount = lifeAtErbeCards.length || 1;
+  const availableWidth = Math.max(
+    0,
+    screenWidth - SECTION_HORIZONTAL_PADDING * 2 - LIFE_CONTAINER_HORIZONTAL_PADDING * 2 - LIFE_AT_ERBE_CARD_GAP * (cardsCount - 1)
+  );
+  const baseCardWidth = availableWidth / cardsCount;
+  const fallbackCardWidth = Math.min(LIFE_CARD_MAX_WIDTH, (screenWidth - SECTION_HORIZONTAL_PADDING * 2) / cardsCount);
+  const computedCardWidth = baseCardWidth > 0 ? Math.min(LIFE_CARD_MAX_WIDTH, baseCardWidth) : fallbackCardWidth;
+
+  return (
+    <View style={styles.lifeContainer}>
+      <View style={styles.lifeRow}>
+        {lifeAtErbeCards.map((card, index) => (
+          <LifeCard
+            key={card.title}
+            {...card}
+            width={computedCardWidth}
+            spacing={LIFE_AT_ERBE_CARD_GAP}
+            isLastCard={index === lifeAtErbeCards.length - 1}
+          />
+        ))}
+      </View>
+    </View>
+  );
+};
 
 const LiterasikSection: FC = () => (
   <View style={styles.literasikRow}>
@@ -915,25 +966,38 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.bold,
     fontSize: 14,
   },
-  lifeRow: {
+  lifeContainer: {
     marginTop: 20,
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    paddingHorizontal: LIFE_CONTAINER_HORIZONTAL_PADDING,
+    paddingVertical: 12,
+    shadowColor: '#0F1E34',
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
+    alignSelf: 'stretch',
+  },
+  lifeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   lifeCard: {
     alignItems: 'center',
-    width: 82,
+    justifyContent: 'center',
     borderRadius: 15,
-    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
   lifeCardImage: {
     width: 64,
     height: 64,
   },
   lifeCardTitle: {
-    marginTop: 10,
     fontSize: 12,
     color: colors.sectionTitle,
+    textAlign: 'center',
     fontFamily: fontFamilies.bold,
   },
   literasikRow: {
