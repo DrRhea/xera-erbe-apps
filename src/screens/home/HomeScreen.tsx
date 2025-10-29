@@ -2,8 +2,38 @@ import React, { FC, useCallback } from 'react';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SvgUri } from 'react-native-svg';
-import { Image, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageSourcePropType, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+
+import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
+import type { SvgProps } from 'react-native-svg';
+
+import SearchIcon from '../../../assets/icons/search.svg';
+import NotificationIcon from '../../../assets/icons/notifdot.svg';
+import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
+import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
+import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
+import ArrowIcon from '../../../assets/icons/vector.svg';
+import HomeIcon from '../../../assets/icons/home-2.svg';
+import GraphIcon from '../../../assets/icons/graph.svg';
+import TagIcon from '../../../assets/icons/tag.svg';
+import UserIcon from '../../../assets/icons/user.svg';
+import PromoIcon from '../../../assets/icons/promo.svg';
+import CarouselDotIcon from '../../../assets/icons/carouseldot.svg';
+import CarouselDotActiveIcon from '../../../assets/icons/carouseldotactive.svg';
+
+import HeroAvatar from '../../../assets/images/Ava2.png';
+import AvatarGita from '../../../assets/images/Ava4.png';
+import AvatarFikri from '../../../assets/images/Ava1.png';
+import AvatarAldo from '../../../assets/images/Ava3.png';
+import DigidawImage from '../../../assets/images/digidaw.png';
+import TryOutImage from '../../../assets/images/tryout.png';
+import SnackBtImage from '../../../assets/images/snackbt.png';
+import PokeImage from '../../../assets/images/poke.png';
+import ImEngImage from '../../../assets/images/imeng.png';
+import MateriImage from '../../../assets/images/materi.png';
+import PoweredByLogo from '../../../assets/images/logoutuhputih.png';
+import LiterasikImage from '../../../assets/images/other2.png';
+import AdminImage from '../../../assets/images/other1.png';
 
 const colors = {
   background: '#F0F0F0',
@@ -25,47 +55,17 @@ const fontFamilies = {
   hero: 'PlaypenSans-ExtraBold',
 };
 
-const svgAssets = {
-  search: 'http://10.0.2.2:3845/assets/f7f0dc22c9b9602acb60bfe30b7e41f27cd0d12b.svg',
-  notification: 'http://10.0.2.2:3845/assets/49c36e52ab0a5681320f5698a3a206404d2e026c.svg',
-  recommendations: 'http://10.0.2.2:3845/assets/16a2c4e5b5d54dc0aba781452be9c22b5d527668.svg',
-  leaderboardSlot1: 'http://10.0.2.2:3845/assets/3780f0853b87cf6bcfc573344afee361875cbf6b.svg',
-  leaderboardSlot2: 'http://10.0.2.2:3845/assets/cd1d69bab0fba009f02e67c19da50b34dea86ed3.svg',
-  leaderboardSlot3: 'http://10.0.2.2:3845/assets/98d976360b447f05f0bc7fb55505d91528c4ed62.svg',
-  arrowRight: 'http://10.0.2.2:3845/assets/303884bbebac8a4731e3cb61cc65a0d5b7384acc.svg',
-  navHome: 'http://10.0.2.2:3845/assets/c726690482855c6d88c6e283539e029272a67038.svg',
-  navAnalysis: 'http://10.0.2.2:3845/assets/da4c47e1d588f767e532f0998599df7e85a6e067.svg',
-  navWallet: 'http://10.0.2.2:3845/assets/cd1d69bab0fba009f02e67c19da50b34dea86ed3.svg',
-  navProfile: 'http://10.0.2.2:3845/assets/d4a265aad65890f79ceb182b69b8252a04d7bdbd.svg',
-};
-
-const rasterImages = {
-  avatar: 'http://10.0.2.2:3845/assets/51ad82a6f14baa088dad217f874e47606c5c00a6.png',
-  poweredLogo: 'http://10.0.2.2:3845/assets/12313bf145d987dc0516e6d9c533797bc743e7c2.png',
-  weekly: 'http://10.0.2.2:3845/assets/6b59a3c8d22878946d5ddb8f2d8ba256efb171d4.png',
-  tryOut: 'http://10.0.2.2:3845/assets/1c22dbacc2c0394f329214f0c02ceddc369359a5.png',
-  avatar1: 'http://10.0.2.2:3845/assets/6b21d479f4905b231785e65fb75b12ae6f2d353a.png',
-  avatar2: 'http://10.0.2.2:3845/assets/1a0543c993968f63085e4c1f1bde11b9e9afd99c.png',
-  avatar3: 'http://10.0.2.2:3845/assets/5aca32bd9bcd92427c37c620d1ca71cb62c71a49.png',
-  snackBt: 'http://10.0.2.2:3845/assets/0f63affea49a950f5e9a19c100a775ecf9505aa6.png',
-  poke: 'http://10.0.2.2:3845/assets/31de013732322eeb6f0146157ed1c22b2a93472a.png',
-  imEng: 'http://10.0.2.2:3845/assets/e18fcbc90269beb3e596d30f9d44ef5376933e6d.png',
-  materi: 'http://10.0.2.2:3845/assets/2299b8e7f2bd00ef68f6652ec24c62ff1036314d.png',
-  literasik: 'http://10.0.2.2:3845/assets/2eef3da1172f2a3617dfabba39336092b19ca210.png',
-  admin: 'http://10.0.2.2:3845/assets/c620c8792e7c15c01b319237bf9b204b85ac0503.png',
-};
-
 const leaderboardGradients: Record<number, [string, string]> = {
   1: ['#CCF3ED', '#7FC9BA'],
   2: ['#B8E5DE', '#62BCAE'],
   3: ['#B8E5DE', '#62BCAE'],
 };
 
-const navItems = [
-  { key: 'home', label: 'Home', icon: svgAssets.navHome, active: true },
-  { key: 'analysis', label: 'Analysis', icon: svgAssets.navAnalysis, active: false },
-  { key: 'wallet', label: 'Wallet', icon: svgAssets.navWallet, active: false },
-  { key: 'profile', label: 'Profile', icon: svgAssets.navProfile, active: false },
+const navItems: BottomNavigationItem[] = [
+  { key: 'home', label: 'Home', Icon: HomeIcon },
+  { key: 'analysis', label: 'Analysis', Icon: GraphIcon },
+  { key: 'wallet', label: 'Wallet', Icon: TagIcon },
+  { key: 'profile', label: 'Profile', Icon: UserIcon },
 ];
 
 type PercentString = `${number}%`;
@@ -96,12 +96,12 @@ const progressData: ProgressCardProps[] = [
 
 type QuickAction = {
   title: string;
-  image: string;
+  image: ImageSourcePropType;
 };
 
 const quickActions: QuickAction[] = [
-  { title: "Let's DIGIDAW", image: rasterImages.weekly },
-  { title: "Let's Try Out", image: rasterImages.tryOut },
+  { title: "Let's DIGIDAW", image: DigidawImage },
+  { title: "Let's Try Out", image: TryOutImage },
 ];
 
 type LeaderboardEntry = {
@@ -109,8 +109,8 @@ type LeaderboardEntry = {
   grade: string;
   score: number;
   rank: number;
-  avatar: string;
-  badge: string;
+  avatar: ImageSourcePropType;
+  Badge: FC<SvgProps>;
   scoreColor: string;
 };
 
@@ -120,8 +120,8 @@ const leaderboardEntries: LeaderboardEntry[] = [
     grade: '9 SMP',
     score: 981,
     rank: 1,
-    avatar: rasterImages.avatar1,
-    badge: svgAssets.leaderboardSlot1,
+    avatar: AvatarGita,
+    Badge: RedBadgeIcon,
     scoreColor: '#EF0F0F',
   },
   {
@@ -129,8 +129,8 @@ const leaderboardEntries: LeaderboardEntry[] = [
     grade: '12 SMA',
     score: 865,
     rank: 2,
-    avatar: rasterImages.avatar2,
-    badge: svgAssets.leaderboardSlot2,
+    avatar: AvatarFikri,
+    Badge: OrangeBadgeIcon,
     scoreColor: colors.accent,
   },
   {
@@ -138,17 +138,19 @@ const leaderboardEntries: LeaderboardEntry[] = [
     grade: '8 SMP',
     score: 546,
     rank: 3,
-    avatar: rasterImages.avatar3,
-    badge: svgAssets.leaderboardSlot3,
+    avatar: AvatarAldo,
+    Badge: BlueBadgeIcon,
     scoreColor: colors.primary,
   },
 ];
 
+const leaderboardDisplayOrder: number[] = [2, 1, 3];
+
 const lifeAtErbeCards = [
-  { title: 'SNack-BT', image: rasterImages.snackBt, backgroundColor: '#FFEDD2' },
-  { title: 'PoKe', image: rasterImages.poke, backgroundColor: '#CDFEE2' },
-  { title: 'ImEng', image: rasterImages.imEng, backgroundColor: '#F6C2DB' },
-  { title: 'Materi', image: rasterImages.materi, backgroundColor: '#E0F5FF' },
+  { title: 'SNack-BT', image: SnackBtImage, backgroundColor: '#FFEDD2' },
+  { title: 'PoKe', image: PokeImage, backgroundColor: '#CDFEE2' },
+  { title: 'ImEng', image: ImEngImage, backgroundColor: '#F6C2DB' },
+  { title: 'Materi', image: MateriImage, backgroundColor: '#E0F5FF' },
 ];
 
 const literasikCards = [
@@ -157,12 +159,14 @@ const literasikCards = [
     description:
       'Pernah ga sih kamu coba konsisten belajar tapi ngerasa kemampuan kamu stuck di situ-situ aja? Kadang penyebabnya...',
     tag: 'Tips Belajar',
+    image: LiterasikImage,
   },
   {
     title: '5 Cara Upgrade Skill\nTanpa Stuck Lama-Lama',
     description:
       'Pernah ga sih kamu coba konsisten belajar tapi ngerasa kemampuan kamu stuck di situ-situ aja? Kadang penyebabnya...',
     tag: 'Tips Belajar',
+    image: LiterasikImage,
   },
 ];
 
@@ -192,26 +196,35 @@ type QuickActionCardProps = QuickAction & {
 
 const QuickActionCard: FC<QuickActionCardProps> = ({ title, image, index }) => (
   <Pressable key={`${title}-${index}`} style={styles.quickActionCard}>
-    <Image source={{ uri: image }} style={styles.quickActionImage} resizeMode="contain" />
+    <Image source={image} style={styles.quickActionImage} resizeMode="contain" />
     <Text style={styles.quickActionLabel}>{title}</Text>
   </Pressable>
 );
 
-const LeaderboardColumn: FC<LeaderboardEntry> = ({ name, grade, score, rank, avatar, badge, scoreColor }) => {
+const LeaderboardColumn: FC<LeaderboardEntry> = ({ name, grade, score, rank, avatar, Badge, scoreColor }) => {
   const gradient = leaderboardGradients[rank] ?? leaderboardGradients[2];
+  const isChampion = rank === 1;
 
   return (
-    <View style={styles.leaderboardColumn}>
-      <LinearGradient colors={gradient} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={styles.leaderboardGradient}>
-        <View style={styles.leaderboardBadgeWrapper}>
-          <View style={styles.leaderboardBadge}>
-            <SvgUri uri={badge} width="100%" height="100%" />
-          </View>
-          <View style={styles.leaderboardRankBadge}>
-            <Text style={styles.leaderboardRankText}>{rank}</Text>
-          </View>
+    <View
+      style={[
+        styles.leaderboardColumn,
+        isChampion ? styles.leaderboardColumnLeader : styles.leaderboardColumnChallenger,
+      ]}
+    >
+      <LinearGradient
+        colors={gradient}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={[styles.leaderboardGradient, isChampion ? styles.leaderboardGradientLeader : styles.leaderboardGradientChallenger]}
+      >
+        <View style={styles.leaderboardRankPill}>
+          <Text style={styles.leaderboardRankText}>{rank}</Text>
         </View>
-        <Image source={{ uri: avatar }} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <View style={styles.leaderboardMedal}>
+          <Badge width={68} height={75} />
+          <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        </View>
       </LinearGradient>
       <View style={styles.leaderboardMeta}>
         <Text style={styles.leaderboardName}>{name}</Text>
@@ -224,23 +237,21 @@ const LeaderboardColumn: FC<LeaderboardEntry> = ({ name, grade, score, rank, ava
 
 const LifeCard: FC<(typeof lifeAtErbeCards)[number]> = ({ title, image, backgroundColor }) => (
   <View style={[styles.lifeCard, { backgroundColor }]}>
-    <Image source={{ uri: image }} style={styles.lifeCardImage} resizeMode="contain" />
+    <Image source={image} style={styles.lifeCardImage} resizeMode="contain" />
     <Text style={styles.lifeCardTitle}>{title}</Text>
   </View>
 );
 
-const LiterasikCard: FC<(typeof literasikCards)[number]> = ({ title, description, tag }) => (
+const LiterasikCard: FC<(typeof literasikCards)[number]> = ({ title, description, tag, image }) => (
   <View style={styles.literasikCard}>
     <View style={styles.literasikBadge}>
       <Text style={styles.literasikBadgeText}>{tag}</Text>
     </View>
-    <Image source={{ uri: rasterImages.literasik }} style={styles.literasikImage} resizeMode="contain" />
+    <Image source={image} style={styles.literasikImage} resizeMode="contain" />
     <Text style={styles.literasikTitle}>{title}</Text>
     <Text style={styles.literasikDescription}>{description}</Text>
     <View style={styles.literasikFooter}>
-      <View style={styles.literasikArrow}>
-        <SvgUri uri={svgAssets.arrowRight} width="100%" height="100%" />
-      </View>
+      <ArrowIcon width={13} height={13} />
       <Text style={styles.literasikLink}>Lanjutkan Baca</Text>
     </View>
   </View>
@@ -249,7 +260,7 @@ const LiterasikCard: FC<(typeof literasikCards)[number]> = ({ title, description
 const AdminCard: FC = () => (
   <View style={styles.adminCard}>
     <LinearGradient colors={['#004559', colors.greenLight]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.adminGradient}>
-      <Image source={{ uri: rasterImages.admin }} style={styles.adminImage} resizeMode="contain" />
+      <Image source={AdminImage} style={styles.adminImage} resizeMode="contain" />
       <View style={styles.adminCopy}>
         <Text style={styles.adminTitle}>{'Tanya & Kepo Erbe!'}</Text>
         <Text style={styles.adminDescription}>
@@ -263,37 +274,20 @@ const AdminCard: FC = () => (
   </View>
 );
 
-const BottomNavigation: FC = () => (
-  <View style={styles.bottomNav}>
-    {navItems.map(({ key, label, icon, active }) => (
-      <Pressable key={key} style={[styles.bottomNavItem, active && styles.bottomNavActive]}>
-        <View style={styles.bottomNavIcon}>
-          <SvgUri uri={icon} width="100%" height="100%" />
-        </View>
-        <Text style={active ? styles.bottomNavLabel : styles.bottomNavLabelMuted}>{label}</Text>
-      </Pressable>
-    ))}
-  </View>
-);
-
 const HomescreenHeader: FC = () => (
   <View style={styles.heroWrapper}>
     <LinearGradient colors={['#1C637B', '#9EE0BF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.heroContainer}>
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
           <Text style={styles.searchPlaceholder}>Mau belajar apa nih?</Text>
-          <View style={styles.searchIcon}>
-            <SvgUri uri={svgAssets.search} width="100%" height="100%" />
-          </View>
+          <SearchIcon width={18} height={18} />
         </View>
         <Pressable style={styles.notificationButton}>
-          <View style={styles.notificationIcon}>
-            <SvgUri uri={svgAssets.notification} width="100%" height="100%" />
-          </View>
+          <NotificationIcon width={80} height={80} />
         </Pressable>
       </View>
       <View style={styles.profileRow}>
-        <Image source={{ uri: rasterImages.avatar }} style={styles.profileAvatar} resizeMode="contain" />
+        <Image source={HeroAvatar} style={styles.profileAvatar} resizeMode="contain" />
         <View style={styles.profileMeta}>
           <Text style={styles.profileGreeting}>Hi, Nataa!</Text>
           <View style={styles.profileBadge}>
@@ -301,7 +295,7 @@ const HomescreenHeader: FC = () => (
           </View>
         </View>
       </View>
-  <Text style={styles.heroHeadline}>{"Let's Start Your Academic Era!"}</Text>
+      <Text style={styles.heroHeadline}>{"Let's Start Your Academic Era!"}</Text>
       <View style={styles.progressGrid}>
         {progressData.map((item) => (
           <ProgressCard key={item.title} {...item} />
@@ -314,7 +308,7 @@ const HomescreenHeader: FC = () => (
       </View>
       <View style={styles.poweredRow}>
         <Text style={styles.poweredText}>Powered by</Text>
-        <Image source={{ uri: rasterImages.poweredLogo }} style={styles.poweredLogo} resizeMode="contain" />
+        <Image source={PoweredByLogo} style={styles.poweredLogo} resizeMode="contain" />
       </View>
     </LinearGradient>
   </View>
@@ -322,44 +316,66 @@ const HomescreenHeader: FC = () => (
 
 const RecommendationsCard: FC = () => (
   <View style={styles.recommendationCard}>
-    <View style={styles.recommendationImage}>
-      <SvgUri uri={svgAssets.recommendations} width="100%" height="100%" />
-      <View style={styles.recommendationOverlay}>
-        <Text style={styles.recommendationSuper}>{`SUPER\nPTN!`}</Text>
-        <Text style={styles.recommendationDiscount}>30%</Text>
-        <Text style={styles.recommendationSuffix}>off</Text>
-        <View style={styles.recommendationCodeWrapper}>
-          <View style={styles.recommendationCodeLabel}>
-            <Text style={styles.recommendationCodeLabelText}>{`KODE\nPROMO`}</Text>
-          </View>
-          <View style={styles.recommendationCodeBadge}>
-            <Text style={styles.recommendationCodeText}>SUPERPTN</Text>
+    <LinearGradient colors={['#CFF0EA', '#7ECAC0']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.recommendationGradient}>
+      <View style={styles.recommendationContent}>
+        <View style={styles.recommendationLeft}>
+          <Text style={styles.recommendationSuper}>{`SUPER\nPTN!`}</Text>
+          <View style={styles.recommendationCodeWrapper}>
+            <View style={styles.recommendationCodeLabel}>
+              <PromoIcon width={36} height={36} />
+              <Text style={styles.recommendationCodeLabelText}>{`KODE\nPROMO`}</Text>
+            </View>
+            <View style={styles.recommendationCodeBadge}>
+              <Text style={styles.recommendationCodeText}>SUPERPTN</Text>
+            </View>
           </View>
         </View>
+        <View style={styles.recommendationRight}>
+          <Text style={styles.recommendationDiscount}>30%</Text>
+          <Text style={styles.recommendationSuffix}>off</Text>
+        </View>
       </View>
-    </View>
+    </LinearGradient>
+  </View>
+);
+
+const RecommendationCarouselIndicators: FC = () => (
+  <View style={styles.recommendationDots}>
+    <CarouselDotActiveIcon width={10} height={10} />
+    <CarouselDotIcon width={10} height={10} />
+    <CarouselDotIcon width={10} height={10} />
   </View>
 );
 
 const SectionHeader: FC<{ title: string; cta?: string }> = ({ title, cta }) => (
   <View style={styles.sectionHeader}>
     <Text style={styles.sectionTitle}>{title}</Text>
-    {cta ? <Text style={styles.sectionCta}>{cta}</Text> : null}
+    {cta ? (
+      <View style={styles.sectionCtaWrapper}>
+        <Text style={styles.sectionCta}>{cta}</Text>
+      </View>
+    ) : null}
   </View>
 );
 
-const LeaderboardSection: FC = () => (
-  <View style={styles.leaderboardCard}>
-    <View style={styles.leaderboardColumns}>
-      {leaderboardEntries.map((entry) => (
-        <LeaderboardColumn key={entry.rank} {...entry} />
-      ))}
+const LeaderboardSection: FC = () => {
+  const orderedEntries = leaderboardDisplayOrder
+    .map((rank) => leaderboardEntries.find((entry) => entry.rank === rank))
+    .filter((entry): entry is LeaderboardEntry => Boolean(entry));
+
+  return (
+    <View style={styles.leaderboardCard}>
+      <View style={styles.leaderboardColumns}>
+        {orderedEntries.map((entry) => (
+          <LeaderboardColumn key={entry.rank} {...entry} />
+        ))}
+      </View>
+      <Pressable style={styles.leaderboardButton}>
+        <Text style={styles.leaderboardButtonText}>Cek Erbe Leaderboard</Text>
+      </Pressable>
     </View>
-    <Pressable style={styles.leaderboardButton}>
-      <Text style={styles.leaderboardButtonText}>Cek Erbe Leaderboard</Text>
-    </Pressable>
-  </View>
-);
+  );
+};
 
 const LifeAtErbeSection: FC = () => (
   <View style={styles.lifeRow}>
@@ -405,6 +421,7 @@ const HomeScreen: FC = () => {
         <View style={styles.sectionSpacing}>
           <SectionHeader title="See Our Recommendations" cta="Selengkapnya" />
           <RecommendationsCard />
+          <RecommendationCarouselIndicators />
         </View>
         <View style={styles.sectionSpacing}>
           <SectionHeader title="Leaderboard" />
@@ -420,7 +437,14 @@ const HomeScreen: FC = () => {
         </View>
         <AdminCard />
       </ScrollView>
-      <BottomNavigation />
+      <BottomNavigation
+        items={navItems}
+        activeKey="home"
+        backgroundColor={colors.white}
+        activeColor={colors.primary}
+        inactiveColor="#617283"
+        style={styles.bottomNavContainer}
+      />
     </SafeAreaView>
   );
 };
@@ -473,21 +497,9 @@ const styles = StyleSheet.create({
     color: 'rgba(0,0,0,0.8)',
     fontFamily: fontFamilies.medium,
   },
-  searchIcon: {
-    width: 18,
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   notificationButton: {
-    width: 38,
-    height: 38,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notificationIcon: {
-    width: 24,
-    height: 24,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -649,23 +661,28 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontFamily: fontFamilies.bold,
   },
+  sectionCtaWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   recommendationCard: {
     marginTop: 20,
   },
-  recommendationImage: {
+  recommendationGradient: {
     borderRadius: 20,
     overflow: 'hidden',
-    height: 157,
-    justifyContent: 'flex-start',
-    position: 'relative',
+    minHeight: 157,
+    padding: 24,
+    justifyContent: 'center',
   },
-  recommendationOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    padding: 20,
+  recommendationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  recommendationLeft: {
+    flex: 1,
   },
   recommendationSuper: {
     fontSize: 25,
@@ -676,41 +693,41 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.extraBold,
   },
   recommendationDiscount: {
-    position: 'absolute',
-    right: 60,
-    top: 30,
-    fontSize: 50,
+    fontSize: 54,
     color: colors.white,
     textShadowColor: colors.accent,
     textShadowOffset: { width: 3, height: 3 },
     fontFamily: fontFamilies.extraBold,
   },
   recommendationSuffix: {
-    position: 'absolute',
-    right: 40,
-    bottom: 32,
     fontSize: 15,
     color: colors.white,
     textShadowColor: colors.primary,
     textShadowOffset: { width: 1, height: 1 },
     fontFamily: fontFamilies.bold,
+    alignSelf: 'flex-end',
+  },
+  recommendationRight: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: 8,
   },
   recommendationCodeWrapper: {
-    position: 'absolute',
-    left: 24,
-    bottom: 24,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginTop: 28,
   },
   recommendationCodeLabel: {
-    width: 60,
-    height: 31,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    height: 40,
     borderRadius: 30,
     borderWidth: 1,
     borderColor: colors.primary,
     justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: colors.white,
   },
   recommendationCodeLabelText: {
@@ -720,7 +737,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.bold,
   },
   recommendationCodeBadge: {
-    height: 31,
+    height: 40,
     borderRadius: 30,
     backgroundColor: colors.primary,
     justifyContent: 'center',
@@ -731,6 +748,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.white,
     fontFamily: fontFamilies.bold,
+  },
+  recommendationDots: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 16,
   },
   leaderboardCard: {
     marginTop: 20,
@@ -743,39 +767,61 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
+    alignItems: 'flex-end',
   },
   leaderboardColumn: {
     alignItems: 'center',
-    width: 112,
+    flex: 1,
+    maxWidth: 112,
+    marginHorizontal: 4,
+    justifyContent: 'flex-end',
+  },
+  leaderboardColumnLeader: {
+    marginBottom: 0,
+    transform: [{ translateY: -10 }],
+    zIndex: 2,
+  },
+  leaderboardColumnChallenger: {
+    marginTop: 16,
   },
   leaderboardGradient: {
     width: '100%',
-    height: 160,
-    borderRadius: 40,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
     alignItems: 'center',
-    paddingTop: 34,
-    paddingBottom: 16,
+    paddingTop: 28,
+    paddingBottom: 20,
+    position: 'relative',
   },
-  leaderboardBadgeWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  leaderboardGradientLeader: {
+    height: 180,
   },
-  leaderboardBadge: {
-    width: 72,
-    height: 72,
-    justifyContent: 'center',
-    alignItems: 'center',
+  leaderboardGradientChallenger: {
+    height: 150,
   },
-  leaderboardRankBadge: {
+  leaderboardRankPill: {
     position: 'absolute',
-    top: -10,
-    right: 16,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    top: -16,
+    alignSelf: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: colors.primary,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  leaderboardMedal: {
+    marginTop: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 68,
+    height: 75,
+    position: 'relative',
   },
   leaderboardRankText: {
     color: colors.white,
@@ -783,9 +829,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   leaderboardAvatar: {
-    width: 68,
-    height: 68,
-    marginTop: 8,
+    position: 'absolute',
+    width: 58,
+    height: 58,
+    top: 8,
+    borderRadius: 29,
+    borderWidth: 4,
+    borderColor: colors.white,
   },
   leaderboardMeta: {
     alignItems: 'center',
@@ -890,12 +940,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  literasikArrow: {
-    width: 13,
-    height: 13,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   literasikLink: {
     fontSize: 10,
     color: colors.sectionTitle,
@@ -946,44 +990,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: fontFamilies.bold,
   },
-  bottomNav: {
+  bottomNavContainer: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    height: 63,
-    backgroundColor: colors.white,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    borderTopLeftRadius: 6,
-    borderTopRightRadius: 6,
-    paddingHorizontal: 30,
-  },
-  bottomNavItem: {
-    alignItems: 'center',
-    paddingTop: 8,
-  },
-  bottomNavActive: {
-    borderTopWidth: 2,
-    borderTopColor: colors.primary,
-  },
-  bottomNavIcon: {
-    width: 24,
-    height: 24,
-    marginBottom: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bottomNavLabel: {
-    color: colors.primary,
-    fontSize: 12,
-    fontFamily: fontFamilies.bold,
-  },
-  bottomNavLabelMuted: {
-    color: '#617283',
-    fontSize: 12,
-    fontFamily: fontFamilies.semiBold,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -2 },
+    elevation: 8,
   },
 });
 
