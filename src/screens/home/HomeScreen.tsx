@@ -352,7 +352,7 @@ const HomescreenHeader: FC = () => (
           <SearchIcon width={18} height={18} />
         </View>
         <Pressable style={styles.notificationButton}>
-          <NotificationIcon width={80} height={80} />
+          <NotificationIcon style={styles.notificationIcon} />
         </Pressable>
       </View>
       <View style={styles.profileRow}>
@@ -600,6 +600,11 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  notificationIcon: {
+    width: 28,
+    height: 28,
+    transform: [{ translateY: 5 }],
   },
   profileRow: {
     flexDirection: 'row',
