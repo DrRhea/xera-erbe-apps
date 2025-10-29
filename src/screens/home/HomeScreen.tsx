@@ -4,20 +4,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, ImageSourcePropType, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Path, type SvgProps } from 'react-native-svg';
-
-import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
-
-import SearchIcon from '../../../assets/icons/search.svg';
-import NotificationIcon from '../../../assets/icons/notifdot.svg';
-import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
-import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
-import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
-import ArrowIcon from '../../../assets/icons/vector.svg';
-import HomeIcon from '../../../assets/icons/home-2.svg';
 import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
-import PromoIcon from '../../../assets/icons/promo.svg';
 
 import HeroAvatar from '../../../assets/images/Ava2.png';
 import AvatarGita from '../../../assets/images/Ava4.png';
@@ -32,6 +21,16 @@ import MateriImage from '../../../assets/images/materi.png';
 import PoweredByLogo from '../../../assets/images/logoutuhputih.png';
 import LiterasikImage from '../../../assets/images/other2.png';
 import AdminImage from '../../../assets/images/other1.png';
+
+import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
+import HomeIcon from '../../../assets/icons/home-2.svg';
+import PromoIcon from '../../../assets/icons/promo.svg';
+import ArrowIcon from '../../../assets/icons/vector.svg';
+import SearchIcon from '../../../assets/icons/search.svg';
+import NotificationIcon from '../../../assets/icons/notifdot.svg';
+import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
+import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
+import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
 
 const colors = {
   background: '#F0F0F0',
@@ -124,7 +123,7 @@ const leaderboardEntries: LeaderboardEntry[] = [
   },
   {
     name: 'Fikri',
-    grade: '12 SMA',
+    grade: '9 SMP',
     score: 865,
     rank: 2,
     avatar: AvatarFikri,
@@ -133,16 +132,14 @@ const leaderboardEntries: LeaderboardEntry[] = [
   },
   {
     name: 'Aldo',
-    grade: '8 SMP',
-    score: 546,
+    grade: '9 SMP',
+    score: 812,
     rank: 3,
     avatar: AvatarAldo,
     Badge: BlueBadgeIcon,
     scoreColor: colors.primary,
   },
 ];
-
-const leaderboardDisplayOrder: number[] = [2, 1, 3];
 
 const lifeAtErbeCards = [
   { title: 'SNack-BT', image: SnackBtImage, backgroundColor: '#FFEDD2' },
@@ -151,10 +148,7 @@ const lifeAtErbeCards = [
   { title: 'Materi', image: MateriImage, backgroundColor: '#E0F5FF' },
 ];
 
-const SECTION_HORIZONTAL_PADDING = 24;
 const LIFE_CONTAINER_HORIZONTAL_PADDING = 13;
-const LIFE_AT_ERBE_CARD_GAP = 12;
-const LIFE_CARD_MAX_WIDTH = 82;
 const LIFE_CARD_HEIGHT_RATIO = 107 / 82;
 const LIFE_CARD_IMAGE_RATIO = 64 / 82;
 const LIFE_CARD_TITLE_MARGIN_RATIO = 10 / 82;
@@ -178,6 +172,101 @@ const literasikCards = [
   },
 ];
 
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const guidelineBaseWidth = 375;
+
+const scale = (size: number, width: number) => (width / guidelineBaseWidth) * size;
+
+const moderateScale = (size: number, width: number, factor = 0.5) => size + (scale(size, width) - size) * factor;
+
+const useResponsiveLayout = () => {
+  const { width } = useWindowDimensions();
+  const safeWidth = Math.max(width, 320);
+  const contentWidth = Math.min(safeWidth, 440);
+
+  const horizontalPadding = clamp(moderateScale(24, safeWidth, 0.5), 16, 28);
+  const sectionSpacing = clamp(moderateScale(32, safeWidth, 0.4), 24, 40);
+  const innerContentWidth = Math.max(0, contentWidth - horizontalPadding * 2);
+
+  const heroPaddingTop = clamp(moderateScale(24, safeWidth, 0.4), 18, 32);
+  const heroPaddingBottom = clamp(moderateScale(32, safeWidth, 0.4), 24, 40);
+  const heroAvatarSize = clamp(moderateScale(92, safeWidth, 0.6), 72, 102);
+  const profileSpacing = clamp(moderateScale(24, safeWidth, 0.5), 16, 30);
+  const heroGreetingSize = clamp(moderateScale(22, safeWidth, 0.45), 18, 24);
+  const heroBadgeFontSize = clamp(moderateScale(14, safeWidth, 0.45), 12, 16);
+  const heroBadgePaddingVertical = clamp(moderateScale(6, safeWidth, 0.5), 4, 8);
+  const heroBadgePaddingHorizontal = clamp(moderateScale(16, safeWidth, 0.5), 12, 20);
+  const heroHeadlineFontSize = clamp(moderateScale(18, safeWidth, 0.45), 16, 20);
+
+  const progressGap = clamp(moderateScale(12, safeWidth, 0.5), 8, 16);
+  const quickActionGap = clamp(moderateScale(12, safeWidth, 0.5), 8, 18);
+  const quickActionPaddingVertical = clamp(moderateScale(10, safeWidth, 0.5), 8, 14);
+  const quickActionPaddingHorizontal = clamp(moderateScale(14, safeWidth, 0.5), 12, 18);
+  const quickActionImageSize = clamp(moderateScale(46, safeWidth, 0.5), 36, 54);
+  const quickActionLabelFontSize = clamp(moderateScale(14, safeWidth, 0.4), 12, 16);
+
+  const recommendationPaddingHorizontal = clamp(moderateScale(24, safeWidth, 0.5), 18, 30);
+  const recommendationPaddingVertical = clamp(moderateScale(24, safeWidth, 0.5), 18, 30);
+
+  const literasikGap = clamp(moderateScale(15, safeWidth, 0.5), 12, 18);
+  const literasikPadding = clamp(moderateScale(16, safeWidth, 0.5), 12, 20);
+  const literasikImageSize = clamp(moderateScale(84, safeWidth, 0.4), 68, 96);
+  const literasikFooterGap = clamp(moderateScale(8, safeWidth, 0.5), 6, 10);
+
+  const adminPadding = clamp(moderateScale(20, safeWidth, 0.5), 16, 26);
+  const adminImageSize = clamp(moderateScale(112, safeWidth, 0.5), 90, 126);
+  const adminButtonPaddingHorizontal = clamp(moderateScale(24, safeWidth, 0.5), 18, 30);
+  const adminButtonPaddingVertical = clamp(moderateScale(8, safeWidth, 0.5), 6, 12);
+
+  const lifeCardSpacing = clamp(moderateScale(12, safeWidth, 0.5), 8, 14);
+  const lifeCardColumns = lifeAtErbeCards.length || 1;
+  const lifeCardWidth = clamp(
+    (innerContentWidth - lifeCardSpacing * Math.max(lifeCardColumns - 1, 0)) / lifeCardColumns,
+    60,
+    112
+  );
+  const recommendationDotsGap = clamp(moderateScale(12, safeWidth, 0.4), 8, 14);
+
+  return {
+    screenWidth: safeWidth,
+    contentWidth,
+    innerContentWidth,
+    horizontalPadding,
+    sectionSpacing,
+    heroPaddingTop,
+    heroPaddingBottom,
+    heroAvatarSize,
+    profileSpacing,
+    heroGreetingSize,
+    heroBadgeFontSize,
+    heroBadgePaddingVertical,
+    heroBadgePaddingHorizontal,
+    heroHeadlineFontSize,
+    progressGap,
+    quickActionGap,
+    quickActionPaddingVertical,
+    quickActionPaddingHorizontal,
+    quickActionImageSize,
+    quickActionLabelFontSize,
+    recommendationPaddingHorizontal,
+    recommendationPaddingVertical,
+    literasikGap,
+    literasikPadding,
+    literasikImageSize,
+    literasikFooterGap,
+    adminPadding,
+    adminImageSize,
+    adminButtonPaddingHorizontal,
+    adminButtonPaddingVertical,
+    lifeCardSpacing,
+    lifeCardWidth,
+    recommendationDotsGap,
+  };
+};
+
+type ResponsiveLayout = ReturnType<typeof useResponsiveLayout>;
+
 const ProgressCard: FC<ProgressCardProps> = ({ title, progress, accentLabel, footerLabel }) => {
   const widthPercent: PercentString = `${Math.min(progress, 1) * 100}%`;
 
@@ -200,12 +289,29 @@ const ProgressCard: FC<ProgressCardProps> = ({ title, progress, accentLabel, foo
 
 type QuickActionCardProps = QuickAction & {
   index: number;
+  paddingHorizontal: number;
+  paddingVertical: number;
+  imageSize: number;
+  labelFontSize: number;
+  minWidth: number;
 };
 
-const QuickActionCard: FC<QuickActionCardProps> = ({ title, image, index }) => (
-  <Pressable key={`${title}-${index}`} style={styles.quickActionCard}>
-    <Image source={image} style={styles.quickActionImage} resizeMode="contain" />
-    <Text style={styles.quickActionLabel}>{title}</Text>
+const QuickActionCard: FC<QuickActionCardProps> = ({
+  title,
+  image,
+  index,
+  paddingHorizontal,
+  paddingVertical,
+  imageSize,
+  labelFontSize,
+  minWidth,
+}) => (
+  <Pressable
+    key={`${title}-${index}`}
+    style={[styles.quickActionCard, { paddingHorizontal, paddingVertical, minWidth }]}
+  >
+    <Image source={image} style={[styles.quickActionImage, { width: imageSize, height: imageSize }]} resizeMode="contain" />
+    <Text style={[styles.quickActionLabel, { fontSize: labelFontSize }]}>{title}</Text>
   </Pressable>
 );
 
@@ -283,11 +389,10 @@ const ThirdPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
 
 type LifeCardProps = (typeof lifeAtErbeCards)[number] & {
   width: number;
-  spacing: number;
-  isLastCard: boolean;
+  paddingVertical: number;
 };
 
-const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, spacing, isLastCard }) => {
+const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, paddingVertical }) => {
   const cardHeight = width * LIFE_CARD_HEIGHT_RATIO;
   const imageSize = width * LIFE_CARD_IMAGE_RATIO;
   const titleMarginTop = Math.max(6, width * LIFE_CARD_TITLE_MARGIN_RATIO);
@@ -299,9 +404,10 @@ const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, spa
         {
           backgroundColor,
           width,
+          minWidth: width,
+          maxWidth: width,
           height: cardHeight,
-          marginRight: isLastCard ? 0 : spacing,
-          paddingVertical: Math.max(12, width * 0.18),
+          paddingVertical,
         },
       ]}
     >
@@ -311,31 +417,70 @@ const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, spa
   );
 };
 
-const LiterasikCard: FC<(typeof literasikCards)[number]> = ({ title, description, tag, image }) => (
-  <View style={styles.literasikCard}>
-    <View style={styles.literasikBadge}>
-      <Text style={styles.literasikBadgeText}>{tag}</Text>
-    </View>
-    <Image source={image} style={styles.literasikImage} resizeMode="contain" />
-    <Text style={styles.literasikTitle}>{title}</Text>
-    <Text style={styles.literasikDescription}>{description}</Text>
-    <View style={styles.literasikFooter}>
-      <ArrowIcon width={13} height={13} />
-      <Text style={styles.literasikLink}>Lanjutkan Baca</Text>
-    </View>
-  </View>
-);
+type LiterasikCardProps = (typeof literasikCards)[number] & {
+  layout: ResponsiveLayout;
+};
 
-const AdminCard: FC = () => (
+const LiterasikCard: FC<LiterasikCardProps> = ({ title, description, tag, image, layout }) => {
+  const badgePaddingHorizontal = clamp(moderateScale(12, layout.screenWidth, 0.4), 10, 16);
+  const badgePaddingVertical = clamp(moderateScale(4, layout.screenWidth, 0.4), 3, 6);
+  const badgeFontSize = clamp(moderateScale(9, layout.screenWidth, 0.45), 8, 10.5);
+  const titleFontSize = clamp(moderateScale(12, layout.screenWidth, 0.45), 11, 14);
+  const descriptionFontSize = clamp(moderateScale(9, layout.screenWidth, 0.45), 8, 11);
+  const linkFontSize = clamp(moderateScale(10, layout.screenWidth, 0.45), 9, 12);
+
+  return (
+    <View style={[styles.literasikCard, { padding: layout.literasikPadding }]}>
+      <View
+        style={[
+          styles.literasikBadge,
+          { paddingHorizontal: badgePaddingHorizontal, paddingVertical: badgePaddingVertical },
+        ]}
+      >
+        <Text style={[styles.literasikBadgeText, { fontSize: badgeFontSize }]}>{tag}</Text>
+      </View>
+      <Image
+        source={image}
+        style={[styles.literasikImage, { width: layout.literasikImageSize, height: layout.literasikImageSize }]}
+        resizeMode="contain"
+      />
+      <Text style={[styles.literasikTitle, { fontSize: titleFontSize }]}>{title}</Text>
+      <Text style={[styles.literasikDescription, { fontSize: descriptionFontSize }]}>{description}</Text>
+      <View style={[styles.literasikFooter, { gap: layout.literasikFooterGap }]}>
+        <ArrowIcon width={13} height={13} />
+        <Text style={[styles.literasikLink, { fontSize: linkFontSize }]}>Lanjutkan Baca</Text>
+      </View>
+    </View>
+  );
+};
+
+const AdminCard: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
   <View style={styles.adminCard}>
-    <LinearGradient colors={['#004559', colors.greenLight]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.adminGradient}>
-      <Image source={AdminImage} style={styles.adminImage} resizeMode="contain" />
+    <LinearGradient
+      colors={['#004559', colors.greenLight]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.adminGradient, { padding: layout.adminPadding, columnGap: layout.quickActionGap, gap: layout.quickActionGap }]}
+    >
+      <Image
+        source={AdminImage}
+        style={[styles.adminImage, { width: layout.adminImageSize, height: layout.adminImageSize }]}
+        resizeMode="contain"
+      />
       <View style={styles.adminCopy}>
-        <Text style={styles.adminTitle}>{'Tanya & Kepo Erbe!'}</Text>
-        <Text style={styles.adminDescription}>
+        <Text style={[styles.adminTitle, { fontSize: clamp(moderateScale(15, layout.screenWidth, 0.45), 14, 17) }]}>{'Tanya & Kepo Erbe!'}</Text>
+        <Text style={[styles.adminDescription, { fontSize: clamp(moderateScale(10, layout.screenWidth, 0.45), 9, 12) }]}>
           Mau tau program belajar di erbe atau promo menarik paket belajar di erbe? Gas kepoin lewat chat admin erbe yaakkk
         </Text>
-        <Pressable style={styles.adminButton}>
+        <Pressable
+          style={[
+            styles.adminButton,
+            {
+              paddingHorizontal: layout.adminButtonPaddingHorizontal,
+              paddingVertical: layout.adminButtonPaddingVertical,
+            },
+          ]}
+        >
           <Text style={styles.adminButtonText}>Chat Admin</Text>
         </Pressable>
       </View>
@@ -343,45 +488,97 @@ const AdminCard: FC = () => (
   </View>
 );
 
-const HomescreenHeader: FC = () => (
-  <View style={styles.heroWrapper}>
-    <LinearGradient colors={['#1C637B', '#9EE0BF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.heroContainer}>
-      <View style={styles.searchRow}>
-        <View style={styles.searchBar}>
-          <Text style={styles.searchPlaceholder}>Mau belajar apa nih?</Text>
-          <SearchIcon width={18} height={18} />
+const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
+  const quickActionMinWidth = quickActions.length
+    ? Math.max(
+        (layout.innerContentWidth - layout.quickActionGap * Math.max(quickActions.length - 1, 0)) /
+          quickActions.length,
+        0
+      )
+    : layout.innerContentWidth;
+
+  const profileMarginTop = Math.max(layout.heroPaddingTop * 1.1, 20);
+
+  return (
+    <View style={[styles.heroWrapper, { width: layout.contentWidth, alignSelf: 'center' }]}>
+      <LinearGradient
+        colors={['#1C637B', '#9EE0BF']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[
+          styles.heroContainer,
+          {
+            paddingHorizontal: layout.horizontalPadding,
+            paddingTop: layout.heroPaddingTop,
+            paddingBottom: layout.heroPaddingBottom,
+          },
+        ]}
+      >
+        <View style={styles.searchRow}>
+          <View style={styles.searchBar}>
+            <Text style={styles.searchPlaceholder}>Mau belajar apa nih?</Text>
+            <SearchIcon width={18} height={18} />
+          </View>
+          <Pressable style={styles.notificationButton}>
+            <NotificationIcon style={styles.notificationIcon} />
+          </Pressable>
         </View>
-        <Pressable style={styles.notificationButton}>
-          <NotificationIcon style={styles.notificationIcon} />
-        </Pressable>
-      </View>
-      <View style={styles.profileRow}>
-        <Image source={HeroAvatar} style={styles.profileAvatar} resizeMode="contain" />
-        <View style={styles.profileMeta}>
-          <Text style={styles.profileGreeting}>Hi, Nataa!</Text>
-          <View style={styles.profileBadge}>
-            <Text style={styles.profileBadgeText}>RBD0925015 - Idaman UI</Text>
+        <View style={[styles.profileRow, { marginTop: profileMarginTop }]}>
+          <Image
+            source={HeroAvatar}
+            style={[styles.profileAvatar, { width: layout.heroAvatarSize, height: layout.heroAvatarSize }]}
+            resizeMode="contain"
+          />
+          <View style={[styles.profileMeta, { marginLeft: layout.profileSpacing }]}>
+            <Text style={[styles.profileGreeting, { fontSize: layout.heroGreetingSize }]}>Hi, Nataa!</Text>
+            <View
+              style={[
+                styles.profileBadge,
+                { paddingVertical: layout.heroBadgePaddingVertical, paddingHorizontal: layout.heroBadgePaddingHorizontal },
+              ]}
+            >
+              <Text style={[styles.profileBadgeText, { fontSize: layout.heroBadgeFontSize }]}>RBD0925015 - Idaman UI</Text>
+            </View>
           </View>
         </View>
-      </View>
-      <Text style={styles.heroHeadline}>{"Let's Start Your Academic Era!"}</Text>
-      <View style={styles.progressGrid}>
-        {progressData.map((item) => (
-          <ProgressCard key={item.title} {...item} />
-        ))}
-      </View>
-      <View style={styles.quickActionsRow}>
-        {quickActions.map((item, index) => (
-          <QuickActionCard key={item.title} {...item} index={index} />
-        ))}
-      </View>
-      <View style={styles.poweredRow}>
-        <Text style={styles.poweredText}>Powered by</Text>
-        <Image source={PoweredByLogo} style={styles.poweredLogo} resizeMode="contain" />
-      </View>
-    </LinearGradient>
-  </View>
-);
+        <Text style={[styles.heroHeadline, { fontSize: layout.heroHeadlineFontSize }]}>{"Let's Start Your Academic Era!"}</Text>
+        <View style={[styles.progressGrid, { columnGap: layout.progressGap, rowGap: layout.progressGap, gap: layout.progressGap }]}>
+          {progressData.map((item) => (
+            <ProgressCard key={item.title} {...item} />
+          ))}
+        </View>
+        <View
+          style={[
+            styles.quickActionsRow,
+            { columnGap: layout.quickActionGap, rowGap: layout.quickActionGap, gap: layout.quickActionGap },
+          ]}
+        >
+          {quickActions.map((item, index) => (
+            <QuickActionCard
+              key={item.title}
+              {...item}
+              index={index}
+              paddingHorizontal={layout.quickActionPaddingHorizontal}
+              paddingVertical={layout.quickActionPaddingVertical}
+              imageSize={layout.quickActionImageSize}
+              labelFontSize={layout.quickActionLabelFontSize}
+              minWidth={quickActionMinWidth}
+            />
+          ))}
+        </View>
+        <View
+          style={[
+            styles.poweredRow,
+            { columnGap: Math.max(6, layout.quickActionGap * 0.5), gap: Math.max(6, layout.quickActionGap * 0.5) },
+          ]}
+        >
+          <Text style={styles.poweredText}>Powered by</Text>
+          <Image source={PoweredByLogo} style={styles.poweredLogo} resizeMode="contain" />
+        </View>
+      </LinearGradient>
+    </View>
+  );
+};
 
 const RecommendationWave: FC = () => (
   <Svg viewBox="0 0 387 84" style={styles.recommendationWave}>
@@ -389,37 +586,73 @@ const RecommendationWave: FC = () => (
   </Svg>
 );
 
-const RecommendationsCard: FC = () => (
-  <View style={styles.recommendationCard}>
-    <LinearGradient colors={['#CFE8E6', '#86C8C6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.recommendationGradient}>
-      <RecommendationWave />
-      <View style={styles.recommendationTopRow}>
-        <View style={styles.recommendationBadge}>
-          <Text style={styles.recommendationBadgeText}>{`SUPER\nPTN!`}</Text>
-        </View>
-        <View style={styles.recommendationIconWrapper}>
-          <PromoIcon width={62} height={62} />
-        </View>
-        <View style={styles.recommendationDiscountGroup}>
-          <Text style={styles.recommendationDiscount}>30%</Text>
-          <Text style={styles.recommendationSuffix}>off</Text>
-        </View>
-      </View>
-      <View style={styles.recommendationCodeWrapper}>
-        <View style={styles.recommendationCodeLabel}>
-          <PromoIcon width={26} height={26} />
-          <Text style={styles.recommendationCodeLabelText}>{`KODE\nPROMO`}</Text>
-        </View>
-        <View style={styles.recommendationCodeBadge}>
-          <Text style={styles.recommendationCodeText}>SUPERPTN</Text>
-        </View>
-      </View>
-    </LinearGradient>
-  </View>
-);
+const RecommendationsCard: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
+  const badgeHorizontal = Math.max(layout.horizontalPadding * 0.75, 14);
+  const badgeVertical = Math.max(layout.horizontalPadding * 0.45, 10);
+  const codeLabelHorizontal = Math.max(layout.horizontalPadding * 0.6, 12);
+  const codeLabelVertical = Math.max(layout.horizontalPadding * 0.35, 6);
+  const codeBadgeHorizontal = Math.max(layout.horizontalPadding, 20);
+  const codeBadgeVertical = Math.max(layout.horizontalPadding * 0.35, 8);
 
-const RecommendationCarouselIndicators: FC = () => (
-  <View style={styles.recommendationDots}>
+  return (
+    <View style={styles.recommendationCard}>
+      <LinearGradient
+        colors={['#CFE8E6', '#86C8C6']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[
+          styles.recommendationGradient,
+          {
+            paddingHorizontal: layout.recommendationPaddingHorizontal,
+            paddingVertical: layout.recommendationPaddingVertical,
+            minHeight: clamp(layout.screenWidth * 0.36, 150, 196),
+          },
+        ]}
+      >
+        <RecommendationWave />
+        <View style={styles.recommendationTopRow}>
+          <View
+            style={[
+              styles.recommendationBadge,
+              { paddingHorizontal: badgeHorizontal, paddingVertical: badgeVertical },
+            ]}
+          >
+            <Text style={styles.recommendationBadgeText}>{`SUPER\nPTN!`}</Text>
+          </View>
+          <View style={styles.recommendationIconWrapper}>
+            <PromoIcon width={62} height={62} />
+          </View>
+          <View style={styles.recommendationDiscountGroup}>
+            <Text style={styles.recommendationDiscount}>30%</Text>
+            <Text style={styles.recommendationSuffix}>off</Text>
+          </View>
+        </View>
+        <View style={styles.recommendationCodeWrapper}>
+          <View
+            style={[
+              styles.recommendationCodeLabel,
+              { paddingHorizontal: codeLabelHorizontal, paddingVertical: codeLabelVertical },
+            ]}
+          >
+            <PromoIcon width={26} height={26} />
+            <Text style={styles.recommendationCodeLabelText}>{`KODE\nPROMO`}</Text>
+          </View>
+          <View
+            style={[
+              styles.recommendationCodeBadge,
+              { paddingHorizontal: codeBadgeHorizontal, paddingVertical: codeBadgeVertical },
+            ]}
+          >
+            <Text style={styles.recommendationCodeText}>SUPERPTN</Text>
+          </View>
+        </View>
+      </LinearGradient>
+    </View>
+  );
+};
+
+const RecommendationCarouselIndicators: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
+  <View style={[styles.recommendationDots, { columnGap: layout.recommendationDotsGap, gap: layout.recommendationDotsGap }]}>
     {Array.from({ length: RECOMMENDATION_TOTAL_SLIDES }).map((_, index) => (
       <View
         key={`recommendation-dot-${index}`}
@@ -436,57 +669,93 @@ const SectionHeader: FC<{ title: string; cta?: string; centered?: boolean }> = (
   </View>
 );
 
-const LeaderboardSection: FC = () => {
+const LeaderboardSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
   const firstPlace = leaderboardEntries.find((entry) => entry.rank === 1)!;
   const secondPlace = leaderboardEntries.find((entry) => entry.rank === 2)!;
   const thirdPlace = leaderboardEntries.find((entry) => entry.rank === 3)!;
 
   return (
-    <View style={styles.leaderboardCard}>
-      <View style={styles.leaderboardColumns}>
+    <View
+      style={[
+        styles.leaderboardCard,
+        {
+          paddingHorizontal: clamp(layout.horizontalPadding * 0.75, 14, 24),
+          paddingVertical: clamp(layout.horizontalPadding, 18, 28),
+        },
+      ]}
+    >
+      <View style={[styles.leaderboardColumns, { columnGap: layout.progressGap, gap: layout.progressGap }]}>
         <SecondPlaceColumn {...secondPlace} />
         <FirstPlaceColumn {...firstPlace} />
         <ThirdPlaceColumn {...thirdPlace} />
       </View>
-      <Pressable style={styles.leaderboardButton}>
+      <Pressable
+        style={[
+          styles.leaderboardButton,
+          {
+            marginTop: clamp(layout.sectionSpacing * 0.5, 20, 32),
+            paddingHorizontal: clamp(layout.horizontalPadding * 1.2, 28, 40),
+            paddingVertical: clamp(layout.horizontalPadding * 0.45, 10, 16),
+          },
+        ]}
+      >
         <Text style={styles.leaderboardButtonText}>Cek Erbe Leaderboard</Text>
       </Pressable>
     </View>
   );
 };
 
-const LifeAtErbeSection: FC = () => {
-  const { width: screenWidth } = useWindowDimensions();
+const LifeAtErbeSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
   const cardsCount = lifeAtErbeCards.length || 1;
-  const availableWidth = Math.max(
-    0,
-    screenWidth - SECTION_HORIZONTAL_PADDING * 2 - LIFE_CONTAINER_HORIZONTAL_PADDING * 2 - LIFE_AT_ERBE_CARD_GAP * (cardsCount - 1)
-  );
-  const baseCardWidth = availableWidth / cardsCount;
-  const fallbackCardWidth = Math.min(LIFE_CARD_MAX_WIDTH, (screenWidth - SECTION_HORIZONTAL_PADDING * 2) / cardsCount);
-  const computedCardWidth = baseCardWidth > 0 ? Math.min(LIFE_CARD_MAX_WIDTH, baseCardWidth) : fallbackCardWidth;
+  const availableWidth = layout.innerContentWidth - layout.lifeCardSpacing * (cardsCount - 1);
+  const cardWidth = clamp(availableWidth / cardsCount, 60, layout.lifeCardWidth);
+  const verticalPadding = Math.max(10, cardWidth * 0.16);
+  const containerWidth = layout.innerContentWidth;
 
   return (
-    <View style={styles.lifeContainer}>
-      <View style={styles.lifeRow}>
-        {lifeAtErbeCards.map((card, index) => (
-          <LifeCard
-            key={card.title}
-            {...card}
-            width={computedCardWidth}
-            spacing={LIFE_AT_ERBE_CARD_GAP}
-            isLastCard={index === lifeAtErbeCards.length - 1}
-          />
+    <View
+      style={[
+        styles.lifeContainer,
+        {
+          width: containerWidth,
+          alignSelf: 'center',
+          paddingHorizontal: clamp(layout.horizontalPadding * 0.45, 10, 20),
+          paddingVertical: clamp(cardWidth * 0.15, 10, 16),
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.lifeRow,
+          {
+            columnGap: layout.lifeCardSpacing,
+            flexWrap: 'nowrap',
+            justifyContent: 'space-between',
+          },
+        ]}
+      >
+        {lifeAtErbeCards.map((card) => (
+          <LifeCard key={card.title} {...card} width={cardWidth} paddingVertical={verticalPadding} />
         ))}
       </View>
     </View>
   );
 };
 
-const LiterasikSection: FC = () => (
-  <View style={styles.literasikRow}>
+const LiterasikSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
+  <View
+    style={[
+      styles.literasikRow,
+      {
+        marginTop: clamp(layout.sectionSpacing * 0.65, 16, 24),
+        columnGap: layout.literasikGap,
+        rowGap: layout.literasikGap,
+        gap: layout.literasikGap,
+      },
+    ]}
+  >
     {literasikCards.map((card, index) => (
-      <LiterasikCard key={`${card.title}-${index}`} {...card} />
+      <LiterasikCard key={`${card.title}-${index}`} {...card} layout={layout} />
     ))}
   </View>
 );
@@ -501,6 +770,8 @@ const HomeScreen: FC = () => {
     [fontFamilies.hero]: require('../../../assets/fonts/playpensans/PlaypenSans-ExtraBold.ttf'),
   });
 
+  const layout = useResponsiveLayout();
+
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded || fontError) {
       await SplashScreen.hideAsync();
@@ -514,26 +785,84 @@ const HomeScreen: FC = () => {
   return (
     <SafeAreaView style={styles.safeArea} onLayout={onLayoutRootView}>
       <StatusBar barStyle="light-content" />
-      <ScrollView style={styles.screen} contentContainerStyle={styles.contentContainer}>
-        <HomescreenHeader />
-        <View style={styles.sectionSpacing}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.contentContainer,
+          {
+            paddingBottom: clamp(layout.sectionSpacing * 2, 64, 120),
+            alignItems: 'center',
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <HomescreenHeader layout={layout} />
+        <View
+          style={[
+            styles.sectionSpacing,
+            {
+              marginTop: layout.sectionSpacing,
+              paddingHorizontal: layout.horizontalPadding,
+              width: layout.contentWidth,
+            },
+          ]}
+        >
           <SectionHeader title="See Our Recommendations" cta="Selengkapnya" />
-          <RecommendationsCard />
-          <RecommendationCarouselIndicators />
+          <RecommendationsCard layout={layout} />
+          <RecommendationCarouselIndicators layout={layout} />
         </View>
-        <View style={styles.sectionSpacing}>
+        <View
+          style={[
+            styles.sectionSpacing,
+            {
+              marginTop: layout.sectionSpacing,
+              paddingHorizontal: layout.horizontalPadding,
+              width: layout.contentWidth,
+            },
+          ]}
+        >
           <SectionHeader title="Leaderboard" centered />
-          <LeaderboardSection />
+          <LeaderboardSection layout={layout} />
         </View>
-        <View style={styles.sectionSpacing}>
+        <View
+          style={[
+            styles.sectionSpacing,
+            {
+              marginTop: layout.sectionSpacing,
+              paddingHorizontal: layout.horizontalPadding,
+              width: layout.contentWidth,
+            },
+          ]}
+        >
           <SectionHeader title="Life at Erbe" centered />
-          <LifeAtErbeSection />
+          <LifeAtErbeSection layout={layout} />
         </View>
-        <View style={styles.sectionSpacing}>
+        <View
+          style={[
+            styles.sectionSpacing,
+            {
+              marginTop: layout.sectionSpacing,
+              paddingHorizontal: layout.horizontalPadding,
+              width: layout.contentWidth,
+            },
+          ]}
+        >
           <SectionHeader title="Literasik" cta="Cek Lainnya" />
-          <LiterasikSection />
+          <LiterasikSection layout={layout} />
         </View>
-        <AdminCard />
+        <View
+          style={[
+            styles.sectionSpacing,
+            {
+              marginTop: layout.sectionSpacing,
+              paddingHorizontal: layout.horizontalPadding,
+              width: layout.contentWidth,
+              marginBottom: clamp(layout.sectionSpacing * 0.8, 24, 40),
+            },
+          ]}
+        >
+          <AdminCard layout={layout} />
+        </View>
       </ScrollView>
       <BottomNavigation
         items={navItems}
@@ -1104,11 +1433,9 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.bold,
   },
   adminCard: {
-    marginHorizontal: 24,
-    marginTop: 32,
+    width: '100%',
     borderRadius: 20,
     overflow: 'hidden',
-    marginBottom: 32,
   },
   adminGradient: {
     flexDirection: 'row',
