@@ -3,9 +3,9 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, ImageSourcePropType, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Svg, { Path, type SvgProps } from 'react-native-svg';
 
 import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
-import type { SvgProps } from 'react-native-svg';
 
 import SearchIcon from '../../../assets/icons/search.svg';
 import NotificationIcon from '../../../assets/icons/notifdot.svg';
@@ -18,8 +18,6 @@ import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
 import PromoIcon from '../../../assets/icons/promo.svg';
-import CarouselDotIcon from '../../../assets/icons/carouseldot.svg';
-import CarouselDotActiveIcon from '../../../assets/icons/carouseldotactive.svg';
 
 import HeroAvatar from '../../../assets/images/Ava2.png';
 import AvatarGita from '../../../assets/images/Ava4.png';
@@ -160,6 +158,8 @@ const LIFE_CARD_MAX_WIDTH = 82;
 const LIFE_CARD_HEIGHT_RATIO = 107 / 82;
 const LIFE_CARD_IMAGE_RATIO = 64 / 82;
 const LIFE_CARD_TITLE_MARGIN_RATIO = 10 / 82;
+const RECOMMENDATION_TOTAL_SLIDES = 4;
+const ACTIVE_RECOMMENDATION_INDEX = 1;
 
 const literasikCards = [
   {
@@ -383,25 +383,35 @@ const HomescreenHeader: FC = () => (
   </View>
 );
 
+const RecommendationWave: FC = () => (
+  <Svg viewBox="0 0 387 84" style={styles.recommendationWave}>
+    <Path d="M0 42C52 68 130 86 200 70C270 54 320 64 387 84V84H0V42Z" fill={colors.white} />
+  </Svg>
+);
+
 const RecommendationsCard: FC = () => (
   <View style={styles.recommendationCard}>
-    <LinearGradient colors={['#CFF0EA', '#7ECAC0']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.recommendationGradient}>
-      <View style={styles.recommendationContent}>
-        <View style={styles.recommendationLeft}>
-          <Text style={styles.recommendationSuper}>{`SUPER\nPTN!`}</Text>
-          <View style={styles.recommendationCodeWrapper}>
-            <View style={styles.recommendationCodeLabel}>
-              <PromoIcon width={36} height={36} />
-              <Text style={styles.recommendationCodeLabelText}>{`KODE\nPROMO`}</Text>
-            </View>
-            <View style={styles.recommendationCodeBadge}>
-              <Text style={styles.recommendationCodeText}>SUPERPTN</Text>
-            </View>
-          </View>
+    <LinearGradient colors={['#CFE8E6', '#86C8C6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.recommendationGradient}>
+      <RecommendationWave />
+      <View style={styles.recommendationTopRow}>
+        <View style={styles.recommendationBadge}>
+          <Text style={styles.recommendationBadgeText}>{`SUPER\nPTN!`}</Text>
         </View>
-        <View style={styles.recommendationRight}>
+        <View style={styles.recommendationIconWrapper}>
+          <PromoIcon width={62} height={62} />
+        </View>
+        <View style={styles.recommendationDiscountGroup}>
           <Text style={styles.recommendationDiscount}>30%</Text>
           <Text style={styles.recommendationSuffix}>off</Text>
+        </View>
+      </View>
+      <View style={styles.recommendationCodeWrapper}>
+        <View style={styles.recommendationCodeLabel}>
+          <PromoIcon width={26} height={26} />
+          <Text style={styles.recommendationCodeLabelText}>{`KODE\nPROMO`}</Text>
+        </View>
+        <View style={styles.recommendationCodeBadge}>
+          <Text style={styles.recommendationCodeText}>SUPERPTN</Text>
         </View>
       </View>
     </LinearGradient>
@@ -410,9 +420,12 @@ const RecommendationsCard: FC = () => (
 
 const RecommendationCarouselIndicators: FC = () => (
   <View style={styles.recommendationDots}>
-    <CarouselDotActiveIcon width={10} height={10} />
-    <CarouselDotIcon width={10} height={10} />
-    <CarouselDotIcon width={10} height={10} />
+    {Array.from({ length: RECOMMENDATION_TOTAL_SLIDES }).map((_, index) => (
+      <View
+        key={`recommendation-dot-${index}`}
+        style={[styles.recommendationDot, index === ACTIVE_RECOMMENDATION_INDEX && styles.recommendationDotActive]}
+      />
+    ))}
   </View>
 );
 
@@ -764,88 +777,119 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     minHeight: 157,
-    padding: 24,
-    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    position: 'relative',
   },
-  recommendationContent: {
+  recommendationWave: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    height: 84,
+  },
+  recommendationTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    zIndex: 1,
   },
-  recommendationLeft: {
-    flex: 1,
+  recommendationBadge: {
+    backgroundColor: colors.primary,
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    zIndex: 1,
   },
-  recommendationSuper: {
-    fontSize: 25,
+  recommendationBadgeText: {
     color: colors.white,
-    textShadowColor: colors.primary,
-    textShadowRadius: 0,
-    textShadowOffset: { width: 3, height: 3 },
     fontFamily: fontFamilies.extraBold,
+    fontSize: 18,
+    lineHeight: 22,
+    letterSpacing: 0.4,
+    textAlign: 'center',
+  },
+  recommendationIconWrapper: {
+    paddingHorizontal: 12,
+    zIndex: 1,
+  },
+  recommendationDiscountGroup: {
+    alignItems: 'flex-end',
+    zIndex: 1,
   },
   recommendationDiscount: {
-    fontSize: 54,
-    color: colors.white,
-    textShadowColor: colors.accent,
-    textShadowOffset: { width: 3, height: 3 },
+    fontSize: 50,
+    color: colors.accent,
     fontFamily: fontFamilies.extraBold,
+    textShadowColor: '#FFFFFF',
+    textShadowOffset: { width: 3, height: 3 },
+    textShadowRadius: 1,
   },
   recommendationSuffix: {
+    marginTop: -6,
     fontSize: 15,
     color: colors.white,
+    fontFamily: fontFamilies.bold,
     textShadowColor: colors.primary,
     textShadowOffset: { width: 1, height: 1 },
-    fontFamily: fontFamilies.bold,
-    alignSelf: 'flex-end',
-  },
-  recommendationRight: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    gap: 8,
+    textShadowRadius: 0,
   },
   recommendationCodeWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginTop: 28,
+    marginTop: 20,
+    zIndex: 1,
   },
   recommendationCodeLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 14,
-    height: 40,
     borderRadius: 30,
     borderWidth: 1,
     borderColor: colors.primary,
-    justifyContent: 'center',
     backgroundColor: colors.white,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    marginRight: 12,
   },
   recommendationCodeLabelText: {
+    marginLeft: 8,
     fontSize: 9,
+    lineHeight: 11,
     color: colors.primary,
-    textAlign: 'center',
     fontFamily: fontFamilies.bold,
+    textAlign: 'center',
   },
   recommendationCodeBadge: {
-    height: 40,
-    borderRadius: 30,
     backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 30,
     paddingHorizontal: 24,
+    paddingVertical: 8,
   },
   recommendationCodeText: {
     fontSize: 13,
     color: colors.white,
     fontFamily: fontFamilies.bold,
+    letterSpacing: 0.4,
   },
   recommendationDots: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     marginTop: 16,
+  },
+  recommendationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#D8E6E4',
+    marginHorizontal: 6,
+  },
+  recommendationDotActive: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.sectionTitle,
   },
   leaderboardCard: {
     marginTop: 20,
