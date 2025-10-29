@@ -1002,8 +1002,3 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
 });
-
-// NOVA'S DEV NOTES:
-// 1. Integrated Montserrat + Playpen Sans through expo-font and gated initial paint behind SplashScreen to avoid fallback flicker.
-// 2. Recreated hero, leaderboard, and admin modules with expo-linear-gradient so the mobile UI mirrors the Figma depth and soft edges.
-// 3. Applied consistent typography + spacing tokens while keeping sections modular for upcoming data, navigation, and analytics hooks.
