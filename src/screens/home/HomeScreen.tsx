@@ -131,7 +131,7 @@ const leaderboardEntries: LeaderboardEntry[] = [
     rank: 2,
     avatar: AvatarFikri,
     Badge: OrangeBadgeIcon,
-    scoreColor: colors.accent,
+    scoreColor: '#FD7600',
   },
   {
     name: 'Aldo',
@@ -201,39 +201,77 @@ const QuickActionCard: FC<QuickActionCardProps> = ({ title, image, index }) => (
   </Pressable>
 );
 
-const LeaderboardColumn: FC<LeaderboardEntry> = ({ name, grade, score, rank, avatar, Badge, scoreColor }) => {
-  const gradient = leaderboardGradients[rank] ?? leaderboardGradients[2];
-  const isChampion = rank === 1;
-
-  return (
-    <View
-      style={[
-        styles.leaderboardColumn,
-        isChampion ? styles.leaderboardColumnLeader : styles.leaderboardColumnChallenger,
-      ]}
+const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
+  <View style={styles.leaderboardColumn}>
+    <LinearGradient
+      colors={leaderboardGradients[1]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.leaderboardGradient, styles.leaderboardGradientFirst]}
     >
-      <LinearGradient
-        colors={gradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={[styles.leaderboardGradient, isChampion ? styles.leaderboardGradientLeader : styles.leaderboardGradientChallenger]}
-      >
-        <View style={styles.leaderboardRankPill}>
-          <Text style={styles.leaderboardRankText}>{rank}</Text>
+      <View style={styles.leaderboardMedal}>
+        <Badge width={68} height={75} />
+        <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <View style={styles.leaderboardRankBadgeFirst}>
+          <Text style={styles.leaderboardRankText}>1</Text>
         </View>
-        <View style={styles.leaderboardMedal}>
-          <Badge width={68} height={75} />
-          <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
-        </View>
-      </LinearGradient>
+      </View>
       <View style={styles.leaderboardMeta}>
         <Text style={styles.leaderboardName}>{name}</Text>
         <Text style={styles.leaderboardGrade}>{grade}</Text>
         <Text style={[styles.leaderboardScore, { color: scoreColor }]}>{score}</Text>
       </View>
-    </View>
-  );
-};
+    </LinearGradient>
+  </View>
+);
+
+const SecondPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
+  <View style={styles.leaderboardColumn}>
+    <LinearGradient
+      colors={leaderboardGradients[2]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.leaderboardGradient, styles.leaderboardGradientSecond]}
+    >
+      <View style={styles.leaderboardMedal}>
+        <Badge width={68} height={75} />
+        <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <View style={styles.leaderboardRankBadgeSecond}>
+          <Text style={styles.leaderboardRankText}>2</Text>
+        </View>
+      </View>
+      <View style={styles.leaderboardMeta}>
+        <Text style={styles.leaderboardName}>{name}</Text>
+        <Text style={styles.leaderboardGrade}>{grade}</Text>
+        <Text style={[styles.leaderboardScore, { color: scoreColor }]}>{score}</Text>
+      </View>
+    </LinearGradient>
+  </View>
+);
+
+const ThirdPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
+  <View style={styles.leaderboardColumn}>
+    <LinearGradient
+      colors={leaderboardGradients[3]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.leaderboardGradient, styles.leaderboardGradientThird]}
+    >
+      <View style={styles.leaderboardMedal}>
+        <Badge width={68} height={75} />
+        <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <View style={styles.leaderboardRankBadgeThird}>
+          <Text style={styles.leaderboardRankText}>3</Text>
+        </View>
+      </View>
+      <View style={styles.leaderboardMeta}>
+        <Text style={styles.leaderboardName}>{name}</Text>
+        <Text style={styles.leaderboardGrade}>{grade}</Text>
+        <Text style={[styles.leaderboardScore, { color: scoreColor }]}>{score}</Text>
+      </View>
+    </LinearGradient>
+  </View>
+);
 
 const LifeCard: FC<(typeof lifeAtErbeCards)[number]> = ({ title, image, backgroundColor }) => (
   <View style={[styles.lifeCard, { backgroundColor }]}>
@@ -355,16 +393,16 @@ const SectionHeader: FC<{ title: string; cta?: string; centered?: boolean }> = (
 );
 
 const LeaderboardSection: FC = () => {
-  const orderedEntries = leaderboardDisplayOrder
-    .map((rank) => leaderboardEntries.find((entry) => entry.rank === rank))
-    .filter((entry): entry is LeaderboardEntry => Boolean(entry));
+  const firstPlace = leaderboardEntries.find((entry) => entry.rank === 1)!;
+  const secondPlace = leaderboardEntries.find((entry) => entry.rank === 2)!;
+  const thirdPlace = leaderboardEntries.find((entry) => entry.rank === 3)!;
 
   return (
     <View style={styles.leaderboardCard}>
       <View style={styles.leaderboardColumns}>
-        {orderedEntries.map((entry) => (
-          <LeaderboardColumn key={entry.rank} {...entry} />
-        ))}
+        <SecondPlaceColumn {...secondPlace} />
+        <FirstPlaceColumn {...firstPlace} />
+        <ThirdPlaceColumn {...thirdPlace} />
       </View>
       <Pressable style={styles.leaderboardButton}>
         <Text style={styles.leaderboardButtonText}>Cek Erbe Leaderboard</Text>
@@ -767,68 +805,70 @@ const styles = StyleSheet.create({
   },
   leaderboardColumns: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
+    justifyContent: 'center',
     alignItems: 'flex-end',
+    paddingBottom: 16,
+    gap: 0,
   },
   leaderboardColumn: {
     alignItems: 'center',
     flex: 1,
-    maxWidth: 112,
-    marginHorizontal: 4,
-    justifyContent: 'flex-end',
-  },
-  leaderboardColumnLeader: {
-    marginBottom: 0,
-    transform: [{ translateY: -10 }],
-    zIndex: 2,
-  },
-  leaderboardColumnChallenger: {
-    marginTop: 16,
   },
   leaderboardGradient: {
     width: '100%',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 12,
+    paddingHorizontal: 12,
+  },
+  leaderboardGradientFirst: {
+    minHeight: 210,
     paddingTop: 28,
-    paddingBottom: 20,
-    position: 'relative',
   },
-  leaderboardGradientLeader: {
-    height: 180,
+  leaderboardGradientSecond: {
+    minHeight: 160,
   },
-  leaderboardGradientChallenger: {
-    height: 150,
-  },
-  leaderboardRankPill: {
-    position: 'absolute',
-    top: -16,
-    alignSelf: 'center',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: colors.primary,
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+  leaderboardGradientThird: {
+    minHeight: 160,
   },
   leaderboardMedal: {
-    marginTop: 28,
     alignItems: 'center',
     justifyContent: 'center',
     width: 68,
     height: 75,
     position: 'relative',
+    marginBottom: 4,
+  },
+  leaderboardRankBadgeFirst: {
+    position: 'absolute',
+    bottom: -4.25,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  leaderboardRankBadgeSecond: {
+    position: 'absolute',
+    bottom: -2,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  leaderboardRankBadgeThird: {
+    position: 'absolute',
+    bottom: -2,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
   leaderboardRankText: {
     color: colors.white,
     fontFamily: fontFamilies.bold,
-    fontSize: 12,
+    fontSize: 11,
   },
   leaderboardAvatar: {
     position: 'absolute',
@@ -836,28 +876,31 @@ const styles = StyleSheet.create({
     height: 58,
     top: 8,
     borderRadius: 29,
-    borderWidth: 4,
-    borderColor: colors.white,
   },
   leaderboardMeta: {
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 4,
+    flex: 1,
+    justifyContent: 'space-evenly',
   },
   leaderboardName: {
     fontSize: 14,
     color: colors.darkText,
     fontFamily: fontFamilies.semiBold,
+    textAlign: 'center',
   },
   leaderboardGrade: {
     fontSize: 10,
     color: '#617283',
-    marginTop: 4,
+    marginTop: 2,
     fontFamily: fontFamilies.semiBold,
+    textAlign: 'center',
   },
   leaderboardScore: {
     fontSize: 16,
-    marginTop: 12,
+    marginTop: 8,
     fontFamily: fontFamilies.bold,
+    textAlign: 'center',
   },
   leaderboardButton: {
     marginTop: 24,
