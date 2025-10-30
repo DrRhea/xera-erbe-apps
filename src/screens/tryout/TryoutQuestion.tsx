@@ -177,11 +177,7 @@ const TryoutQuestionScreen: FC = () => {
 				return null;
 			}
 
-		const snapPoints = useMemo<(string | number)[]>(() => ['20%', '80%'], []);
-	const handleNumbers = useMemo(
-		() => questionNumbers.slice(0, Math.min(5, questionNumbers.length)),
-		[questionNumbers]
-	);
+		const snapPoints = useMemo<(string | number)[]>(() => [210, '70%'], []);
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
@@ -219,12 +215,8 @@ const TryoutQuestionScreen: FC = () => {
 		() => clamp(layout.horizontalPadding * 0.5, 14, 20),
 		[layout.horizontalPadding]
 	);
-	const handleBadgeSize = useMemo(
-		() => clamp(layout.horizontalPadding * 3, 56, 72),
-		[layout.horizontalPadding]
-	);
 	const gridBadgeSize = useMemo(
-		() => clamp(layout.horizontalPadding * 2.4, 50, 64),
+		() => clamp(layout.horizontalPadding * 2.7, 60, 70),
 		[layout.horizontalPadding]
 	);
 	const sheetHorizontalPadding = useMemo(
@@ -257,37 +249,33 @@ const TryoutQuestionScreen: FC = () => {
 	);
 
 		const buildBadgePresentation = useCallback(
-			(status: QuestionStatus, variant: 'handle' | 'grid') => {
-				const size = variant === 'handle' ? handleBadgeSize : gridBadgeSize;
+			(status: QuestionStatus) => {
+				const size = gridBadgeSize;
 				const baseStyle: ViewStyle = {
 					width: size,
 					height: size,
 					borderRadius: size / 2,
 					alignItems: 'center',
 					justifyContent: 'center',
-					borderWidth: 0,
+					borderWidth: 2,
 				};
 
 				let backgroundColor: string = colors.white;
-				let borderColor: string = 'transparent';
+				let borderColor: string = 'rgba(1, 88, 118, 0.24)';
 				let textColor: string = colors.primaryDark;
 
 				if (status === 'current') {
-					backgroundColor = colors.primary;
+					backgroundColor = colors.primaryDark;
 					borderColor = colors.white;
 					textColor = colors.white;
 				} else if (status === 'answered') {
-					backgroundColor = colors.primaryDark;
+					backgroundColor = colors.primary;
 					borderColor = colors.white;
 					textColor = colors.white;
 				} else if (status === 'flagged') {
 					backgroundColor = colors.accent;
 					borderColor = colors.white;
 					textColor = colors.white;
-				} else {
-					borderColor = 'rgba(1, 88, 118, 0.3)';
-					textColor = colors.primaryDark;
-					baseStyle.borderWidth = 2;
 				}
 
 				const containerStyle: ViewStyle = {
@@ -306,17 +294,17 @@ const TryoutQuestionScreen: FC = () => {
 					labelStyle,
 				};
 			},
-			[gridBadgeSize, handleBadgeSize]
+			[gridBadgeSize]
 		);
 
-	const renderBadge = useCallback(
-		(number: number, variant: 'handle' | 'grid', onPress?: () => void) => {
+		const renderBadge = useCallback(
+			(number: number, onPress?: () => void) => {
 			const status = getQuestionStatus(number - 1);
-					const presentation = buildBadgePresentation(status, variant);
+				const presentation = buildBadgePresentation(status);
 
 			return (
 				<Pressable
-					key={`${variant}-${number}`}
+						key={`question-${number}`}
 							style={[styles.questionBadgeBase, presentation.containerStyle]}
 					onPress={onPress}
 					disabled={!onPress}
@@ -327,7 +315,7 @@ const TryoutQuestionScreen: FC = () => {
 				</Pressable>
 			);
 		},
-		[buildBadgePresentation, getQuestionStatus]
+			[buildBadgePresentation, getQuestionStatus]
 	);
 
 	const handleSelectOption = useCallback(
@@ -559,22 +547,17 @@ const TryoutQuestionScreen: FC = () => {
 				<BottomSheet
 					ref={sheetRef}
 					index={0}
-					  snapPoints={snapPoints}
+					snapPoints={snapPoints}
 					enablePanDownToClose={false}
 					handleComponent={() => (
 						<View style={styles.sheetHandleContainer}>
 							<View style={styles.sheetHandleIndicator} />
-							<View style={[styles.sheetHandleList, { columnGap: controlsGap, gap: controlsGap }]}>
-								{handleNumbers.map((number) =>
-									renderBadge(number, 'handle', () => handleNavigateToQuestion(number - 1))
-								)}
-							</View>
 						</View>
 					)}
 					backgroundComponent={renderSheetBackground}
 				>
 					<BottomSheetView
-						style={[styles.sheetContentWrapper, { paddingHorizontal: sheetHorizontalPadding }]}
+						style={[styles.sheetContentWrapper, { paddingHorizontal: sheetHorizontalPadding, rowGap: controlsGap, gap: controlsGap }]}
 					>
 						<BottomSheetScrollView
 							contentContainerStyle={[
@@ -587,9 +570,11 @@ const TryoutQuestionScreen: FC = () => {
 							]}
 							showsVerticalScrollIndicator={false}
 						>
-							{questionNumbers.map((number, index) =>
-								renderBadge(number, 'grid', () => handleNavigateToQuestion(index))
-							)}
+							<View style={[styles.sheetNumbersRow, { columnGap: controlsGap, rowGap: controlsGap, gap: controlsGap }]}>
+								{questionNumbers.map((number, index) =>
+									renderBadge(number, () => handleNavigateToQuestion(index))
+								)}
+							</View>
 						</BottomSheetScrollView>
 
 						<Pressable
@@ -757,12 +742,14 @@ const styles = StyleSheet.create({
 		opacity: 0.4,
 	},
 	flagButton: {
-		flex: 1,
 		backgroundColor: '#F18C1E',
 		borderRadius: 20,
 		alignItems: 'center',
 		justifyContent: 'center',
 		paddingVertical: 12,
+		paddingHorizontal: 24,
+		minWidth: 176,
+		flexShrink: 0,
 	},
 	flagButtonActive: {
 		backgroundColor: colors.primary,
@@ -779,7 +766,7 @@ const styles = StyleSheet.create({
 		width: 44,
 		height: 44,
 		borderRadius: 22,
-		backgroundColor: colors.white,
+		backgroundColor: '#318DB6',
 		alignItems: 'center',
 		justifyContent: 'center',
 		shadowColor: '#000000',
@@ -816,21 +803,22 @@ const styles = StyleSheet.create({
 		backgroundColor: 'rgba(255,255,255,0.6)',
 		marginBottom: 14,
 	},
-	sheetHandleList: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
 	sheetBackground: {
 		borderTopLeftRadius: 30,
 		borderTopRightRadius: 30,
 	},
 	sheetContentWrapper: {
 		flex: 1,
+		paddingTop: 12,
 		paddingBottom: 24,
 	},
 	sheetGrid: {
 		paddingBottom: 24,
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		justifyContent: 'center',
+	},
+	sheetNumbersRow: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		justifyContent: 'center',
