@@ -31,32 +31,9 @@ import NotificationIcon from '../../../assets/icons/notifdot.svg';
 import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
 import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
 import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
+import { colors, fontFamilies, gradients } from '../../constants/theme';
 
-const colors = {
-  background: '#F0F0F0',
-  primary: '#015876',
-  accent: '#FF8725',
-  white: '#FFFFFF',
-  darkText: '#202020',
-  mutedText: '#7C7C7C',
-  sectionTitle: '#004559',
-  greenLight: '#00BFAC',
-};
-
-const fontFamilies = {
-  regular: 'Montserrat-Regular',
-  medium: 'Montserrat-Medium',
-  semiBold: 'Montserrat-SemiBold',
-  bold: 'Montserrat-Bold',
-  extraBold: 'Montserrat-ExtraBold',
-  hero: 'PlaypenSans-ExtraBold',
-};
-
-const leaderboardGradients: Record<number, [string, string]> = {
-  1: ['#CCF3ED', '#7FC9BA'],
-  2: ['#B8E5DE', '#62BCAE'],
-  3: ['#B8E5DE', '#62BCAE'],
-};
+const leaderboardGradients = gradients.leaderboard;
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -326,7 +303,7 @@ const QuickActionCard: FC<QuickActionCardProps> = ({
 const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
-      colors={leaderboardGradients[1]}
+    colors={[...leaderboardGradients[1]]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.leaderboardGradient, styles.leaderboardGradientFirst]}
@@ -350,7 +327,7 @@ const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
 const SecondPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
-      colors={leaderboardGradients[2]}
+    colors={[...leaderboardGradients[2]]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.leaderboardGradient, styles.leaderboardGradientSecond]}
@@ -374,7 +351,7 @@ const SecondPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, B
 const ThirdPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
-      colors={leaderboardGradients[3]}
+    colors={[...leaderboardGradients[3]]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.leaderboardGradient, styles.leaderboardGradientThird]}

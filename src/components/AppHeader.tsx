@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import BackArrowIcon from '../../assets/icons/backarrow.svg';
 import NotifIcon from '../../assets/icons/notifdot.svg';
 import ErboLogo from '../../assets/images/logoutuhputih.png';
+import { colors, fontFamilies, gradients, radii, spacing } from '../constants/theme';
 
 export type AppHeaderProps = {
 	title: string;
@@ -32,10 +33,10 @@ const AppHeader: FC<AppHeaderProps> = ({ title, onBackPress, onNotificationPress
 	return (
 		<View style={styles.wrapper}>
 			<LinearGradient
-				colors={['#1C637B', 'rgba(158,224,191,0.62)']}
+				colors={[...gradients.header]}
 				start={{ x: 0, y: 0 }}
 				end={{ x: 0, y: 1 }}
-				style={[styles.gradient, { paddingTop: insets.top + 16 }]}
+				style={[styles.gradient, { paddingTop: insets.top + spacing.lg }]}
 			>
 				<View style={styles.content}>
 					<View style={styles.leadingGroup}>
@@ -71,13 +72,13 @@ const AppHeader: FC<AppHeaderProps> = ({ title, onBackPress, onNotificationPress
 
 const styles = StyleSheet.create({
 	wrapper: {
-		borderBottomLeftRadius: 30,
-		borderBottomRightRadius: 30,
+		borderBottomLeftRadius: radii.xl,
+		borderBottomRightRadius: radii.xl,
 		overflow: 'hidden',
 	},
 	gradient: {
 		paddingBottom: 20,
-		paddingHorizontal: 30,
+		paddingHorizontal: spacing.xxl,
 	},
 	content: {
 		flexDirection: 'row',
@@ -90,12 +91,12 @@ const styles = StyleSheet.create({
 	},
 	backButton: {
 		padding: 4,
-		marginRight: 12,
+		marginRight: spacing.md,
 	},
 	title: {
 		fontSize: 22,
-		color: '#FFFFFF',
-		fontFamily: 'Montserrat-Bold',
+		color: colors.white,
+		fontFamily: fontFamilies.bold,
 	},
 	trailingGroup: {
 		flexDirection: 'row',

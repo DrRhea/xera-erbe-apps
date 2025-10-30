@@ -3,6 +3,8 @@ import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-n
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import type { SvgProps } from 'react-native-svg';
 
+import { colors as themeColors, fontFamilies } from '../constants/theme';
+
 export type BottomNavigationItem = {
   key: string;
   label: string;
@@ -25,9 +27,9 @@ const BottomNavigation: FC<BottomNavigationProps> = ({
   activeKey,
   onSelect,
   style,
-  activeColor = '#015876',
-  inactiveColor = '#617283',
-  backgroundColor = '#FFFFFF',
+  activeColor = themeColors.primary,
+  inactiveColor = themeColors.navInactive,
+  backgroundColor = themeColors.surface,
 }) => {
   const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
 
@@ -90,7 +92,7 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 4,
     fontSize: 12,
-    fontFamily: 'Montserrat-Bold',
+    fontFamily: fontFamilies.bold,
   },
 });
 

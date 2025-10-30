@@ -1,6 +1,7 @@
 import React, { FC } from 'react';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import AppHeader from '../../components/AppHeader';
+import { colors, fontFamilies } from '../../constants/theme';
 
 const TryoutScreen: FC = () => (
 	<SafeAreaView style={styles.safeArea}>
@@ -16,7 +17,7 @@ export default TryoutScreen;
 const styles = StyleSheet.create({
 	safeArea: {
 		flex: 1,
-		backgroundColor: '#F0F0F0',
+		backgroundColor: colors.background,
 	},
 	content: {
 		flex: 1,
@@ -26,8 +27,8 @@ const styles = StyleSheet.create({
 	},
 	placeholderText: {
 		fontSize: 16,
-		fontFamily: 'Montserrat-SemiBold',
-		color: '#004559',
+		fontFamily: fontFamilies.semiBold,
+		color: colors.primaryDark,
 		textAlign: 'center',
 	},
 });
