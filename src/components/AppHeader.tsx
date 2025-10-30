@@ -51,18 +51,18 @@ const AppHeader: FC<AppHeaderProps> = ({ title, onBackPress, onNotificationPress
 						<Text style={styles.title}>{title}</Text>
 					</View>
 
-					<View style={styles.trailingGroup}>
-						<Image source={ErboLogo} style={styles.logo} resizeMode="contain" />
-						<Pressable
-							accessibilityRole="button"
-							accessibilityLabel="Open notifications"
-							hitSlop={12}
-							onPress={onNotificationPress}
-							style={styles.notificationButton}
-						>
-							<NotifIcon width={28} height={28} />
-						</Pressable>
-					</View>
+								<View style={styles.trailingGroup}>
+									<Image source={ErboLogo} style={styles.logo} resizeMode="contain" />
+									<Pressable
+										accessibilityRole="button"
+										accessibilityLabel="Open notifications"
+										hitSlop={12}
+										onPress={onNotificationPress}
+										style={styles.notificationButton}
+									>
+										<NotifIcon style={styles.notificationIcon} />
+									</Pressable>
+								</View>
 				</View>
 			</LinearGradient>
 		</View>
@@ -107,8 +107,16 @@ const styles = StyleSheet.create({
 		marginRight: 16,
 	},
 	notificationButton: {
-		padding: 4,
+			width: 44,
+			height: 44,
+			justifyContent: 'center',
+			alignItems: 'center',
 	},
+		notificationIcon: {
+			width: 28,
+			height: 28,
+			transform: [{ translateY: 5 }],
+		},
 });
 
 export default AppHeader;

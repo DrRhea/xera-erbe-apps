@@ -59,10 +59,10 @@ const leaderboardGradients: Record<number, [string, string]> = {
 };
 
 const navItems: BottomNavigationItem[] = [
-  { key: 'home', label: 'Home', Icon: HomeIcon },
-  { key: 'analysis', label: 'Analysis', Icon: GraphIcon },
-  { key: 'wallet', label: 'Wallet', Icon: TagIcon },
-  { key: 'profile', label: 'Profile', Icon: UserIcon },
+  { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
+  { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Analysis' },
+  { key: 'wallet', label: 'Wallet', Icon: TagIcon, routeName: 'Wallet' },
+  { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
 ];
 
 type PercentString = `${number}%`;
