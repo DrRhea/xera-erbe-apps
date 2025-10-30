@@ -13,9 +13,15 @@ export type AppHeaderProps = {
 	title: string;
 	onBackPress?: () => void;
 	onNotificationPress?: () => void;
+  contentHorizontalPadding?: number;
 };
 
-const AppHeader: FC<AppHeaderProps> = ({ title, onBackPress, onNotificationPress }) => {
+const AppHeader: FC<AppHeaderProps> = ({
+  title,
+  onBackPress,
+  onNotificationPress,
+  contentHorizontalPadding = spacing.xxl,
+}) => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
 
@@ -36,7 +42,10 @@ const AppHeader: FC<AppHeaderProps> = ({ title, onBackPress, onNotificationPress
 				colors={[...gradients.header]}
 				start={{ x: 0, y: 0 }}
 				end={{ x: 0, y: 1 }}
-				style={[styles.gradient, { paddingTop: insets.top + spacing.lg }]}
+				style={[
+					styles.gradient,
+					{ paddingTop: insets.top + spacing.lg, paddingHorizontal: contentHorizontalPadding },
+				]}
 			>
 				<View style={styles.content}>
 					<View style={styles.leadingGroup}>
@@ -78,7 +87,6 @@ const styles = StyleSheet.create({
 	},
 	gradient: {
 		paddingBottom: 20,
-		paddingHorizontal: spacing.xxl,
 	},
 	content: {
 		flexDirection: 'row',

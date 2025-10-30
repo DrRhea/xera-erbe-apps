@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, ImageSourcePropType, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Path, type SvgProps } from 'react-native-svg';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
@@ -23,15 +24,16 @@ import LiterasikImage from '../../../assets/images/other2.png';
 import AdminImage from '../../../assets/images/other1.png';
 
 import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
+import SearchBar from '../../components/SearchBar';
 import HomeIcon from '../../../assets/icons/home-2.svg';
 import PromoIcon from '../../../assets/icons/promo.svg';
 import ArrowIcon from '../../../assets/icons/vector.svg';
-import SearchIcon from '../../../assets/icons/search.svg';
 import NotificationIcon from '../../../assets/icons/notifdot.svg';
 import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
 import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
 import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
 import { colors, fontFamilies, gradients } from '../../constants/theme';
+import type { RootStackParamList } from '../../../App';
 
 const leaderboardGradients = gradients.leaderboard;
 
@@ -71,11 +73,12 @@ const progressData: ProgressCardProps[] = [
 type QuickAction = {
   title: string;
   image: ImageSourcePropType;
+  routeName?: keyof RootStackParamList;
 };
 
 const quickActions: QuickAction[] = [
   { title: "Let's DIGIDAW", image: DigidawImage },
-  { title: "Let's Try Out", image: TryOutImage },
+  { title: "Let's Try Out", image: TryOutImage, routeName: 'Tryout' },
 ];
 
 type LeaderboardEntry = {
@@ -157,7 +160,7 @@ const scale = (size: number, width: number) => (width / guidelineBaseWidth) * si
 
 const moderateScale = (size: number, width: number, factor = 0.5) => size + (scale(size, width) - size) * factor;
 
-const useResponsiveLayout = () => {
+export const useResponsiveLayout = () => {
   const { width } = useWindowDimensions();
   const safeWidth = Math.max(width, 320);
   const contentWidth = Math.min(safeWidth, 440);
@@ -279,6 +282,7 @@ type QuickActionCardProps = QuickAction & {
   imageSize: number;
   labelFontSize: number;
   minWidth: number;
+  onPress?: () => void;
 };
 
 const QuickActionCard: FC<QuickActionCardProps> = ({
@@ -290,10 +294,14 @@ const QuickActionCard: FC<QuickActionCardProps> = ({
   imageSize,
   labelFontSize,
   minWidth,
+  onPress,
 }) => (
   <Pressable
     key={`${title}-${index}`}
     style={[styles.quickActionCard, { paddingHorizontal, paddingVertical, minWidth }]}
+    onPress={onPress}
+    disabled={!onPress}
+    accessibilityRole={onPress ? 'button' : undefined}
   >
     <Image source={image} style={[styles.quickActionImage, { width: imageSize, height: imageSize }]} resizeMode="contain" />
     <Text style={[styles.quickActionLabel, { fontSize: labelFontSize }]}>{title}</Text>
@@ -487,6 +495,7 @@ const AdminCard: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
 );
 
 const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const quickActionMinWidth = quickActions.length
     ? Math.max(
         (layout.innerContentWidth - layout.quickActionGap * Math.max(quickActions.length - 1, 0)) /
@@ -496,6 +505,15 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
     : layout.innerContentWidth;
 
   const profileMarginTop = Math.max(layout.heroPaddingTop * 1.1, 20);
+
+  const handleQuickActionPress = useCallback(
+    (action: QuickAction) => {
+      if (action.routeName) {
+        navigation.navigate(action.routeName);
+      }
+    },
+    [navigation]
+  );
 
   return (
     <View style={[styles.heroWrapper, { width: layout.contentWidth, alignSelf: 'center' }]}>
@@ -513,10 +531,7 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
         ]}
       >
         <View style={styles.searchRow}>
-          <View style={styles.searchBar}>
-            <Text style={styles.searchPlaceholder}>Mau belajar apa nih?</Text>
-            <SearchIcon width={18} height={18} />
-          </View>
+          <SearchBar placeholder="Mau belajar apa nih?" style={styles.searchBarWrapper} />
           <Pressable style={styles.notificationButton}>
             <NotificationIcon style={styles.notificationIcon} />
           </Pressable>
@@ -561,6 +576,7 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
               imageSize={layout.quickActionImageSize}
               labelFontSize={layout.quickActionLabelFontSize}
               minWidth={quickActionMinWidth}
+              onPress={item.routeName ? () => handleQuickActionPress(item) : undefined}
             />
           ))}
         </View>
@@ -899,25 +915,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 18,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+  searchBarWrapper: {
     flex: 1,
     marginRight: 16,
-    shadowColor: '#004559',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  searchPlaceholder: {
-    flex: 1,
-    fontSize: 13,
-    color: 'rgba(0,0,0,0.8)',
-    fontFamily: fontFamilies.medium,
   },
   notificationButton: {
     width: 44,
