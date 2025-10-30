@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/home/HomeScreen';
 import TryoutScreen from './src/screens/tryout/TryoutScreen';
 import TryoutDetailScreen from './src/screens/tryout/TryoutDetailScreen';
+import TryoutQuestionScreen from './src/screens/tryout/TryoutQuestion';
 import PlaceholderScreen from './src/screens/shared/PlaceholderScreen';
 
 export type RootStackParamList = {
@@ -13,6 +14,12 @@ export type RootStackParamList = {
   TryoutDetail: {
     tryoutId: string;
     title: string;
+  };
+  TryoutQuestion: {
+    tryoutId: string;
+    tryoutTitle: string;
+    subtestId: string;
+    subtestTitle: string;
   };
   Analysis: undefined;
   Wallet: undefined;
@@ -37,6 +44,7 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Tryout" component={TryoutScreen} />
           <Stack.Screen name="TryoutDetail" component={TryoutDetailScreen} />
+          <Stack.Screen name="TryoutQuestion" component={TryoutQuestionScreen} />
           <Stack.Screen
             name="Analysis"
             children={() => <PlaceholderScreen title="Analysis" message="Analysis screen coming soon." />}

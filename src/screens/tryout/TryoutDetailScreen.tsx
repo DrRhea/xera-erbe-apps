@@ -1,6 +1,7 @@
 import React, { FC, useMemo } from 'react';
 import {
   Image,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -8,7 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -78,6 +79,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 
 const TryoutDetailScreen: FC = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'TryoutDetail'>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const layout = useResponsiveLayout();
 
   const { tryoutId, title } = route.params;
@@ -174,7 +176,7 @@ const TryoutDetailScreen: FC = () => {
           <View style={[styles.subtestList, { rowGap: subtestGap, gap: subtestGap }]}>
             {detail.subtests.length ? (
               detail.subtests.map((subtest) => (
-                <View
+                <Pressable
                   key={subtest.id}
                   style={[
                     styles.subtestCard,
@@ -183,6 +185,16 @@ const TryoutDetailScreen: FC = () => {
                       columnGap: subtestGap,
                     },
                   ]}
+                  onPress={() =>
+                    navigation.navigate('TryoutQuestion', {
+                      tryoutId,
+                      tryoutTitle: detail.title,
+                      subtestId: subtest.id,
+                      subtestTitle: subtest.title,
+                    })
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel={`Mulai ${subtest.title}`}
                 >
                   <View
                     style={[
@@ -207,7 +219,7 @@ const TryoutDetailScreen: FC = () => {
                       <Text style={styles.subtestMetaText}>{minutesLabel(subtest.durationMinutes)}</Text>
                     </View>
                   </View>
-                </View>
+                </Pressable>
               ))
             ) : (
               <Text style={styles.emptyStateCopy}>Belum ada subtes yang tersedia untuk tryout ini.</Text>
