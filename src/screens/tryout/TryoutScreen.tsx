@@ -91,10 +91,7 @@ const TryoutScreen: FC = () => {
 		[layout.horizontalPadding]
 	);
 	const activeCardContentGap = useMemo(() => clamp(layout.horizontalPadding * 0.4, 10, 16), [layout.horizontalPadding]);
-	const activeCardWidth = useMemo(() => {
-		const twoColumnWidth = (layout.innerContentWidth - activeCardGap) / 2;
-		return Math.max(twoColumnWidth, 0);
-	}, [layout.innerContentWidth, activeCardGap]);
+	const activeCardWidth = useMemo(() => layout.innerContentWidth, [layout.innerContentWidth]);
 
 	const iconWrapperSize = useMemo(() => clamp(layout.horizontalPadding * 2.4, 46, 58), [layout.horizontalPadding]);
 	const iconImageSize = useMemo(() => clamp(iconWrapperSize * 0.85, 36, 50), [iconWrapperSize]);
@@ -172,9 +169,8 @@ const TryoutScreen: FC = () => {
 							style={[
 								styles.activeGrid,
 								{
-									columnGap: activeCardGap,
 									rowGap: activeCardGap,
-									gap: activeCardGap,
+									width: '100%',
 								},
 							]}
 						>
@@ -187,8 +183,9 @@ const TryoutScreen: FC = () => {
 										{
 											paddingVertical: activeCardPaddingVertical,
 											paddingHorizontal: activeCardPaddingHorizontal,
-											width: activeCardWidth,
 											columnGap: activeCardContentGap,
+											maxWidth: activeCardWidth,
+											alignSelf: 'center',
 										},
 									]}
 									accessibilityRole="button"
@@ -210,7 +207,7 @@ const TryoutScreen: FC = () => {
 											resizeMode="contain"
 										/>
 									</View>
-									<View style={styles.activeContent}>
+									<View style={[styles.activeContent, { marginLeft: activeCardContentGap }]}>
 										<Text style={styles.activeTitle}>{tryout.title}</Text>
 										<View
 											style={[
@@ -336,15 +333,15 @@ const styles = StyleSheet.create({
 		marginBottom: 14,
 	},
 	activeGrid: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		justifyContent: 'space-between',
+		flexDirection: 'column',
+		rowGap: 16,
 	},
 	activeCard: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		backgroundColor: colors.primary,
 		borderRadius: 20,
+		width: '100%',
 	},
 	activeIconWrapper: {
 		backgroundColor: colors.white,
