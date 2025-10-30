@@ -70,10 +70,14 @@ const progressData: ProgressCardProps[] = [
   },
 ];
 
+type RoutesWithoutParams = {
+  [K in keyof RootStackParamList]: undefined extends RootStackParamList[K] ? K : never;
+}[keyof RootStackParamList];
+
 type QuickAction = {
   title: string;
   image: ImageSourcePropType;
-  routeName?: keyof RootStackParamList;
+  routeName?: RoutesWithoutParams;
 };
 
 const quickActions: QuickAction[] = [

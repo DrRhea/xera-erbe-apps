@@ -4,11 +4,16 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/home/HomeScreen';
 import TryoutScreen from './src/screens/tryout/TryoutScreen';
+import TryoutDetailScreen from './src/screens/tryout/TryoutDetailScreen';
 import PlaceholderScreen from './src/screens/shared/PlaceholderScreen';
 
 export type RootStackParamList = {
   Home: undefined;
   Tryout: undefined;
+  TryoutDetail: {
+    tryoutId: string;
+    title: string;
+  };
   Analysis: undefined;
   Wallet: undefined;
   Profile: undefined;
@@ -31,6 +36,7 @@ export default function App() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Tryout" component={TryoutScreen} />
+          <Stack.Screen name="TryoutDetail" component={TryoutDetailScreen} />
           <Stack.Screen
             name="Analysis"
             children={() => <PlaceholderScreen title="Analysis" message="Analysis screen coming soon." />}

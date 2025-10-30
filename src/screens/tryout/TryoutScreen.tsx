@@ -122,9 +122,11 @@ const TryoutScreen: FC = () => {
 	);
 
 	const handleCardPress = useCallback(
-		(tryoutId: string) => {
-			// TODO: replace with navigation to detailed tryout screen when available.
-			navigation.navigate('Tryout');
+		(tryoutId: string, tryoutTitle: string) => {
+			navigation.navigate('TryoutDetail', {
+				tryoutId,
+				title: tryoutTitle,
+			});
 		},
 		[navigation]
 	);
@@ -177,7 +179,7 @@ const TryoutScreen: FC = () => {
 							{activeTryouts.map((tryout) => (
 								<Pressable
 									key={tryout.id}
-									onPress={() => handleCardPress(tryout.id)}
+									onPress={() => handleCardPress(tryout.id, tryout.title)}
 									style={[
 										styles.activeCard,
 										{
@@ -237,7 +239,7 @@ const TryoutScreen: FC = () => {
 							{upcomingTryouts.map((tryout) => (
 								<Pressable
 									key={tryout.id}
-									onPress={() => handleCardPress(tryout.id)}
+									onPress={() => handleCardPress(tryout.id, tryout.title)}
 									style={[styles.upcomingCard, { padding: upcomingCardPadding }]}
 									accessibilityRole="button"
 									accessibilityLabel={`Daftar ${tryout.title}`}
