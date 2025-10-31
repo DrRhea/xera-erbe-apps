@@ -10,7 +10,7 @@ import {
 	Text,
 	View,
 } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -151,6 +151,7 @@ const TryoutDescScreen: FC = () => {
 	const {
 		params: { tryoutId, title, dateLabel, statusLabel, statusVariant },
 	} = useRoute<TryoutDescRouteProp>();
+	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
 
 	const description = useMemo(
@@ -220,8 +221,17 @@ const TryoutDescScreen: FC = () => {
 	);
 
 	const handleRegisterPress = useCallback(() => {
-		Alert.alert('Pendaftaran Try Out', 'Fitur pendaftaran akan tersedia segera.');
-	}, []);
+		if (statusVariant === 'free') {
+			navigation.navigate('TryoutRegistrationFree', {
+				tryoutId,
+				title,
+				dateLabel,
+			});
+			return;
+		}
+
+		Alert.alert('Pendaftaran Try Out', 'Fitur pembayaran akan tersedia segera.');
+	}, [dateLabel, navigation, statusVariant, title, tryoutId]);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
