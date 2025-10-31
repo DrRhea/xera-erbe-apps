@@ -199,10 +199,6 @@ const TryoutQuestionScreen: FC = () => {
 		() => clamp(layout.horizontalPadding * 0.6, 14, 22),
 		[layout.horizontalPadding]
 	);
-	const optionWidth = useMemo(
-		() => (layout.innerContentWidth - optionGap) / 2,
-		[layout.innerContentWidth, optionGap]
-	);
 	const optionPaddingVertical = useMemo(
 		() => clamp(layout.horizontalPadding * 0.9, 16, 24),
 		[layout.horizontalPadding]
@@ -393,7 +389,7 @@ const TryoutQuestionScreen: FC = () => {
 					]}
 					showsVerticalScrollIndicator={false}
 				>
-					<View style={[styles.headerWrapper, { width: layout.contentWidth }]}> 
+					<View style={[styles.headerWrapper, { width: layout.contentWidth, marginBottom: sectionSpacing }]}> 
 						<AppHeader title="Tryout" contentHorizontalPadding={contentHorizontalPadding} />
 					</View>
 
@@ -469,7 +465,7 @@ const TryoutQuestionScreen: FC = () => {
 										style={[
 											styles.optionCard,
 											{
-												width: optionWidth,
+												width: '100%',
 												paddingVertical: optionPaddingVertical,
 												paddingHorizontal: optionPaddingHorizontal,
 											},
@@ -689,9 +685,8 @@ const styles = StyleSheet.create({
 		backgroundColor: '#B8E5DE',
 		borderRadius: 20,
 		paddingHorizontal: 20,
-		paddingVertical: 24,
-		minHeight: 193,
-		gap: 16,
+		paddingVertical: 18,
+		gap: 12,
 	},
 	questionPrompt: {
 		fontFamily: fontFamilies.semiBold,
@@ -705,11 +700,11 @@ const styles = StyleSheet.create({
 	},
 	optionsGrid: {
 		width: '100%',
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		justifyContent: 'space-between',
+		flexDirection: 'column',
+		alignItems: 'stretch',
 	},
 	optionCard: {
+		width: '100%',
 		borderRadius: 20,
 		backgroundColor: colors.white,
 		shadowColor: '#000000',
