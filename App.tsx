@@ -5,12 +5,20 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/home/HomeScreen';
 import TryoutScreen from './src/screens/tryout/TryoutScreen';
 import TryoutDetailScreen from './src/screens/tryout/TryoutDetailScreen';
+import TryoutDescScreen from './src/screens/tryout/TryoutDescScreen';
 import TryoutQuestionScreen from './src/screens/tryout/TryoutQuestion';
 import PlaceholderScreen from './src/screens/shared/PlaceholderScreen';
 
 export type RootStackParamList = {
   Home: undefined;
   Tryout: undefined;
+  TryoutDesc: {
+    tryoutId: string;
+    title: string;
+    dateLabel: string;
+    statusLabel: string;
+    statusVariant: 'free' | 'paid';
+  };
   TryoutDetail: {
     tryoutId: string;
     title: string;
@@ -43,6 +51,7 @@ export default function App() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Tryout" component={TryoutScreen} />
+          <Stack.Screen name="TryoutDesc" component={TryoutDescScreen} />
           <Stack.Screen name="TryoutDetail" component={TryoutDetailScreen} />
           <Stack.Screen name="TryoutQuestion" component={TryoutQuestionScreen} />
           <Stack.Screen

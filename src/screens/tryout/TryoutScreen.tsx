@@ -121,11 +121,24 @@ const TryoutScreen: FC = () => {
 		[layout.horizontalPadding]
 	);
 
-	const handleCardPress = useCallback(
+	const handleActiveCardPress = useCallback(
 		(tryoutId: string, tryoutTitle: string) => {
 			navigation.navigate('TryoutDetail', {
 				tryoutId,
 				title: tryoutTitle,
+			});
+		},
+		[navigation]
+	);
+
+	const handleUpcomingCardPress = useCallback(
+		(tryout: UpcomingTryout) => {
+			navigation.navigate('TryoutDesc', {
+				tryoutId: tryout.id,
+				title: tryout.title,
+				dateLabel: tryout.dateLabel,
+				statusLabel: tryout.statusLabel,
+				statusVariant: tryout.statusVariant,
 			});
 		},
 		[navigation]
@@ -179,7 +192,7 @@ const TryoutScreen: FC = () => {
 							{activeTryouts.map((tryout) => (
 								<Pressable
 									key={tryout.id}
-									onPress={() => handleCardPress(tryout.id, tryout.title)}
+									onPress={() => handleActiveCardPress(tryout.id, tryout.title)}
 									style={[
 										styles.activeCard,
 										{
@@ -239,7 +252,7 @@ const TryoutScreen: FC = () => {
 							{upcomingTryouts.map((tryout) => (
 								<Pressable
 									key={tryout.id}
-									onPress={() => handleCardPress(tryout.id, tryout.title)}
+									onPress={() => handleUpcomingCardPress(tryout)}
 									style={[styles.upcomingCard, { padding: upcomingCardPadding }]}
 									accessibilityRole="button"
 									accessibilityLabel={`Daftar ${tryout.title}`}
