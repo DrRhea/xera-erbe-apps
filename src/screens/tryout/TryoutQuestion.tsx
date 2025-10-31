@@ -216,7 +216,7 @@ const TryoutQuestionScreen: FC = () => {
 		[layout.horizontalPadding]
 	);
 	const gridBadgeSize = useMemo(
-		() => clamp(layout.horizontalPadding * 2.7, 60, 70),
+		() => clamp(layout.horizontalPadding * 2.7, 64, 72),
 		[layout.horizontalPadding]
 	);
 	const sheetHorizontalPadding = useMemo(
@@ -251,42 +251,42 @@ const TryoutQuestionScreen: FC = () => {
 		const buildBadgePresentation = useCallback(
 			(status: QuestionStatus) => {
 				const size = gridBadgeSize;
-				const baseStyle: ViewStyle = {
-					width: size,
-					height: size,
-					borderRadius: size / 2,
-					alignItems: 'center',
-					justifyContent: 'center',
-					borderWidth: 2,
-				};
-
+				let borderWidth = 0;
 				let backgroundColor: string = colors.white;
-				let borderColor: string = 'rgba(1, 88, 118, 0.24)';
+				let borderColor: string = 'transparent';
 				let textColor: string = colors.primaryDark;
 
 				if (status === 'current') {
 					backgroundColor = colors.primaryDark;
 					borderColor = colors.white;
+					borderWidth = 2;
 					textColor = colors.white;
 				} else if (status === 'answered') {
 					backgroundColor = colors.primary;
 					borderColor = colors.white;
+					borderWidth = 2;
 					textColor = colors.white;
 				} else if (status === 'flagged') {
 					backgroundColor = colors.accent;
 					borderColor = colors.white;
+					borderWidth = 2;
 					textColor = colors.white;
 				}
 
 				const containerStyle: ViewStyle = {
-					...baseStyle,
+					width: size,
+					height: size,
+					borderRadius: 20,
+					alignItems: 'center',
+					justifyContent: 'center',
 					backgroundColor,
 					borderColor,
+					borderWidth,
 				};
 
 				const labelStyle: TextStyle = {
 					color: textColor,
-					fontSize: clamp(size * 0.33, 14, 20),
+					fontSize: clamp(size * 0.45, 22, 30),
 				};
 
 				return {
@@ -412,8 +412,8 @@ const TryoutQuestionScreen: FC = () => {
 							style={[
 								styles.summaryCard,
 								{
-									paddingHorizontal: summaryCardPadding,
-									paddingVertical: summaryCardPadding * 0.85,
+									paddingHorizontal: Math.max(summaryCardPadding, 20),
+									paddingVertical: Math.max(summaryCardPadding * 0.72, 12),
 									columnGap: summaryCardGap,
 									gap: summaryCardGap,
 								},
@@ -620,21 +620,28 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		backgroundColor: colors.primary,
 		borderRadius: 20,
+		minHeight: 61,
+		paddingHorizontal: 20,
+		paddingVertical: 12,
 	},
 	summaryIconWrapper: {
-		width: 48,
-		height: 48,
+		width: 43,
+		height: 43,
 		backgroundColor: colors.white,
-		borderRadius: 16,
+		borderTopLeftRadius: 3,
+		borderTopRightRadius: 10,
+		borderBottomLeftRadius: 3,
+		borderBottomRightRadius: 3,
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
 	summaryIcon: {
-		width: 36,
-		height: 36,
+		width: 35,
+		height: 35,
 	},
 	summaryCopy: {
 		flex: 1,
+		marginLeft: 16,
 	},
 	summaryLabel: {
 		fontFamily: fontFamilies.bold,
@@ -642,16 +649,19 @@ const styles = StyleSheet.create({
 		color: colors.white,
 	},
 	summaryMeta: {
-		marginTop: 4,
+		marginTop: 2,
 		fontFamily: fontFamilies.medium,
 		fontSize: 11,
 		color: 'rgba(255,255,255,0.8)',
 	},
 	timerBadge: {
+		minWidth: 88,
+		height: 22,
+		paddingHorizontal: 12,
+		borderRadius: 10,
 		backgroundColor: colors.accent,
-		borderRadius: 12,
-		paddingHorizontal: 16,
-		paddingVertical: 6,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	timerBadgeText: {
 		fontFamily: fontFamilies.bold,
@@ -678,7 +688,9 @@ const styles = StyleSheet.create({
 		width: '100%',
 		backgroundColor: '#B8E5DE',
 		borderRadius: 20,
-		padding: 20,
+		paddingHorizontal: 20,
+		paddingVertical: 24,
+		minHeight: 193,
 		gap: 16,
 	},
 	questionPrompt: {
@@ -732,10 +744,14 @@ const styles = StyleSheet.create({
 		width: '100%',
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'space-between',
+		justifyContent: 'center',
 	},
 	navButton: {
+		width: 66,
+		height: 44,
 		borderRadius: 22,
+		alignItems: 'center',
+		justifyContent: 'center',
 		overflow: 'hidden',
 	},
 	navButtonDisabled: {
@@ -837,11 +853,13 @@ const styles = StyleSheet.create({
 		color: colors.white,
 	},
 	questionBadgeBase: {
-		borderWidth: 2,
+		borderWidth: 0,
 		borderColor: 'transparent',
+		borderRadius: 20,
 	},
 	questionBadgeLabel: {
 		fontFamily: fontFamilies.extraBold,
+		fontSize: 24,
 		color: colors.primaryDark,
 	},
 });
