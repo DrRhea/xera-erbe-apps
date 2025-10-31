@@ -7,6 +7,7 @@ import TryoutScreen from './src/screens/tryout/TryoutScreen';
 import TryoutDetailScreen from './src/screens/tryout/TryoutDetailScreen';
 import TryoutDescScreen from './src/screens/tryout/TryoutDescScreen';
 import TryoutRegistrationFreeScreen from './src/screens/tryout/TryoutRegistrationFreeScreen';
+import TryoutRegistrationPaidScreen from './src/screens/tryout/TryoutRegistrationPaidScreen';
 import TryoutQuestionScreen from './src/screens/tryout/TryoutQuestion';
 import PlaceholderScreen from './src/screens/shared/PlaceholderScreen';
 
@@ -24,6 +25,12 @@ export type RootStackParamList = {
     tryoutId: string;
     title: string;
     dateLabel: string;
+  };
+  TryoutRegistrationPaid: {
+    tryoutId: string;
+    title: string;
+    dateLabel: string;
+    priceLabel: string;
   };
   TryoutDetail: {
     tryoutId: string;
@@ -59,6 +66,7 @@ export default function App() {
           <Stack.Screen name="Tryout" component={TryoutScreen} />
           <Stack.Screen name="TryoutDesc" component={TryoutDescScreen} />
           <Stack.Screen name="TryoutRegistrationFree" component={TryoutRegistrationFreeScreen} />
+          <Stack.Screen name="TryoutRegistrationPaid" component={TryoutRegistrationPaidScreen} />
           <Stack.Screen name="TryoutDetail" component={TryoutDetailScreen} />
           <Stack.Screen name="TryoutQuestion" component={TryoutQuestionScreen} />
           <Stack.Screen

@@ -230,8 +230,13 @@ const TryoutDescScreen: FC = () => {
 			return;
 		}
 
-		Alert.alert('Pendaftaran Try Out', 'Fitur pembayaran akan tersedia segera.');
-	}, [dateLabel, navigation, statusVariant, title, tryoutId]);
+		navigation.navigate('TryoutRegistrationPaid', {
+			tryoutId,
+			title,
+			dateLabel,
+			priceLabel: statusLabel,
+		});
+	}, [dateLabel, navigation, statusLabel, statusVariant, title, tryoutId]);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
