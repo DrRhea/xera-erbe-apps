@@ -8,8 +8,7 @@ import {
 	Text,
 	View,
 } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
-import type { SvgProps } from 'react-native-svg';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -17,30 +16,15 @@ import HomeIcon from '../../../assets/icons/home-2.svg';
 import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
-import MaterialIcon1 from '../../../assets/icons/material1.svg';
-import MaterialIcon2 from '../../../assets/icons/material2.svg';
-import MaterialIcon3 from '../../../assets/icons/material3.svg';
-import MaterialIcon4 from '../../../assets/icons/material4.svg';
-import MaterialIcon5 from '../../../assets/icons/material5.svg';
-import MaterialIcon6 from '../../../assets/icons/material6.svg';
-import MaterialIcon7 from '../../../assets/icons/material7.svg';
-import VectorIcon from '../../../assets/icons/material4.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
+import {
+	getCategoryCollection,
+	getIconComponent,
+} from './digidawData';
 
 type DigidawCategoriesRoute = RouteProp<RootStackParamList, 'DigidawCategories'>;
-
-type CategoryItem = {
-	id: string;
-	label: string;
-	Icon: FC<SvgProps>;
-};
-
-type CategoryCollection = {
-	title: string;
-	items: CategoryItem[];
-};
 
 const navItems: BottomNavigationItem[] = [
 	{ key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -51,103 +35,15 @@ const navItems: BottomNavigationItem[] = [
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-const materialIcons = [
-	MaterialIcon1,
-	MaterialIcon2,
-	MaterialIcon3,
-	MaterialIcon4,
-	MaterialIcon5,
-	MaterialIcon6,
-	MaterialIcon7,
-	VectorIcon,
-] as const;
-
-const digidawCategoryCollections: Record<string, CategoryCollection> = {
-	sma: {
-		title: 'SMA',
-		items: [
-			{ id: 'matematika', label: 'Matematika', Icon: MaterialIcon1 },
-			{ id: 'kimia', label: 'Kimia', Icon: MaterialIcon2 },
-			{ id: 'fisika', label: 'Fisika', Icon: MaterialIcon3 },
-			{ id: 'biologi', label: 'Biologi', Icon: MaterialIcon4 },
-			{ id: 'ekonomi', label: 'Ekonomi', Icon: MaterialIcon5 },
-			{ id: 'geografi', label: 'Geografi', Icon: MaterialIcon6 },
-			{ id: 'sosiologi', label: 'Sosiologi', Icon: MaterialIcon7 },
-			{ id: 'bahasa-inggris', label: 'Bahasa Inggris', Icon: VectorIcon },
-		],
-	},
-	'tka-snbt': {
-		title: 'TKA & SNBT',
-		items: [
-			{ id: 'penalaran-umum', label: 'Penalaran Umum', Icon: MaterialIcon1 },
-			{ id: 'penalaran-matematika', label: 'Penalaran Matematika', Icon: MaterialIcon2 },
-			{ id: 'literasi-indonesia', label: 'Literasi Indonesia', Icon: MaterialIcon3 },
-			{ id: 'literasi-inggris', label: 'Literasi Inggris', Icon: MaterialIcon4 },
-			{ id: 'pengetahuan-kuantitatif', label: 'Pengetahuan Kuantitatif', Icon: MaterialIcon5 },
-			{ id: 'pemahaman-umum', label: 'Pemahaman Umum', Icon: MaterialIcon6 },
-		],
-	},
-	kedinasan: {
-		title: 'Kedinasan',
-		items: [
-			{ id: 'twk', label: 'TWK', Icon: MaterialIcon1 },
-			{ id: 'tiu', label: 'TIU', Icon: MaterialIcon2 },
-			{ id: 'tkp', label: 'TKP', Icon: MaterialIcon3 },
-			{ id: 'skb', label: 'SKB', Icon: MaterialIcon4 },
-			{ id: 'psikotes', label: 'Psikotes', Icon: MaterialIcon5 },
-			{ id: 'wawancara', label: 'Wawancara', Icon: MaterialIcon6 },
-		],
-	},
-	smp: {
-		title: 'SMP',
-		items: [
-			{ id: 'matematika-smp', label: 'Matematika', Icon: MaterialIcon1 },
-			{ id: 'ipa-terpadu', label: 'IPA Terpadu', Icon: MaterialIcon2 },
-			{ id: 'bahasa-indonesia-smp', label: 'Bahasa Indonesia', Icon: MaterialIcon3 },
-			{ id: 'bahasa-inggris-smp', label: 'Bahasa Inggris', Icon: MaterialIcon4 },
-			{ id: 'ips', label: 'IPS', Icon: MaterialIcon5 },
-			{ id: 'ppkn', label: 'PPKn', Icon: MaterialIcon6 },
-			{ id: 'tik', label: 'TIK', Icon: MaterialIcon7 },
-		],
-	},
-	'mandiri-univ': {
-		title: 'Mandiri Univ',
-		items: [
-			{ id: 'tpa-numerik', label: 'TPA Numerik', Icon: MaterialIcon1 },
-			{ id: 'tpa-verbal', label: 'TPA Verbal', Icon: MaterialIcon2 },
-			{ id: 'tes-saintek', label: 'Tes Saintek', Icon: MaterialIcon3 },
-			{ id: 'tes-soshum', label: 'Tes Soshum', Icon: MaterialIcon4 },
-			{ id: 'bahasa-indonesia-ptn', label: 'Bahasa Indonesia', Icon: MaterialIcon5 },
-			{ id: 'bahasa-inggris-ptn', label: 'Bahasa Inggris', Icon: MaterialIcon6 },
-			{ id: 'potensi-akademik', label: 'Potensi Akademik', Icon: MaterialIcon7 },
-		],
-	},
-};
-
-const getCollectionForCategory = (categoryId: string, categoryTitle: string): CategoryCollection => {
-	const normalizedId = categoryId.toLowerCase();
-	if (digidawCategoryCollections[normalizedId]) {
-		return digidawCategoryCollections[normalizedId];
-	}
-
-	return {
-		title: categoryTitle,
-		items: Array.from({ length: 6 }).map((_, index) => ({
-			id: `${normalizedId}-${index + 1}`,
-			label: `${categoryTitle} ${index + 1}`,
-			Icon: materialIcons[index % materialIcons.length],
-		})),
-	};
-};
-
 const DigidawCategoriesScreen: FC = () => {
+	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const route = useRoute<DigidawCategoriesRoute>();
 	const layout = useResponsiveLayout();
 
-		const { categoryId, categoryTitle } = route.params;
+	const { categoryId, categoryTitle } = route.params;
 
 	const collection = useMemo(
-		() => getCollectionForCategory(categoryId, categoryTitle),
+		() => getCategoryCollection(categoryId, categoryTitle),
 		[categoryId, categoryTitle]
 	);
 
@@ -222,38 +118,49 @@ const DigidawCategoriesScreen: FC = () => {
 				>
 					<Text style={styles.sectionTitle}>{title}</Text>
 					<View style={[styles.cardGrid, { columnGap: cardGap, rowGap: cardGap, gap: cardGap }]}>
-						{collection.items.map((item, index) => (
-							<Pressable
-								key={item.id}
-								style={[
-									styles.categoryCard,
-									{
-										paddingHorizontal: cardPaddingHorizontal,
-										paddingVertical: cardPaddingVertical,
-										borderRadius: clamp(iconWrapperSize * 0.8, 18, 24),
-										maxWidth: cardWidth,
-										flexBasis: cardWidth,
-									},
-								]}
-								accessibilityRole="button"
-								accessibilityLabel={`Buka bank soal ${item.label}`}
-								onPress={() => {}}
-							>
-								<View
+						{collection.items.map((item) => {
+							const Icon = getIconComponent(item.iconKey);
+							return (
+								<Pressable
+									key={item.id}
 									style={[
-										styles.iconWrapper,
+										styles.categoryCard,
 										{
-											width: iconWrapperSize,
-											height: iconWrapperSize,
-											borderRadius: iconWrapperSize * 0.4,
+											paddingHorizontal: cardPaddingHorizontal,
+											paddingVertical: cardPaddingVertical,
+											borderRadius: clamp(iconWrapperSize * 0.8, 18, 24),
+											maxWidth: cardWidth,
+											flexBasis: cardWidth,
 										},
 									]}
+									accessibilityRole="button"
+									accessibilityLabel={`Buka bank soal ${item.label}`}
+									onPress={() =>
+										navigation.navigate('DigidawCategoryDetail', {
+											categoryId,
+											categoryTitle: collection.title,
+											subjectId: item.id,
+											subjectTitle: item.label,
+											iconKey: item.iconKey,
+										})
+									}
 								>
-									<item.Icon width={iconSize} height={iconSize} />
-								</View>
-								<Text style={styles.cardLabel}>{item.label}</Text>
-							</Pressable>
-						))}
+									<View
+										style={[
+											styles.iconWrapper,
+											{
+												width: iconWrapperSize,
+												height: iconWrapperSize,
+												borderRadius: iconWrapperSize * 0.4,
+											},
+										]}
+									>
+										<Icon width={iconSize} height={iconSize} />
+									</View>
+									<Text style={styles.cardLabel}>{item.label}</Text>
+								</Pressable>
+							);
+						})}
 					</View>
 				</View>
 			</ScrollView>

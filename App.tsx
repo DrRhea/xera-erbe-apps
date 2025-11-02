@@ -12,6 +12,8 @@ import TryoutQuestionScreen from './src/screens/tryout/TryoutQuestion';
 import PlaceholderScreen from './src/screens/shared/PlaceholderScreen';
 import DigidawScreen from './src/screens/digidaw/DigidawScreen';
 import DigidawCategoriesScreen from './src/screens/digidaw/DigidawCategoriesScreen';
+import DigidawCategoriesDetailScreen from './src/screens/digidaw/DigidawCategoriesDetailScreen';
+import type { CategoryIconKey } from './src/screens/digidaw/digidawData';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -20,6 +22,13 @@ export type RootStackParamList = {
   DigidawCategories: {
     categoryId: string;
     categoryTitle: string;
+  };
+  DigidawCategoryDetail: {
+    categoryId: string;
+    categoryTitle: string;
+    subjectId: string;
+    subjectTitle: string;
+    iconKey: CategoryIconKey;
   };
   TryoutDesc: {
     tryoutId: string;
@@ -73,6 +82,7 @@ export default function App() {
           <Stack.Screen name="Tryout" component={TryoutScreen} />
           <Stack.Screen name="Digidaw" component={DigidawScreen} />
           <Stack.Screen name="DigidawCategories" component={DigidawCategoriesScreen} />
+          <Stack.Screen name="DigidawCategoryDetail" component={DigidawCategoriesDetailScreen} />
           <Stack.Screen name="TryoutDesc" component={TryoutDescScreen} />
           <Stack.Screen name="TryoutRegistrationFree" component={TryoutRegistrationFreeScreen} />
           <Stack.Screen name="TryoutRegistrationPaid" component={TryoutRegistrationPaidScreen} />

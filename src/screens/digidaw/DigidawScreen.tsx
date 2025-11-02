@@ -29,7 +29,7 @@ type Category = {
 };
 
 const categories: Category[] = [
-	{ id: 'tka-snbt', title: 'TKA dan SNBT' },
+	{ id: 'tka-snbt', title: 'TKA & SNBT' },
 	{ id: 'sma', title: 'SMA' },
 	{ id: 'kedinasan', title: 'Kedinasan' },
 	{ id: 'smp', title: 'SMP' },
