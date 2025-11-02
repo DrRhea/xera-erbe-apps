@@ -14,6 +14,7 @@ export type AppHeaderProps = {
 	onBackPress?: () => void;
 	onNotificationPress?: () => void;
   contentHorizontalPadding?: number;
+	showBackButton?: boolean;
 };
 
 const AppHeader: FC<AppHeaderProps> = ({
@@ -21,6 +22,7 @@ const AppHeader: FC<AppHeaderProps> = ({
   onBackPress,
   onNotificationPress,
   contentHorizontalPadding = spacing.xxl,
+  showBackButton = true,
 }) => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
@@ -36,6 +38,8 @@ const AppHeader: FC<AppHeaderProps> = ({
 		}
 	}, [navigation, onBackPress]);
 
+	const shouldShowBackButton = showBackButton && (onBackPress || navigation.canGoBack());
+
 	return (
 		<View style={styles.wrapper}>
 			<LinearGradient
@@ -49,15 +53,15 @@ const AppHeader: FC<AppHeaderProps> = ({
 			>
 				<View style={styles.content}>
 					<View style={styles.leadingGroup}>
-						<Pressable
-							onPress={handleBackPress}
-							hitSlop={12}
-							accessibilityRole="button"
-							accessibilityLabel="Go back"
-							style={styles.backButton}
-						>
-							<BackArrowIcon width={20} height={20} />
-						</Pressable>
+							<Pressable
+								onPress={handleBackPress}
+								hitSlop={12}
+								accessibilityRole="button"
+								accessibilityLabel="Go back"
+								style={styles.backButton}
+							>
+								<BackArrowIcon width={20} height={20} />
+							</Pressable>
 						<Text style={styles.title}>{title}</Text>
 					</View>
 

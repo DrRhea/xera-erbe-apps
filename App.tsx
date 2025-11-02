@@ -10,10 +10,12 @@ import TryoutRegistrationFreeScreen from './src/screens/tryout/TryoutRegistratio
 import TryoutRegistrationPaidScreen from './src/screens/tryout/TryoutRegistrationPaidScreen';
 import TryoutQuestionScreen from './src/screens/tryout/TryoutQuestion';
 import PlaceholderScreen from './src/screens/shared/PlaceholderScreen';
+import DigidawScreen from './src/screens/digidaw/DigidawScreen';
 
 export type RootStackParamList = {
   Home: undefined;
   Tryout: undefined;
+  Digidaw: undefined;
   TryoutDesc: {
     tryoutId: string;
     title: string;
@@ -64,6 +66,7 @@ export default function App() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Tryout" component={TryoutScreen} />
+          <Stack.Screen name="Digidaw" component={DigidawScreen} />
           <Stack.Screen name="TryoutDesc" component={TryoutDescScreen} />
           <Stack.Screen name="TryoutRegistrationFree" component={TryoutRegistrationFreeScreen} />
           <Stack.Screen name="TryoutRegistrationPaid" component={TryoutRegistrationPaidScreen} />

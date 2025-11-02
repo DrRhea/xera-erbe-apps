@@ -81,7 +81,7 @@ type QuickAction = {
 };
 
 const quickActions: QuickAction[] = [
-  { title: "Let's DIGIDAW", image: DigidawImage },
+  { title: "Let's DIGIDAW", image: DigidawImage, routeName: 'Digidaw' },
   { title: "Let's Try Out", image: TryOutImage, routeName: 'Tryout' },
 ];
 
