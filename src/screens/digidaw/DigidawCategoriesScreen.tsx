@@ -24,6 +24,7 @@ import MaterialIcon4 from '../../../assets/icons/material4.svg';
 import MaterialIcon5 from '../../../assets/icons/material5.svg';
 import MaterialIcon6 from '../../../assets/icons/material6.svg';
 import MaterialIcon7 from '../../../assets/icons/material7.svg';
+import VectorIcon from '../../../assets/icons/material4.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
@@ -58,6 +59,7 @@ const materialIcons = [
 	MaterialIcon5,
 	MaterialIcon6,
 	MaterialIcon7,
+	VectorIcon,
 ] as const;
 
 const digidawCategoryCollections: Record<string, CategoryCollection> = {
@@ -71,7 +73,53 @@ const digidawCategoryCollections: Record<string, CategoryCollection> = {
 			{ id: 'ekonomi', label: 'Ekonomi', Icon: MaterialIcon5 },
 			{ id: 'geografi', label: 'Geografi', Icon: MaterialIcon6 },
 			{ id: 'sosiologi', label: 'Sosiologi', Icon: MaterialIcon7 },
-			{ id: 'bahasa-inggris', label: 'Bahasa Inggris', Icon: MaterialIcon4 },
+			{ id: 'bahasa-inggris', label: 'Bahasa Inggris', Icon: VectorIcon },
+		],
+	},
+	'tka-snbt': {
+		title: 'TKA & SNBT',
+		items: [
+			{ id: 'penalaran-umum', label: 'Penalaran Umum', Icon: MaterialIcon1 },
+			{ id: 'penalaran-matematika', label: 'Penalaran Matematika', Icon: MaterialIcon2 },
+			{ id: 'literasi-indonesia', label: 'Literasi Indonesia', Icon: MaterialIcon3 },
+			{ id: 'literasi-inggris', label: 'Literasi Inggris', Icon: MaterialIcon4 },
+			{ id: 'pengetahuan-kuantitatif', label: 'Pengetahuan Kuantitatif', Icon: MaterialIcon5 },
+			{ id: 'pemahaman-umum', label: 'Pemahaman Umum', Icon: MaterialIcon6 },
+		],
+	},
+	kedinasan: {
+		title: 'Kedinasan',
+		items: [
+			{ id: 'twk', label: 'TWK', Icon: MaterialIcon1 },
+			{ id: 'tiu', label: 'TIU', Icon: MaterialIcon2 },
+			{ id: 'tkp', label: 'TKP', Icon: MaterialIcon3 },
+			{ id: 'skb', label: 'SKB', Icon: MaterialIcon4 },
+			{ id: 'psikotes', label: 'Psikotes', Icon: MaterialIcon5 },
+			{ id: 'wawancara', label: 'Wawancara', Icon: MaterialIcon6 },
+		],
+	},
+	smp: {
+		title: 'SMP',
+		items: [
+			{ id: 'matematika-smp', label: 'Matematika', Icon: MaterialIcon1 },
+			{ id: 'ipa-terpadu', label: 'IPA Terpadu', Icon: MaterialIcon2 },
+			{ id: 'bahasa-indonesia-smp', label: 'Bahasa Indonesia', Icon: MaterialIcon3 },
+			{ id: 'bahasa-inggris-smp', label: 'Bahasa Inggris', Icon: MaterialIcon4 },
+			{ id: 'ips', label: 'IPS', Icon: MaterialIcon5 },
+			{ id: 'ppkn', label: 'PPKn', Icon: MaterialIcon6 },
+			{ id: 'tik', label: 'TIK', Icon: MaterialIcon7 },
+		],
+	},
+	'mandiri-univ': {
+		title: 'Mandiri Univ',
+		items: [
+			{ id: 'tpa-numerik', label: 'TPA Numerik', Icon: MaterialIcon1 },
+			{ id: 'tpa-verbal', label: 'TPA Verbal', Icon: MaterialIcon2 },
+			{ id: 'tes-saintek', label: 'Tes Saintek', Icon: MaterialIcon3 },
+			{ id: 'tes-soshum', label: 'Tes Soshum', Icon: MaterialIcon4 },
+			{ id: 'bahasa-indonesia-ptn', label: 'Bahasa Indonesia', Icon: MaterialIcon5 },
+			{ id: 'bahasa-inggris-ptn', label: 'Bahasa Inggris', Icon: MaterialIcon6 },
+			{ id: 'potensi-akademik', label: 'Potensi Akademik', Icon: MaterialIcon7 },
 		],
 	},
 };
