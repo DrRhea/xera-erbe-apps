@@ -9,6 +9,7 @@ import {
 	Text,
 	View,
 } from 'react-native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -17,6 +18,7 @@ import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
+import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
 
 const categoryIcon = require('../../../assets/images/sekolah.png');
@@ -44,6 +46,7 @@ const navItems: BottomNavigationItem[] = [
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const DigidawScreen: FC = () => {
+	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
 
 	const contentHorizontalPadding = useMemo(
@@ -126,7 +129,12 @@ const DigidawScreen: FC = () => {
 												index === categories.length - 1 ? styles.singleColumnCard : null,
 												pressed ? styles.categoryCardPressed : null,
 											]}
-											onPress={() => {}}
+											onPress={() =>
+												navigation.navigate('DigidawCategories', {
+													categoryId: category.id,
+													categoryTitle: category.title,
+												})
+											}
 											accessibilityRole="button"
 											accessibilityLabel={`Buka kategori ${category.title}`}
 							>
