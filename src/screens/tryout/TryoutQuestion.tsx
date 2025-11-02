@@ -46,7 +46,7 @@ const clamp = (value: number, min: number, max: number) =>
 type QuestionOption = {
 	id: string;
 	label: string;
-	text: string;
+	text?: string;
 };
 
 type Question = {
@@ -178,6 +178,13 @@ const TryoutQuestionScreen: FC = () => {
 			}
 
 		const snapPoints = useMemo<(string | number)[]>(() => [210, '70%'], []);
+		const optionRows = useMemo<QuestionOption[][]>(() => {
+			const rows: QuestionOption[][] = [];
+			for (let index = 0; index < currentQuestion.options.length; index += 2) {
+				rows.push(currentQuestion.options.slice(index, index + 2));
+			}
+			return rows;
+		}, [currentQuestion.options]);
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
@@ -445,42 +452,48 @@ const TryoutQuestionScreen: FC = () => {
 							) : null}
 						</View>
 
-						<View
-							style={[
-								styles.optionsGrid,
-								{
-									rowGap: optionGap,
-									columnGap: optionGap,
-									gap: optionGap,
-								},
-							]}
-						>
-							{currentQuestion.options.map((option) => {
-								const isSelected = currentState.answerId === option.id;
+						<View style={styles.optionsGrid}>
+							{optionRows.map((rowOptions: QuestionOption[], rowIndex: number) => (
+								<View
+									key={`option-row-${rowIndex}`}
+									style={[
+										styles.optionRow,
+										{
+											marginBottom: rowIndex === optionRows.length - 1 ? 0 : optionGap,
+										},
+									]}
+								>
+									{rowOptions.map((option: QuestionOption, optionIndex: number) => {
+										const isSelected = currentState.answerId === option.id;
 
-								return (
-									<Pressable
-										key={option.id}
-										onPress={() => handleSelectOption(option.id)}
-										style={[
-											styles.optionCard,
-											{
-												width: '100%',
-												paddingVertical: optionPaddingVertical,
-												paddingHorizontal: optionPaddingHorizontal,
-											},
-											isSelected && styles.optionCardSelected,
-										]}
-										accessibilityRole="button"
-										accessibilityLabel={`Jawaban pilihan ${option.label}`}
-									>
-										<Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
-											{option.label}
-										</Text>
-										<Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>{option.text}</Text>
-									</Pressable>
-								);
-							})}
+										return (
+											<Pressable
+												key={option.id}
+												onPress={() => handleSelectOption(option.id)}
+												style={[
+													styles.optionCard,
+													{
+														paddingVertical: optionPaddingVertical,
+														paddingHorizontal: optionPaddingHorizontal,
+														marginRight:
+															optionIndex === 0 && rowOptions.length > 1 ? optionGap : 0,
+													},
+													isSelected && styles.optionCardSelected,
+												]}
+												accessibilityRole="button"
+												accessibilityLabel={`Jawaban pilihan ${option.label}`}
+											>
+												<Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
+													{option.label}
+												</Text>
+											</Pressable>
+										);
+									})}
+									{rowOptions.length === 1 ? (
+										<View style={styles.optionCardSpacer} pointerEvents="none" />
+									) : null}
+								</View>
+							))}
 						</View>
 
 						<View
@@ -701,10 +714,14 @@ const styles = StyleSheet.create({
 	optionsGrid: {
 		width: '100%',
 		flexDirection: 'column',
+	},
+	optionRow: {
+		width: '100%',
+		flexDirection: 'row',
 		alignItems: 'stretch',
 	},
 	optionCard: {
-		width: '100%',
+		flex: 1,
 		borderRadius: 20,
 		backgroundColor: colors.white,
 		shadowColor: '#000000',
@@ -712,27 +729,24 @@ const styles = StyleSheet.create({
 		shadowRadius: 10,
 		shadowOffset: { width: 0, height: 4 },
 		elevation: 2,
+		alignItems: 'center',
+		justifyContent: 'center',
+		minHeight: 92,
 	},
 	optionCardSelected: {
 		backgroundColor: colors.primary,
+	},
+	optionCardSpacer: {
+		flex: 1,
+		minHeight: 92,
 	},
 	optionLabel: {
 		fontFamily: fontFamilies.extraBold,
 		fontSize: 24,
 		color: colors.primary,
-		marginBottom: 6,
 		textAlign: 'center',
 	},
 	optionLabelSelected: {
-		color: colors.white,
-	},
-	optionText: {
-		fontFamily: fontFamilies.bold,
-		fontSize: 13,
-		color: colors.primaryDark,
-		textAlign: 'center',
-	},
-	optionTextSelected: {
 		color: colors.white,
 	},
 	controlsRow: {
