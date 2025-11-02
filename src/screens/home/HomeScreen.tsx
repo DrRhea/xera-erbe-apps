@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, ImageSourcePropType, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Path, type SvgProps } from 'react-native-svg';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
@@ -23,46 +24,24 @@ import LiterasikImage from '../../../assets/images/other2.png';
 import AdminImage from '../../../assets/images/other1.png';
 
 import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
+import SearchBar from '../../components/SearchBar';
 import HomeIcon from '../../../assets/icons/home-2.svg';
 import PromoIcon from '../../../assets/icons/promo.svg';
 import ArrowIcon from '../../../assets/icons/vector.svg';
-import SearchIcon from '../../../assets/icons/search.svg';
 import NotificationIcon from '../../../assets/icons/notifdot.svg';
 import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
 import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
 import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
+import { colors, fontFamilies, gradients } from '../../constants/theme';
+import type { RootStackParamList } from '../../../App';
 
-const colors = {
-  background: '#F0F0F0',
-  primary: '#015876',
-  accent: '#FF8725',
-  white: '#FFFFFF',
-  darkText: '#202020',
-  mutedText: '#7C7C7C',
-  sectionTitle: '#004559',
-  greenLight: '#00BFAC',
-};
-
-const fontFamilies = {
-  regular: 'Montserrat-Regular',
-  medium: 'Montserrat-Medium',
-  semiBold: 'Montserrat-SemiBold',
-  bold: 'Montserrat-Bold',
-  extraBold: 'Montserrat-ExtraBold',
-  hero: 'PlaypenSans-ExtraBold',
-};
-
-const leaderboardGradients: Record<number, [string, string]> = {
-  1: ['#CCF3ED', '#7FC9BA'],
-  2: ['#B8E5DE', '#62BCAE'],
-  3: ['#B8E5DE', '#62BCAE'],
-};
+const leaderboardGradients = gradients.leaderboard;
 
 const navItems: BottomNavigationItem[] = [
-  { key: 'home', label: 'Home', Icon: HomeIcon },
-  { key: 'analysis', label: 'Analysis', Icon: GraphIcon },
-  { key: 'wallet', label: 'Wallet', Icon: TagIcon },
-  { key: 'profile', label: 'Profile', Icon: UserIcon },
+  { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
+  { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Analysis' },
+  { key: 'wallet', label: 'Wallet', Icon: TagIcon, routeName: 'Wallet' },
+  { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
 ];
 
 type PercentString = `${number}%`;
@@ -91,14 +70,19 @@ const progressData: ProgressCardProps[] = [
   },
 ];
 
+type RoutesWithoutParams = {
+  [K in keyof RootStackParamList]: undefined extends RootStackParamList[K] ? K : never;
+}[keyof RootStackParamList];
+
 type QuickAction = {
   title: string;
   image: ImageSourcePropType;
+  routeName?: RoutesWithoutParams;
 };
 
 const quickActions: QuickAction[] = [
   { title: "Let's DIGIDAW", image: DigidawImage },
-  { title: "Let's Try Out", image: TryOutImage },
+  { title: "Let's Try Out", image: TryOutImage, routeName: 'Tryout' },
 ];
 
 type LeaderboardEntry = {
@@ -180,7 +164,7 @@ const scale = (size: number, width: number) => (width / guidelineBaseWidth) * si
 
 const moderateScale = (size: number, width: number, factor = 0.5) => size + (scale(size, width) - size) * factor;
 
-const useResponsiveLayout = () => {
+export const useResponsiveLayout = () => {
   const { width } = useWindowDimensions();
   const safeWidth = Math.max(width, 320);
   const contentWidth = Math.min(safeWidth, 440);
@@ -302,6 +286,7 @@ type QuickActionCardProps = QuickAction & {
   imageSize: number;
   labelFontSize: number;
   minWidth: number;
+  onPress?: () => void;
 };
 
 const QuickActionCard: FC<QuickActionCardProps> = ({
@@ -313,10 +298,14 @@ const QuickActionCard: FC<QuickActionCardProps> = ({
   imageSize,
   labelFontSize,
   minWidth,
+  onPress,
 }) => (
   <Pressable
     key={`${title}-${index}`}
     style={[styles.quickActionCard, { paddingHorizontal, paddingVertical, minWidth }]}
+    onPress={onPress}
+    disabled={!onPress}
+    accessibilityRole={onPress ? 'button' : undefined}
   >
     <Image source={image} style={[styles.quickActionImage, { width: imageSize, height: imageSize }]} resizeMode="contain" />
     <Text style={[styles.quickActionLabel, { fontSize: labelFontSize }]}>{title}</Text>
@@ -326,7 +315,7 @@ const QuickActionCard: FC<QuickActionCardProps> = ({
 const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
-      colors={leaderboardGradients[1]}
+    colors={[...leaderboardGradients[1]]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.leaderboardGradient, styles.leaderboardGradientFirst]}
@@ -350,7 +339,7 @@ const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
 const SecondPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
-      colors={leaderboardGradients[2]}
+    colors={[...leaderboardGradients[2]]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.leaderboardGradient, styles.leaderboardGradientSecond]}
@@ -374,7 +363,7 @@ const SecondPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, B
 const ThirdPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
-      colors={leaderboardGradients[3]}
+    colors={[...leaderboardGradients[3]]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={[styles.leaderboardGradient, styles.leaderboardGradientThird]}
@@ -510,6 +499,7 @@ const AdminCard: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
 );
 
 const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const quickActionMinWidth = quickActions.length
     ? Math.max(
         (layout.innerContentWidth - layout.quickActionGap * Math.max(quickActions.length - 1, 0)) /
@@ -519,6 +509,15 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
     : layout.innerContentWidth;
 
   const profileMarginTop = Math.max(layout.heroPaddingTop * 1.1, 20);
+
+  const handleQuickActionPress = useCallback(
+    (action: QuickAction) => {
+      if (action.routeName) {
+        navigation.navigate(action.routeName);
+      }
+    },
+    [navigation]
+  );
 
   return (
     <View style={[styles.heroWrapper, { width: layout.contentWidth, alignSelf: 'center' }]}>
@@ -536,10 +535,7 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
         ]}
       >
         <View style={styles.searchRow}>
-          <View style={styles.searchBar}>
-            <Text style={styles.searchPlaceholder}>Mau belajar apa nih?</Text>
-            <SearchIcon width={18} height={18} />
-          </View>
+          <SearchBar placeholder="Mau belajar apa nih?" style={styles.searchBarWrapper} />
           <Pressable style={styles.notificationButton}>
             <NotificationIcon style={styles.notificationIcon} />
           </Pressable>
@@ -584,6 +580,7 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
               imageSize={layout.quickActionImageSize}
               labelFontSize={layout.quickActionLabelFontSize}
               minWidth={quickActionMinWidth}
+              onPress={item.routeName ? () => handleQuickActionPress(item) : undefined}
             />
           ))}
         </View>
@@ -922,25 +919,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 18,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+  searchBarWrapper: {
     flex: 1,
     marginRight: 16,
-    shadowColor: '#004559',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  searchPlaceholder: {
-    flex: 1,
-    fontSize: 13,
-    color: 'rgba(0,0,0,0.8)',
-    fontFamily: fontFamilies.medium,
   },
   notificationButton: {
     width: 44,
