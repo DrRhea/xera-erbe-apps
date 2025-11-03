@@ -8,7 +8,7 @@ import {
 	Text,
 	View,
 } from 'react-native';
-import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -21,11 +21,7 @@ import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import {
-	getCategoryCollection,
-	getCategoryModules,
-	getIconComponent,
-} from './digidawData';
+import { getCategoryModules, getIconComponent } from './digidawData';
 
 type DetailRoute = RouteProp<RootStackParamList, 'DigidawCategoryDetail'>;
 
@@ -39,19 +35,14 @@ const navItems: BottomNavigationItem[] = [
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const DigidawCategoriesDetailScreen: FC = () => {
-	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const route = useRoute<DetailRoute>();
 	const layout = useResponsiveLayout();
-	const { categoryId, categoryTitle, subjectId, subjectTitle, iconKey } = route.params;
+	const { categoryTitle, subjectId, subjectTitle, iconKey } = route.params;
 
 	const Icon = useMemo(() => getIconComponent(iconKey), [iconKey]);
 	const modules = useMemo(
 		() => getCategoryModules(subjectId, subjectTitle),
 		[subjectId, subjectTitle]
-	);
-	const collection = useMemo(
-		() => getCategoryCollection(categoryId, categoryTitle),
-		[categoryId, categoryTitle]
 	);
 
 	const contentHorizontalPadding = useMemo(
@@ -63,23 +54,23 @@ const DigidawCategoriesDetailScreen: FC = () => {
 		[layout.sectionSpacing]
 	);
 	const iconWrapperSize = useMemo(
-		() => clamp(layout.horizontalPadding * 1.8, 48, 64),
+		() => clamp(layout.horizontalPadding * 1.4, 44, 52),
 		[layout.horizontalPadding]
 	);
 	const iconSize = useMemo(
-		() => clamp(iconWrapperSize * 0.55, 28, 36),
+		() => clamp(iconWrapperSize * 0.55, 24, 30),
 		[iconWrapperSize]
 	);
 	const moduleGap = useMemo(
-		() => clamp(layout.sectionSpacing * 0.5, 14, 20),
+		() => clamp(layout.sectionSpacing * 0.45, 12, 18),
 		[layout.sectionSpacing]
 	);
 	const modulePadding = useMemo(
-		() => clamp(layout.horizontalPadding * 0.75, 18, 26),
+		() => clamp(layout.horizontalPadding * 0.7, 16, 22),
 		[layout.horizontalPadding]
 	);
-	const badgeSize = useMemo(
-		() => clamp(iconWrapperSize * 0.55, 28, 36),
+	const actionSize = useMemo(
+		() => clamp(iconWrapperSize * 0.55, 28, 34),
 		[iconWrapperSize]
 	);
 
@@ -98,11 +89,7 @@ const DigidawCategoriesDetailScreen: FC = () => {
 				showsVerticalScrollIndicator={false}
 			>
 				<View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-					<AppHeader
-						title="DIGIDAW"
-						contentHorizontalPadding={contentHorizontalPadding}
-						onBackPress={() => navigation.goBack()}
-					/>
+					<AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} />
 				</View>
 				<View
 					style={[
@@ -116,57 +103,36 @@ const DigidawCategoriesDetailScreen: FC = () => {
 						},
 					]}
 				>
-					<View style={styles.breadcrumbWrapper}>
-						<Text style={styles.breadcrumbText}>{collection.title}</Text>
-						<Text style={styles.breadcrumbSeparator}>•</Text>
-						<Text style={styles.breadcrumbText}>{subjectTitle}</Text>
-					</View>
-					<View style={[styles.subjectHero, { borderRadius: clamp(iconWrapperSize * 0.65, 20, 28) }]}>
-						<View
-							style={[
-								styles.subjectIconWrapper,
-								{
-									width: iconWrapperSize,
-									height: iconWrapperSize,
-									borderRadius: iconWrapperSize * 0.4,
-								},
-							]}
-						>
-							<Icon width={iconSize} height={iconSize} />
-						</View>
-						<View style={styles.subjectTextBlock}>
-							<Text style={styles.subjectLabel}>Bank Soal</Text>
-							<Text style={styles.subjectTitle}>{subjectTitle}</Text>
-							<Text style={styles.subjectSubtitle}>{`Kategori ${collection.title}`}</Text>
-						</View>
-					</View>
-					<SearchBar placeholder="Cari modul atau topik" />
+					<Text style={styles.sectionBreadcrumb}>{`${categoryTitle} ・ ${subjectTitle}`}</Text>
+					<SearchBar placeholder="Mau belajar apa nih?" />
+					<Text style={styles.sectionHeading}>{subjectTitle}</Text>
 					<View style={[styles.moduleList, { rowGap: moduleGap, gap: moduleGap }]}>
-						{modules.map((module, index) => (
+						{modules.map((module) => (
 							<Pressable
 								key={module.id}
 								style={[
 									styles.moduleCard,
 									{
 										paddingHorizontal: modulePadding,
-										paddingVertical: clamp(modulePadding * 0.75, 16, 22),
-										borderRadius: clamp(modulePadding, 18, 24),
+										paddingVertical: clamp(modulePadding * 0.7, 14, 20),
+										borderRadius: clamp(modulePadding * 0.9, 16, 22),
 									},
 								]}
+								onPress={() => {}}
 								accessibilityRole="button"
 								accessibilityLabel={`Buka modul ${module.title}`}
 							>
 								<View
 									style={[
-										styles.moduleBadge,
+										styles.moduleIconWrapper,
 										{
-											width: badgeSize,
-											height: badgeSize,
-											borderRadius: badgeSize / 2,
+											width: iconWrapperSize,
+											height: iconWrapperSize,
+											borderRadius: iconWrapperSize * 0.4,
 										},
 									]}
 								>
-									<Text style={styles.moduleBadgeText}>{String(index + 1).padStart(2, '0')}</Text>
+									<Icon width={iconSize} height={iconSize} />
 								</View>
 								<View style={styles.moduleInfo}>
 									<Text numberOfLines={2} style={styles.moduleTitle}>
@@ -174,7 +140,17 @@ const DigidawCategoriesDetailScreen: FC = () => {
 									</Text>
 									<Text style={styles.moduleMeta}>Latihan {subjectTitle}</Text>
 								</View>
-								<RightPointerIcon width={18} height={18} />
+								<View
+									style={[
+										styles.moduleAction,
+										{
+											width: actionSize,
+											height: actionSize,
+											borderRadius: actionSize / 2,
+										},
+									]}
+								>
+								</View>
 							</Pressable>
 						))}
 					</View>
@@ -211,56 +187,15 @@ const styles = StyleSheet.create({
 	contentWrapper: {
 		alignSelf: 'center',
 	},
-	breadcrumbWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 8,
-	},
-	breadcrumbText: {
+	sectionBreadcrumb: {
 		fontFamily: fontFamilies.medium,
 		fontSize: 13,
 		color: colors.textSecondary,
 	},
-	breadcrumbSeparator: {
-		fontFamily: fontFamilies.medium,
-		fontSize: 13,
-		color: 'rgba(0,0,0,0.3)',
-	},
-	subjectHero: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		backgroundColor: colors.white,
-		padding: 18,
-		shadowColor: '#69787D',
-		shadowOpacity: 0.2,
-		shadowRadius: 14,
-		shadowOffset: { width: 0, height: 2 },
-		elevation: 4,
-		gap: 16,
-	},
-	subjectIconWrapper: {
-		backgroundColor: '#FEF0E1',
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	subjectTextBlock: {
-		flex: 1,
-		gap: 4,
-	},
-	subjectLabel: {
-		fontFamily: fontFamilies.medium,
-		fontSize: 13,
-		color: colors.textSecondary,
-	},
-	subjectTitle: {
+	sectionHeading: {
 		fontFamily: fontFamilies.bold,
-		fontSize: 20,
+		fontSize: 16,
 		color: colors.textPrimary,
-	},
-	subjectSubtitle: {
-		fontFamily: fontFamilies.medium,
-		fontSize: 13,
-		color: 'rgba(0,0,0,0.6)',
 	},
 	moduleList: {
 		flexDirection: 'column',
@@ -270,21 +205,16 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		backgroundColor: colors.white,
 		shadowColor: '#69787D',
-		shadowOpacity: 0.15,
+		shadowOpacity: 0.14,
 		shadowRadius: 12,
 		shadowOffset: { width: 0, height: 2 },
 		elevation: 3,
 		gap: 16,
 	},
-	moduleBadge: {
-		backgroundColor: colors.primary,
+	moduleIconWrapper: {
+		backgroundColor: '#FEF0E1',
 		justifyContent: 'center',
 		alignItems: 'center',
-	},
-	moduleBadgeText: {
-		fontFamily: fontFamilies.bold,
-		fontSize: 12,
-		color: colors.white,
 	},
 	moduleInfo: {
 		flex: 1,
@@ -299,6 +229,11 @@ const styles = StyleSheet.create({
 		fontFamily: fontFamilies.medium,
 		fontSize: 12,
 		color: colors.textSecondary,
+	},
+	moduleAction: {
+		backgroundColor: '#E7F2FF',
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 	bottomNav: {
 		position: 'absolute',
