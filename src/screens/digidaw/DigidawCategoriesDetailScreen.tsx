@@ -8,7 +8,7 @@ import {
 	Text,
 	View,
 } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -36,8 +36,9 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 
 const DigidawCategoriesDetailScreen: FC = () => {
 	const route = useRoute<DetailRoute>();
+	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
-	const { categoryTitle, subjectId, subjectTitle, iconKey } = route.params;
+	const { categoryId, categoryTitle, subjectId, subjectTitle, iconKey } = route.params;
 
 	const Icon = useMemo(() => getIconComponent(iconKey), [iconKey]);
 	const modules = useMemo(
@@ -106,7 +107,7 @@ const DigidawCategoriesDetailScreen: FC = () => {
 					<Text style={styles.sectionBreadcrumb}>{`${categoryTitle} ・ ${subjectTitle}`}</Text>
 					<SearchBar placeholder="Mau belajar apa nih?" />
 					<Text style={styles.sectionHeading}>{subjectTitle}</Text>
-					<View style={[styles.moduleList, { rowGap: moduleGap, gap: moduleGap }]}>
+					<View style={[styles.moduleList, { rowGap: moduleGap, gap: moduleGap }]}> 
 						{modules.map((module) => (
 							<Pressable
 								key={module.id}
@@ -118,7 +119,16 @@ const DigidawCategoriesDetailScreen: FC = () => {
 										borderRadius: clamp(modulePadding * 0.9, 16, 22),
 									},
 								]}
-								onPress={() => {}}
+								onPress={() =>
+									navigation.navigate('DigidawQuestion', {
+										categoryId,
+										categoryTitle,
+										subjectId,
+										subjectTitle,
+										moduleId: module.id,
+										moduleTitle: module.title,
+									})
+								}
 								accessibilityRole="button"
 								accessibilityLabel={`Buka modul ${module.title}`}
 							>
@@ -150,6 +160,7 @@ const DigidawCategoriesDetailScreen: FC = () => {
 										},
 									]}
 								>
+									<RightPointerIcon width={actionSize * 0.55} height={actionSize * 0.55} />
 								</View>
 							</Pressable>
 						))}
