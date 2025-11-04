@@ -51,3 +51,8 @@ specifications.md
 *.code-workspace
 *.iml
 *.hprof
+
+# ai stuff
+.geminicodeassist/
+.gemini/
+.claude/

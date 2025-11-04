@@ -55,6 +55,7 @@ const DigidawQuestionScreen: FC = () => {
 
   const currentQuestion = questions[currentIndex];
   const currentState = questionStates[currentIndex];
+  const isEvaluated = currentState?.isEvaluated ?? false;
 
   const contentHorizontalPadding = useMemo(
     () => clamp(layout.horizontalPadding, 20, 28),
@@ -109,6 +110,9 @@ const DigidawQuestionScreen: FC = () => {
 
   const handleSelectOption = useCallback(
     (optionId: string) => {
+      if (isEvaluated) {
+        return;
+      }
       updateQuestionState((state, index) => {
         if (index !== currentIndex) {
           return state;
@@ -120,7 +124,7 @@ const DigidawQuestionScreen: FC = () => {
         };
       });
     },
-    [currentIndex, updateQuestionState]
+    [currentIndex, isEvaluated, updateQuestionState]
   );
 
   const handleEvaluate = useCallback(() => {
@@ -267,6 +271,7 @@ const DigidawQuestionScreen: FC = () => {
                       accessibilityRole="button"
                       accessibilityLabel={`Jawaban pilihan ${option.label}`}
                       onPress={() => handleSelectOption(option.id)}
+                      disabled={isEvaluated}
                     >
                       <Text
                         style={[
@@ -344,10 +349,13 @@ const DigidawQuestionScreen: FC = () => {
 
           <Pressable
             onPress={handleEvaluate}
-            disabled={!hasSelection}
+            disabled={!hasSelection || isEvaluated}
             accessibilityRole="button"
             accessibilityLabel="Periksa jawaban"
-            style={[styles.submitButton, !hasSelection && styles.submitButtonDisabled]}
+            style={[
+              styles.submitButton,
+              (!hasSelection || isEvaluated) && styles.submitButtonDisabled,
+            ]}
           >
             <Text style={styles.submitButtonText}>Periksa Jawaban</Text>
           </Pressable>
