@@ -15,6 +15,7 @@ import DigidawCategoriesScreen from './src/screens/digidaw/DigidawCategoriesScre
 import DigidawCategoriesDetailScreen from './src/screens/digidaw/DigidawCategoriesDetailScreen';
 import DigidawQuestionScreen from './src/screens/digidaw/DigidawQuestionScreen';
 import MateriScreen from './src/screens/materi/MateriScreen';
+import MateriCategoriesScreen from './src/screens/materi/MateriCategoriesScreen';
 import type { CategoryIconKey } from './src/screens/digidaw/digidawData';
 
 export type RootStackParamList = {
@@ -23,6 +24,12 @@ export type RootStackParamList = {
   MateriCategory: {
     categoryId: string;
     categoryTitle: string;
+  };
+  MateriSubject: {
+    categoryId: string;
+    categoryTitle: string;
+    subjectId: string;
+    subjectTitle: string;
   };
   Tryout: undefined;
   Digidaw: undefined;
@@ -95,17 +102,18 @@ export default function App() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Materi" component={MateriScreen} />
+          <Stack.Screen name="MateriCategory" component={MateriCategoriesScreen} />
           <Stack.Screen name="Tryout" component={TryoutScreen} />
           <Stack.Screen name="Digidaw" component={DigidawScreen} />
           <Stack.Screen name="DigidawCategories" component={DigidawCategoriesScreen} />
           <Stack.Screen name="DigidawCategoryDetail" component={DigidawCategoriesDetailScreen} />
           <Stack.Screen name="DigidawQuestion" component={DigidawQuestionScreen} />
           <Stack.Screen
-            name="MateriCategory"
+            name="MateriSubject"
             children={({ route }) => (
               <PlaceholderScreen
-                title={route.params.categoryTitle}
-                message={`Konten ${route.params.categoryTitle} akan hadir segera.`}
+                title={route.params.subjectTitle}
+                message={`Konten ${route.params.subjectTitle} untuk ${route.params.categoryTitle} akan hadir segera.`}
               />
             )}
           />
