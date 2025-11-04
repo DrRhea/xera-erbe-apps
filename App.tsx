@@ -11,11 +11,40 @@ import TryoutRegistrationPaidScreen from './src/screens/tryout/TryoutRegistratio
 import TryoutQuestionScreen from './src/screens/tryout/TryoutQuestion';
 import PlaceholderScreen from './src/screens/shared/PlaceholderScreen';
 import DigidawScreen from './src/screens/digidaw/DigidawScreen';
+import DigidawCategoriesScreen from './src/screens/digidaw/DigidawCategoriesScreen';
+import DigidawCategoriesDetailScreen from './src/screens/digidaw/DigidawCategoriesDetailScreen';
+import DigidawQuestionScreen from './src/screens/digidaw/DigidawQuestionScreen';
+import MateriScreen from './src/screens/materi/MateriScreen';
+import type { CategoryIconKey } from './src/screens/digidaw/digidawData';
 
 export type RootStackParamList = {
   Home: undefined;
+  Materi: undefined;
+  MateriCategory: {
+    categoryId: string;
+    categoryTitle: string;
+  };
   Tryout: undefined;
   Digidaw: undefined;
+  DigidawCategories: {
+    categoryId: string;
+    categoryTitle: string;
+  };
+  DigidawCategoryDetail: {
+    categoryId: string;
+    categoryTitle: string;
+    subjectId: string;
+    subjectTitle: string;
+    iconKey: CategoryIconKey;
+  };
+  DigidawQuestion: {
+    categoryId: string;
+    categoryTitle: string;
+    subjectId: string;
+    subjectTitle: string;
+    moduleId: string;
+    moduleTitle: string;
+  };
   TryoutDesc: {
     tryoutId: string;
     title: string;
@@ -65,8 +94,21 @@ export default function App() {
       <NavigationContainer theme={navigationTheme}>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Materi" component={MateriScreen} />
           <Stack.Screen name="Tryout" component={TryoutScreen} />
           <Stack.Screen name="Digidaw" component={DigidawScreen} />
+          <Stack.Screen name="DigidawCategories" component={DigidawCategoriesScreen} />
+          <Stack.Screen name="DigidawCategoryDetail" component={DigidawCategoriesDetailScreen} />
+          <Stack.Screen name="DigidawQuestion" component={DigidawQuestionScreen} />
+          <Stack.Screen
+            name="MateriCategory"
+            children={({ route }) => (
+              <PlaceholderScreen
+                title={route.params.categoryTitle}
+                message={`Konten ${route.params.categoryTitle} akan hadir segera.`}
+              />
+            )}
+          />
           <Stack.Screen name="TryoutDesc" component={TryoutDescScreen} />
           <Stack.Screen name="TryoutRegistrationFree" component={TryoutRegistrationFreeScreen} />
           <Stack.Screen name="TryoutRegistrationPaid" component={TryoutRegistrationPaidScreen} />

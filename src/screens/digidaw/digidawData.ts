@@ -1,0 +1,581 @@
+import type { FC } from 'react';
+import type { SvgProps } from 'react-native-svg';
+
+import MaterialIcon1 from '../../../assets/icons/material1.svg';
+import MaterialIcon2 from '../../../assets/icons/material2.svg';
+import MaterialIcon3 from '../../../assets/icons/material3.svg';
+import MaterialIcon4 from '../../../assets/icons/material4.svg';
+import MaterialIcon5 from '../../../assets/icons/material5.svg';
+import MaterialIcon6 from '../../../assets/icons/material6.svg';
+import MaterialIcon7 from '../../../assets/icons/material7.svg';
+import VectorIcon from '../../../assets/icons/vector.svg';
+
+export const iconComponents = {
+  material1: MaterialIcon1,
+  material2: MaterialIcon2,
+  material3: MaterialIcon3,
+  material4: MaterialIcon4,
+  material5: MaterialIcon5,
+  material6: MaterialIcon6,
+  material7: MaterialIcon7,
+  vector: VectorIcon,
+} as const;
+
+export type CategoryIconKey = keyof typeof iconComponents;
+
+export type CategoryItem = {
+  id: string;
+  label: string;
+  iconKey: CategoryIconKey;
+};
+
+export type CategoryCollection = {
+  title: string;
+  items: CategoryItem[];
+};
+
+const iconKeySequence = Object.keys(iconComponents) as CategoryIconKey[];
+
+const baseCollections: Record<string, CategoryCollection> = {
+  sma: {
+    title: 'SMA',
+    items: [
+      { id: 'matematika', label: 'Matematika', iconKey: 'material1' },
+      { id: 'kimia', label: 'Kimia', iconKey: 'material2' },
+      { id: 'fisika', label: 'Fisika', iconKey: 'material3' },
+      { id: 'biologi', label: 'Biologi', iconKey: 'material4' },
+      { id: 'ekonomi', label: 'Ekonomi', iconKey: 'material5' },
+      { id: 'geografi', label: 'Geografi', iconKey: 'material6' },
+      { id: 'sosiologi', label: 'Sosiologi', iconKey: 'material7' },
+      { id: 'bahasa-inggris', label: 'Bahasa Inggris', iconKey: 'vector' },
+    ],
+  },
+  'tka-snbt': {
+    title: 'TKA & SNBT',
+    items: [
+      { id: 'penalaran-umum', label: 'Penalaran Umum', iconKey: 'material1' },
+      { id: 'penalaran-matematika', label: 'Penalaran Matematika', iconKey: 'material2' },
+      { id: 'literasi-indonesia', label: 'Literasi Indonesia', iconKey: 'material3' },
+      { id: 'literasi-inggris', label: 'Literasi Inggris', iconKey: 'material4' },
+      { id: 'pengetahuan-kuantitatif', label: 'Pengetahuan Kuantitatif', iconKey: 'material5' },
+      { id: 'pemahaman-umum', label: 'Pemahaman Umum', iconKey: 'material6' },
+    ],
+  },
+  kedinasan: {
+    title: 'Kedinasan',
+    items: [
+      { id: 'twk', label: 'TWK', iconKey: 'material1' },
+      { id: 'tiu', label: 'TIU', iconKey: 'material2' },
+      { id: 'tkp', label: 'TKP', iconKey: 'material3' },
+      { id: 'skb', label: 'SKB', iconKey: 'material4' },
+      { id: 'psikotes', label: 'Psikotes', iconKey: 'material5' },
+      { id: 'wawancara', label: 'Wawancara', iconKey: 'material6' },
+    ],
+  },
+  smp: {
+    title: 'SMP',
+    items: [
+      { id: 'matematika-smp', label: 'Matematika', iconKey: 'material1' },
+      { id: 'ipa-terpadu', label: 'IPA Terpadu', iconKey: 'material2' },
+      { id: 'bahasa-indonesia-smp', label: 'Bahasa Indonesia', iconKey: 'material3' },
+      { id: 'bahasa-inggris-smp', label: 'Bahasa Inggris', iconKey: 'material4' },
+      { id: 'ips', label: 'IPS', iconKey: 'material5' },
+      { id: 'ppkn', label: 'PPKn', iconKey: 'material6' },
+      { id: 'tik', label: 'TIK', iconKey: 'material7' },
+    ],
+  },
+  'mandiri-univ': {
+    title: 'Mandiri Univ',
+    items: [
+      { id: 'tpa-numerik', label: 'TPA Numerik', iconKey: 'material1' },
+      { id: 'tpa-verbal', label: 'TPA Verbal', iconKey: 'material2' },
+      { id: 'tes-saintek', label: 'Tes Saintek', iconKey: 'material3' },
+      { id: 'tes-soshum', label: 'Tes Soshum', iconKey: 'material4' },
+      { id: 'bahasa-indonesia-ptn', label: 'Bahasa Indonesia', iconKey: 'material5' },
+      { id: 'bahasa-inggris-ptn', label: 'Bahasa Inggris', iconKey: 'material6' },
+      { id: 'potensi-akademik', label: 'Potensi Akademik', iconKey: 'material7' },
+    ],
+  },
+};
+
+const fallbackCollection = (categoryId: string, categoryTitle: string): CategoryCollection => {
+  const normalized = categoryId.toLowerCase();
+  return {
+    title: categoryTitle,
+    items: Array.from({ length: 6 }).map((_, index) => ({
+      id: `${normalized}-${index + 1}`,
+      label: `${categoryTitle} ${index + 1}`,
+      iconKey: iconKeySequence[index % iconKeySequence.length],
+    })),
+  };
+};
+
+export const getCategoryCollection = (categoryId: string, categoryTitle: string): CategoryCollection => {
+  const normalizedId = categoryId.toLowerCase();
+  if (baseCollections[normalizedId]) {
+    return baseCollections[normalizedId];
+  }
+  return fallbackCollection(normalizedId, categoryTitle);
+};
+
+export type CategoryModule = {
+  id: string;
+  title: string;
+};
+
+const subjectModules: Record<string, CategoryModule[]> = {
+  matematika: [
+    { id: 'eksponen-akar', title: 'Eksponen Akar' },
+    { id: 'trigonometri-10', title: 'Trigonometri 10 SMA' },
+    { id: 'fungsi-kuadrat', title: 'Fungsi Kuadrat' },
+    { id: 'persamaan-lingkaran', title: 'Persamaan Lingkaran' },
+    { id: 'fungsi-komposisi-invers', title: 'Fungsi Komp & Invers' },
+    { id: 'transformasi-geo', title: 'Transformasi Geo' },
+    { id: 'statistika-10', title: 'Statistika 10 SMA' },
+  ],
+  kimia: [
+    { id: 'stoikiometri', title: 'Stoikiometri' },
+    { id: 'asam-basa', title: 'Asam Basa' },
+    { id: 'larutan-elektrolit', title: 'Larutan Elektrolit' },
+    { id: 'termokimia', title: 'Termokimia' },
+    { id: 'reaksi-redoks', title: 'Reaksi Redoks' },
+    { id: 'kinetika-kimia', title: 'Kinetika Kimia' },
+  ],
+  fisika: [
+    { id: 'kinematika', title: 'Kinematika' },
+    { id: 'dinamika', title: 'Dinamika' },
+    { id: 'gelombang', title: 'Gelombang' },
+    { id: 'listrik-dinamis', title: 'Listrik Dinamis' },
+    { id: 'optika', title: 'Optika Geometri' },
+    { id: 'termodinamika', title: 'Termodinamika' },
+  ],
+  biologi: [
+    { id: 'sel-dan-jaringan', title: 'Sel dan Jaringan' },
+    { id: 'sistem-organ', title: 'Sistem Organ' },
+    { id: 'genetika', title: 'Genetika' },
+    { id: 'ekosistem', title: 'Ekosistem' },
+    { id: 'evolusi', title: 'Evolusi' },
+    { id: 'bioteknologi', title: 'Bioteknologi' },
+  ],
+  ekonomi: [
+    { id: 'permintaan-penawaran', title: 'Permintaan & Penawaran' },
+    { id: 'uang-perbankan', title: 'Uang & Perbankan' },
+    { id: 'akuntansi-dasar', title: 'Akuntansi Dasar' },
+    { id: 'kebijakan-fiskal', title: 'Kebijakan Fiskal' },
+    { id: 'mikroekonomi', title: 'Mikroekonomi' },
+    { id: 'makroekonomi', title: 'Makroekonomi' },
+  ],
+  geografi: [
+    { id: 'peta-sig', title: 'Peta & SIG' },
+    { id: 'litosfer', title: 'Dinamika Litosfer' },
+    { id: 'atmosfer-hidrosfer', title: 'Atmosfer & Hidrosfer' },
+    { id: 'interaksi-ruang', title: 'Interaksi Antarruang' },
+    { id: 'mitigasi-bencana', title: 'Mitigasi Bencana' },
+    { id: 'sumber-daya-alam', title: 'Sumber Daya Alam' },
+  ],
+  sosiologi: [
+    { id: 'nilai-norma', title: 'Nilai & Norma' },
+    { id: 'kelompok-sosial', title: 'Kelompok Sosial' },
+    { id: 'sosialisasi', title: 'Sosialisasi' },
+    { id: 'perubahan-sosial', title: 'Perubahan Sosial' },
+    { id: 'stratifikasi', title: 'Stratifikasi' },
+    { id: 'konflik-sosial', title: 'Konflik Sosial' },
+  ],
+  'bahasa-inggris': [
+    { id: 'reading-comprehension', title: 'Reading Comprehension' },
+    { id: 'grammar-usage', title: 'Grammar Usage' },
+    { id: 'vocabulary-building', title: 'Vocabulary Building' },
+    { id: 'listening-practice', title: 'Listening Practice' },
+    { id: 'writing-task', title: 'Writing Task' },
+    { id: 'expression-idioms', title: 'Expression & Idioms' },
+  ],
+  'penalaran-umum': [
+    { id: 'analogi-verbal', title: 'Analogi Verbal' },
+    { id: 'silogisme', title: 'Silogisme' },
+    { id: 'penalaran-analitik', title: 'Penalaran Analitik' },
+    { id: 'logika-diagram', title: 'Logika Diagram' },
+    { id: 'penalaran-kuantitatif-snbt', title: 'Penalaran Kuantitatif' },
+    { id: 'penalaran-mekanika', title: 'Penalaran Mekanika' },
+  ],
+  'penalaran-matematika': [
+    { id: 'persamaan-linear', title: 'Persamaan Linear' },
+    { id: 'bangun-ruang', title: 'Bangun Ruang' },
+    { id: 'peluang', title: 'Peluang' },
+    { id: 'deret-barisan', title: 'Deret & Barisan' },
+    { id: 'integral-dasar', title: 'Integral Dasar' },
+    { id: 'statistika-snbt', title: 'Statistika' },
+  ],
+  'literasi-indonesia': [
+    { id: 'pemahaman-bacaan', title: 'Pemahaman Bacaan' },
+    { id: 'analisis-teks', title: 'Analisis Teks' },
+    { id: 'bahasa-baku', title: 'Bahasa Baku' },
+    { id: 'kalimat-efektif', title: 'Kalimat Efektif' },
+    { id: 'ejaan-puebi', title: 'Ejaan PUEBI' },
+    { id: 'interpretasi-grafik', title: 'Interpretasi Grafik' },
+  ],
+  'literasi-inggris': [
+    { id: 'short-passage', title: 'Short Passage' },
+    { id: 'skimming-scanning', title: 'Skimming & Scanning' },
+    { id: 'vocabulary-context', title: 'Vocabulary in Context' },
+    { id: 'grammar-in-use', title: 'Grammar in Use' },
+    { id: 'inference-questions', title: 'Inference Questions' },
+    { id: 'paraphrasing', title: 'Paraphrasing' },
+  ],
+  'pengetahuan-kuantitatif': [
+    { id: 'aritmetika', title: 'Aritmetika' },
+    { id: 'aljabar', title: 'Aljabar' },
+    { id: 'geometri', title: 'Geometri' },
+    { id: 'data-interpretation', title: 'Data Interpretation' },
+    { id: 'persamaan-kuadrat', title: 'Persamaan Kuadrat' },
+    { id: 'operasi-matriks', title: 'Operasi Matriks' },
+  ],
+  'pemahaman-umum': [
+    { id: 'wawasan-kebangsaan', title: 'Wawasan Kebangsaan' },
+    { id: 'isu-aktual', title: 'Isu Aktual' },
+    { id: 'kebijakan-publik', title: 'Kebijakan Publik' },
+    { id: 'figur-inspiratif', title: 'Figur Inspiratif' },
+    { id: 'gerakan-sosial', title: 'Gerakan Sosial' },
+    { id: 'inovasi-teknologi', title: 'Inovasi Teknologi' },
+  ],
+  twk: [
+    { id: 'pancasila', title: 'Pancasila' },
+    { id: 'uud-1945', title: 'UUD 1945' },
+    { id: 'nkri', title: 'NKRI' },
+    { id: 'bhinneka', title: 'Bhinneka Tunggal Ika' },
+    { id: 'sejarah-nasional', title: 'Sejarah Nasional' },
+    { id: 'wawasan-nusantara', title: 'Wawasan Nusantara' },
+  ],
+  tiu: [
+    { id: 'analogi-kata', title: 'Analogi Kata' },
+    { id: 'aritmetika-dasar', title: 'Aritmetika Dasar' },
+    { id: 'deret-angka', title: 'Deret Angka' },
+    { id: 'figural', title: 'Kemampuan Figural' },
+    { id: 'logika-verbal', title: 'Logika Verbal' },
+    { id: 'logika-numerik', title: 'Logika Numerik' },
+  ],
+  tkp: [
+    { id: 'pelayanan-publik', title: 'Pelayanan Publik' },
+    { id: 'jejaring-kerja', title: 'Jejaring Kerja' },
+    { id: 'sosial-budaya', title: 'Sosial Budaya' },
+    { id: 'profesionalisme', title: 'Profesionalisme' },
+    { id: 'karakter-pribadi', title: 'Karakter Pribadi' },
+    { id: 'teknologi-informasi', title: 'Teknologi Informasi' },
+  ],
+  skb: [
+    { id: 'hukum-administrasi', title: 'Hukum Administrasi' },
+    { id: 'manajemen-sdm', title: 'Manajemen SDM' },
+    { id: 'keuangan-negara', title: 'Keuangan Negara' },
+    { id: 'administrasi-publik', title: 'Administrasi Publik' },
+    { id: 'pelayanan-prima', title: 'Pelayanan Prima' },
+    { id: 'analisis-kebijakan', title: 'Analisis Kebijakan' },
+  ],
+  psikotes: [
+    { id: 'kecermatan', title: 'Kecermatan' },
+    { id: 'memori', title: 'Memori' },
+    { id: 'kraepelin', title: 'Kraepelin' },
+    { id: 'epps', title: 'EPPS' },
+    { id: 'wartegg', title: 'WARTEGG' },
+    { id: 'disc', title: 'DISC' },
+  ],
+  wawancara: [
+    { id: 'motivasi', title: 'Motivasi' },
+    { id: 'komitmen', title: 'Komitmen' },
+    { id: 'kompetensi', title: 'Kompetensi' },
+    { id: 'integritas', title: 'Integritas' },
+    { id: 'pelayanan', title: 'Pelayanan' },
+    { id: 'etika', title: 'Etika' },
+  ],
+  'matematika-smp': [
+    { id: 'bilangan-bulat', title: 'Bilangan Bulat' },
+    { id: 'pecahan', title: 'Pecahan' },
+    { id: 'persamaan-linear-smp', title: 'Persamaan Linear' },
+    { id: 'bangun-datar', title: 'Bangun Datar' },
+    { id: 'bangun-ruang-smp', title: 'Bangun Ruang' },
+    { id: 'statistika-dasar', title: 'Statistika Dasar' },
+  ],
+  'ipa-terpadu': [
+    { id: 'tata-surya', title: 'Sistem Tata Surya' },
+    { id: 'energi', title: 'Energi & Perubahannya' },
+    { id: 'zat-wujud', title: 'Zat dan Wujudnya' },
+    { id: 'gaya-gerak', title: 'Gaya dan Gerak' },
+    { id: 'sistem-organ', title: 'Sistem Organ Tubuh' },
+    { id: 'ekosistem-smp', title: 'Ekosistem' },
+  ],
+  'bahasa-indonesia-smp': [
+    { id: 'teks-narasi', title: 'Teks Narasi' },
+    { id: 'teks-eksposisi', title: 'Teks Eksposisi' },
+    { id: 'teks-deskripsi', title: 'Teks Deskripsi' },
+    { id: 'kalimat-efektif-smp', title: 'Kalimat Efektif' },
+    { id: 'menyunting-teks', title: 'Menyunting Teks' },
+    { id: 'kaidah-kebahasaan', title: 'Kaidah Kebahasaan' },
+  ],
+  'bahasa-inggris-smp': [
+    { id: 'greetings', title: 'Greeting & Introduction' },
+    { id: 'descriptive-text', title: 'Descriptive Text' },
+    { id: 'procedure-text', title: 'Procedure Text' },
+    { id: 'narrative-text', title: 'Narrative Text' },
+    { id: 'grammar-basic', title: 'Grammar Basic' },
+    { id: 'vocabulary-practice', title: 'Vocabulary Practice' },
+  ],
+  ips: [
+    { id: 'sejarah-penjajahan', title: 'Sejarah Penjajahan' },
+    { id: 'kegiatan-ekonomi', title: 'Kegiatan Ekonomi' },
+    { id: 'interaksi-sosial', title: 'Interaksi Sosial' },
+    { id: 'geografi-indonesia', title: 'Geografi Indonesia' },
+    { id: 'pemerintahan', title: 'Pemerintahan' },
+    { id: 'globalisasi', title: 'Globalisasi' },
+  ],
+  ppkn: [
+    { id: 'pancasila-smp', title: 'Pancasila' },
+    { id: 'hak-kewajiban', title: 'Hak & Kewajiban' },
+    { id: 'norma', title: 'Norma' },
+    { id: 'uud-1945-smp', title: 'UUD 1945' },
+    { id: 'otonomi-daerah', title: 'Otonomi Daerah' },
+    { id: 'keberagaman', title: 'Keberagaman' },
+  ],
+  tik: [
+    { id: 'hardware', title: 'Pengenalan Hardware' },
+    { id: 'software', title: 'Software Aplikasi' },
+    { id: 'internet-keamanan', title: 'Internet & Keamanan' },
+    { id: 'pengolah-kata', title: 'Pengolah Kata' },
+    { id: 'pengolah-angka', title: 'Pengolah Angka' },
+    { id: 'desain-sederhana', title: 'Desain Sederhana' },
+  ],
+  'tpa-numerik': [
+    { id: 'deret-angka-tpa', title: 'Deret Angka' },
+    { id: 'matematika-dasar-tpa', title: 'Matematika Dasar' },
+    { id: 'logika-numerik-tpa', title: 'Logika Numerik' },
+    { id: 'perbandingan', title: 'Perbandingan' },
+    { id: 'aritmetika-sosial', title: 'Aritmetika Sosial' },
+    { id: 'geometri-dasar', title: 'Geometri Dasar' },
+  ],
+  'tpa-verbal': [
+    { id: 'sinonim-antonim', title: 'Sinonim & Antonim' },
+    { id: 'analogi-kata-tpa', title: 'Analogi Kata' },
+    { id: 'padanan-kata', title: 'Padanan Kata' },
+    { id: 'pemahaman-bacaan-tpa', title: 'Pemahaman Bacaan' },
+    { id: 'penalaran-verbal', title: 'Penalaran Verbal' },
+    { id: 'kata-baku', title: 'Kata Baku' },
+  ],
+  'tes-saintek': [
+    { id: 'matematika-ipa', title: 'Matematika IPA' },
+    { id: 'fisika-dasar', title: 'Fisika Dasar' },
+    { id: 'kimia-dasar', title: 'Kimia Dasar' },
+    { id: 'biologi-dasar', title: 'Biologi Dasar' },
+    { id: 'statistika-saintek', title: 'Statistika' },
+    { id: 'logika-saintek', title: 'Logika Saintek' },
+  ],
+  'tes-soshum': [
+    { id: 'sejarah-indonesia', title: 'Sejarah Indonesia' },
+    { id: 'ekonomi-dasar', title: 'Ekonomi Dasar' },
+    { id: 'sosiologi-dasar', title: 'Sosiologi Dasar' },
+    { id: 'geografi-dasar', title: 'Geografi Dasar' },
+    { id: 'antropologi', title: 'Antropologi' },
+    { id: 'logika-sosial', title: 'Logika Sosial' },
+  ],
+  'bahasa-indonesia-ptn': [
+    { id: 'pemahaman-teks', title: 'Pemahaman Teks' },
+    { id: 'struktur-kalimat', title: 'Struktur Kalimat' },
+    { id: 'ejaan-tanda-baca', title: 'Ejaan & Tanda Baca' },
+    { id: 'ringkasan-teks', title: 'Ringkasan Teks' },
+    { id: 'kaidah-bahasa', title: 'Kaidah Bahasa' },
+    { id: 'penalaran-bahasa', title: 'Penalaran Bahasa' },
+  ],
+  'bahasa-inggris-ptn': [
+    { id: 'reading-passage', title: 'Reading Passage' },
+    { id: 'structure-written', title: 'Structure & Written Expression' },
+    { id: 'vocabulary-advanced', title: 'Vocabulary Advanced' },
+    { id: 'error-recognition', title: 'Error Recognition' },
+    { id: 'listening-ptn', title: 'Listening Practice' },
+    { id: 'conversation-skill', title: 'Conversation Skill' },
+  ],
+  'potensi-akademik': [
+    { id: 'figural-test', title: 'Figural Test' },
+    { id: 'numerik-test', title: 'Numerik Test' },
+    { id: 'verbal-test', title: 'Verbal Test' },
+    { id: 'logika-induktif', title: 'Logika Induktif' },
+    { id: 'kuantitatif-dasar', title: 'Kuantitatif Dasar' },
+    { id: 'analisis-data', title: 'Analisis Data' },
+  ],
+};
+
+const fallbackModules = (subjectId: string, subjectTitle: string): CategoryModule[] =>
+  Array.from({ length: 6 }).map((_, index) => ({
+    id: `${subjectId}-modul-${index + 1}`,
+    title: `${subjectTitle} Modul ${index + 1}`,
+  }));
+
+export const getCategoryModules = (subjectId: string, subjectTitle: string): CategoryModule[] => {
+  const normalizedId = subjectId.toLowerCase();
+  if (subjectModules[normalizedId]) {
+    return subjectModules[normalizedId];
+  }
+  return fallbackModules(normalizedId, subjectTitle);
+};
+
+export type IconComponentType = (typeof iconComponents)[CategoryIconKey];
+
+export const getIconComponent = (iconKey: CategoryIconKey): FC<SvgProps> => iconComponents[iconKey];
+
+export const categoryIconKeys = iconKeySequence;
+
+export type DigidawQuestionOption = {
+  id: string;
+  label: string;
+  text: string;
+};
+
+export type DigidawQuestion = {
+  id: string;
+  number: number;
+  prompt: string;
+  options: DigidawQuestionOption[];
+  correctOptionId: string;
+  hint: string;
+  explanation: string;
+};
+
+type QuestionSeed = {
+  prompt: string;
+  options: Array<{
+    label: string;
+    text: string;
+    isCorrect?: boolean;
+  }>;
+  hint: string;
+  explanation: string;
+};
+
+const optionLabels = ['A', 'B', 'C', 'D', 'E'] as const;
+
+const moduleQuestionSeeds: Record<string, QuestionSeed[]> = {
+  'eksponen-akar': [
+    {
+      prompt:
+        'Jika \(x^{2/3} = 27\), tentukan nilai \(x\).',
+      options: [
+        { label: 'A', text: '9' },
+        { label: 'B', text: '27' },
+        { label: 'C', text: '81', isCorrect: true },
+        { label: 'D', text: '243' },
+        { label: 'E', text: '729' },
+      ],
+      hint: 'Ingat sifat pangkat pecahan \(a^{m/n} = \sqrt[n]{a^m}\).',
+      explanation:
+        'Persamaan \(x^{2/3} = 27\) dapat ditulis sebagai \((\sqrt[3]{x})^2 = 27\). Ambil akar kuadrat sehingga \(\sqrt[3]{x} = \sqrt{27} = 3\sqrt{3}\) dan kubuskan kembali: \(x = (3\sqrt{3})^3 = 81\).',
+    },
+    {
+      prompt:
+        'Sederhanakan bentuk \(5^{3/2}\).',
+      options: [
+        { label: 'A', text: '5\sqrt{5}', isCorrect: true },
+        { label: 'B', text: '5\sqrt{3}' },
+        { label: 'C', text: '\sqrt{25}' },
+        { label: 'D', text: '15' },
+        { label: 'E', text: '25\sqrt{5}' },
+      ],
+      hint: 'Pangkat pecahan \(a^{m/n}\) dapat ditulis sebagai \(\sqrt[n]{a^m}\).',
+      explanation:
+        'Karena \(5^{3/2} = \sqrt{5^3} = \sqrt{125} = 5\sqrt{5}\).',
+    },
+    {
+      prompt:
+        'Jika \(\sqrt[4]{16^{3x}} = 8\), tentukan nilai \(x\).',
+      options: [
+        { label: 'A', text: '1/2' },
+        { label: 'B', text: '3/4' },
+        { label: 'C', text: '1', isCorrect: true },
+        { label: 'D', text: '3/2' },
+        { label: 'E', text: '2' },
+      ],
+      hint: 'Ubah ke bentuk pangkat yang sama sebelum menyamakan eksponen.',
+      explanation:
+        'Karena \(16 = 2^4\), maka \(16^{3x} = (2^4)^{3x} = 2^{12x}\). Bentuk kiri menjadi \(\sqrt[4]{2^{12x}} = 2^{3x}\). Karena hasilnya 8 = 2^3, maka 3x = 3 dan x = 1.',
+    },
+  ],
+  'trigonometri-10': [
+    {
+      prompt: 'Jika sin A = 3/5 dan sudut A di kuadran I, tentukan cos A.',
+      options: [
+        { label: 'A', text: '4/5', isCorrect: true },
+        { label: 'B', text: '3/5' },
+        { label: 'C', text: '5/3' },
+        { label: 'D', text: '5/4' },
+        { label: 'E', text: '16/25' },
+      ],
+      hint: 'Gunakan identitas sin^2 A + cos^2 A = 1.',
+      explanation: 'cos A = \(\sqrt{1 - (3/5)^2}\) = 4/5 karena kuadran I bernilai positif.',
+    },
+    {
+      prompt: 'Tentukan nilai tan 45° + tan 30°.',
+      options: [
+        { label: 'A', text: '1 + \sqrt{3}/3', isCorrect: true },
+        { label: 'B', text: '1 + \sqrt{3}' },
+        { label: 'C', text: '1 - \sqrt{3}/3' },
+        { label: 'D', text: '1' },
+        { label: 'E', text: '\sqrt{3}' },
+      ],
+      hint: 'Gunakan nilai khusus tan pada sudut istimewa.',
+      explanation: 'tan 45° = 1 dan tan 30° = \(\sqrt{3}/3\), sehingga hasilnya 1 + \(\sqrt{3}/3\).',
+    },
+  ],
+  'fungsi-kuadrat': [
+    {
+      prompt: 'Diberikan fungsi f(x) = x^2 - 4x + 3, tentukan titik puncaknya.',
+      options: [
+        { label: 'A', text: '(1, -1)' },
+        { label: 'B', text: '(2, -1)', isCorrect: true },
+        { label: 'C', text: '(2, 1)' },
+        { label: 'D', text: '(3, -2)' },
+        { label: 'E', text: '(4, 3)' },
+      ],
+      hint: 'Gunakan rumus puncak parabola ( -b/2a , f(-b/2a) ).',
+      explanation: 'x = -(-4)/(2·1) = 2. Substitusi menghasilkan f(2) = -1, jadi titik puncak (2, -1).',
+    },
+  ],
+};
+
+const buildFallbackSeeds = (moduleId: string, moduleTitle: string, total = 5): QuestionSeed[] => {
+  return Array.from({ length: total }).map((_, index) => {
+    const correctIndex = index % optionLabels.length;
+    return {
+      prompt: `Soal ${index + 1} tentang ${moduleTitle}: pilih jawaban yang paling tepat.`,
+      options: optionLabels.map((label, labelIndex) => ({
+        label,
+        text: `${moduleTitle} opsi ${label}`,
+        isCorrect: labelIndex === correctIndex,
+      })),
+      hint: `Ingat kembali konsep utama ${moduleTitle} sebelum menjawab.`,
+      explanation: `Pembahasan ${moduleTitle} #${index + 1}: opsi ${optionLabels[correctIndex]} merupakan pilihan benar sesuai konsep pokok.`,
+    };
+  });
+};
+
+const normalizeModuleId = (moduleId: string) => moduleId.toLowerCase();
+
+export const getModuleQuestions = (moduleId: string, moduleTitle: string): DigidawQuestion[] => {
+  const normalizedId = normalizeModuleId(moduleId);
+  const seeds = moduleQuestionSeeds[normalizedId] ?? buildFallbackSeeds(normalizedId, moduleTitle);
+
+  return seeds.map((seed, index) => {
+    const options = seed.options.map((option) => ({
+      id: `${normalizedId}-q${index + 1}-${option.label.toLowerCase()}`,
+      label: option.label,
+      text: option.text,
+    }));
+
+    const explicitCorrect = seed.options.find((option) => option.isCorrect)?.label ?? optionLabels[0];
+    const correctIndex = options.findIndex((option) => option.label === explicitCorrect);
+    const correctOptionId = options[Math.max(correctIndex, 0)].id;
+
+    return {
+      id: `${normalizedId}-question-${index + 1}`,
+      number: index + 1,
+      prompt: seed.prompt,
+      options,
+      correctOptionId,
+      hint: seed.hint,
+      explanation: seed.explanation,
+    };
+  });
+};

@@ -42,3 +42,17 @@ yarn-error.*
 
 # instruction thingy for copilot
 specifications.md
+
+# ide stuffs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+*.iml
+*.hprof
+
+# ai stuff
+.geminicodeassist/
+.gemini/
+.claude/

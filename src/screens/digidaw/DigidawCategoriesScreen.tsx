@@ -1,6 +1,5 @@
 import React, { FC, useMemo } from 'react';
 import {
-	Image,
 	Pressable,
 	SafeAreaView,
 	ScrollView,
@@ -9,7 +8,7 @@ import {
 	Text,
 	View,
 } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -20,7 +19,12 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { getCategoryIcon, getLearningCategories, type LearningCategory } from '../../data/learningCategories';
+import {
+	getCategoryCollection,
+	getIconComponent,
+} from './digidawData';
+
+type DigidawCategoriesRoute = RouteProp<RootStackParamList, 'DigidawCategories'>;
 
 const navItems: BottomNavigationItem[] = [
 	{ key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -31,44 +35,57 @@ const navItems: BottomNavigationItem[] = [
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-const DigidawScreen: FC = () => {
+const DigidawCategoriesScreen: FC = () => {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+	const route = useRoute<DigidawCategoriesRoute>();
 	const layout = useResponsiveLayout();
-	const categories = useMemo<LearningCategory[]>(() => getLearningCategories(), []);
-	const categoryIcon = useMemo(() => getCategoryIcon(), []);
+
+	const { categoryId, categoryTitle } = route.params;
+
+	const collection = useMemo(
+		() => getCategoryCollection(categoryId, categoryTitle),
+		[categoryId, categoryTitle]
+	);
+
+	const title = `Let's DIGIDAW ${collection.title}`;
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
 		[layout.horizontalPadding]
 	);
 	const sectionSpacing = useMemo(
-		() => clamp(layout.sectionSpacing * 0.6, 18, 26),
+		() => clamp(layout.sectionSpacing * 0.6, 18, 28),
 		[layout.sectionSpacing]
 	);
 	const cardGap = useMemo(
-		() => clamp(layout.horizontalPadding * 0.45, 10, 16),
-		[layout.horizontalPadding]
-	);
-	const cardPaddingHorizontal = useMemo(
-		() => clamp(layout.horizontalPadding * 0.9, 18, 26),
+		() => clamp(layout.horizontalPadding * 0.4, 12, 18),
 		[layout.horizontalPadding]
 	);
 	const cardPaddingVertical = useMemo(
-		() => clamp(layout.horizontalPadding * 0.45, 12, 18),
+		() => clamp(layout.horizontalPadding * 0.65, 14, 22),
 		[layout.horizontalPadding]
 	);
-	const cardIconSize = useMemo(
-		() => clamp(layout.horizontalPadding * 1.9, 36, 46),
+	const cardPaddingHorizontal = useMemo(
+		() => clamp(layout.horizontalPadding * 0.5, 18, 24),
 		[layout.horizontalPadding]
 	);
-	const cardRadius = useMemo(() => clamp(cardIconSize * 0.45, 16, 20), [cardIconSize]);
-	const contentWidth = layout.contentWidth;
-	const innerWidth = layout.innerContentWidth;
+	const iconWrapperSize = useMemo(
+		() => clamp(layout.horizontalPadding * 1.6, 36, 46),
+		[layout.horizontalPadding]
+	);
+	const iconSize = useMemo(
+		() => clamp(iconWrapperSize * 0.55, 22, 30),
+		[iconWrapperSize]
+	);
+	const columns = useMemo(() => {
+		if (layout.innerContentWidth >= 360) return 4;
+		if (layout.innerContentWidth >= 260) return 3;
+		return 2;
+	}, [layout.innerContentWidth]);
 	const cardWidth = useMemo(() => {
-		const totalGap = cardGap;
-		const columns = 2;
-		return clamp((innerWidth - totalGap) / columns, 130, innerWidth);
-	}, [innerWidth, cardGap]);
+		const gapsTotal = cardGap * Math.max(columns - 1, 0);
+		return Math.max((layout.innerContentWidth - gapsTotal) / columns, 120);
+	}, [layout.innerContentWidth, columns, cardGap]);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
@@ -84,14 +101,14 @@ const DigidawScreen: FC = () => {
 				]}
 				showsVerticalScrollIndicator={false}
 			>
-				<View style={[styles.headerWrapper, { width: contentWidth }]}>
-					<AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} showBackButton={false} />
+				<View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
+					<AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} />
 				</View>
 				<View
 					style={[
 						styles.contentWrapper,
 						{
-							width: contentWidth,
+							width: layout.contentWidth,
 							paddingHorizontal: contentHorizontalPadding,
 							marginTop: sectionSpacing,
 							rowGap: sectionSpacing,
@@ -99,52 +116,51 @@ const DigidawScreen: FC = () => {
 						},
 					]}
 				>
-					<Text style={styles.sectionTitle}>{"Let's DIGIDAW"}</Text>
+					<Text style={styles.sectionTitle}>{title}</Text>
 					<View style={[styles.cardGrid, { columnGap: cardGap, rowGap: cardGap, gap: cardGap }]}>
-									{categories.map((category, index) => (
-							<Pressable
-								key={category.id}
-											style={({ pressed }) => [
-												styles.categoryCard,
-												{
-													paddingHorizontal: cardPaddingHorizontal,
-													paddingVertical: cardPaddingVertical,
-													borderRadius: cardRadius,
-													maxWidth: cardWidth,
-													flexBasis: cardWidth,
-													width: cardWidth,
-												},
-												index === categories.length - 1 ? styles.singleColumnCard : null,
-												pressed ? styles.categoryCardPressed : null,
-											]}
-											onPress={() =>
-												navigation.navigate('DigidawCategories', {
-													categoryId: category.id,
-													categoryTitle: category.title,
-												})
-											}
-											accessibilityRole="button"
-											accessibilityLabel={`Buka kategori ${category.title}`}
-							>
-								<View
+						{collection.items.map((item) => {
+							const Icon = getIconComponent(item.iconKey);
+							return (
+								<Pressable
+									key={item.id}
 									style={[
-										styles.iconWrapper,
+										styles.categoryCard,
 										{
-											width: cardIconSize,
-											height: cardIconSize,
-											borderRadius: cardRadius * 0.8,
+											paddingHorizontal: cardPaddingHorizontal,
+											paddingVertical: cardPaddingVertical,
+											borderRadius: clamp(iconWrapperSize * 0.8, 18, 24),
+											maxWidth: cardWidth,
+											flexBasis: cardWidth,
 										},
 									]}
+									accessibilityRole="button"
+									accessibilityLabel={`Buka bank soal ${item.label}`}
+									onPress={() =>
+										navigation.navigate('DigidawCategoryDetail', {
+											categoryId,
+											categoryTitle: collection.title,
+											subjectId: item.id,
+											subjectTitle: item.label,
+											iconKey: item.iconKey,
+										})
+									}
 								>
-									<Image
-										source={categoryIcon}
-										style={{ width: cardIconSize * 0.68, height: cardIconSize * 0.68, tintColor: colors.white }}
-										resizeMode="contain"
-									/>
-								</View>
-								<Text style={styles.cardLabel}>{category.title}</Text>
-							</Pressable>
-						))}
+									<View
+										style={[
+											styles.iconWrapper,
+											{
+												width: iconWrapperSize,
+												height: iconWrapperSize,
+												borderRadius: iconWrapperSize * 0.4,
+											},
+										]}
+									>
+										<Icon width={iconSize} height={iconSize} />
+									</View>
+									<Text style={styles.cardLabel}>{item.label}</Text>
+								</Pressable>
+							);
+						})}
 					</View>
 				</View>
 			</ScrollView>
@@ -160,7 +176,7 @@ const DigidawScreen: FC = () => {
 	);
 };
 
-export default DigidawScreen;
+export default DigidawCategoriesScreen;
 
 const styles = StyleSheet.create({
 	safeArea: {
@@ -187,30 +203,28 @@ const styles = StyleSheet.create({
 	cardGrid: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		justifyContent: 'space-between',
+		justifyContent: 'flex-start',
 	},
 	categoryCard: {
-		flexDirection: 'row',
+		backgroundColor: colors.white,
 		alignItems: 'center',
-		backgroundColor: colors.primary,
-	},
-	categoryCardPressed: {
-		opacity: 0.92,
-	},
-	singleColumnCard: {
-		alignSelf: 'flex-start',
+		gap: 12,
+		shadowColor: '#69787D',
+		shadowOpacity: 0.2,
+		shadowRadius: 10,
+		shadowOffset: { width: 0, height: 2 },
+		elevation: 3,
 	},
 	iconWrapper: {
-		backgroundColor: colors.primaryDark,
+		backgroundColor: '#FEF0E1',
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginRight: 12,
 	},
 	cardLabel: {
-		flex: 1,
 		fontFamily: fontFamilies.bold,
-		fontSize: 13,
-		color: colors.white,
+		fontSize: 12,
+		color: colors.textPrimary,
+		textAlign: 'center',
 	},
 	bottomNav: {
 		position: 'absolute',

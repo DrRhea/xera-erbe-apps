@@ -125,11 +125,18 @@ const leaderboardEntries: LeaderboardEntry[] = [
   },
 ];
 
-const lifeAtErbeCards = [
+type LifeAtErbeCard = {
+  title: string;
+  image: ImageSourcePropType;
+  backgroundColor: string;
+  routeName?: RoutesWithoutParams;
+};
+
+const lifeAtErbeCards: LifeAtErbeCard[] = [
   { title: 'SNack-BT', image: SnackBtImage, backgroundColor: '#FFEDD2' },
   { title: 'PoKe', image: PokeImage, backgroundColor: '#CDFEE2' },
   { title: 'ImEng', image: ImEngImage, backgroundColor: '#F6C2DB' },
-  { title: 'Materi', image: MateriImage, backgroundColor: '#E0F5FF' },
+  { title: 'Materi', image: MateriImage, backgroundColor: '#E0F5FF', routeName: 'Materi' },
 ];
 
 const LIFE_CONTAINER_HORIZONTAL_PADDING = 13;
@@ -388,9 +395,18 @@ type LifeCardProps = (typeof lifeAtErbeCards)[number] & {
   width: number;
   paddingVertical: number;
   titleFontSize: number;
+  onPress?: () => void;
 };
 
-const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, paddingVertical, titleFontSize }) => {
+const LifeCard: FC<LifeCardProps> = ({
+  title,
+  image,
+  backgroundColor,
+  width,
+  paddingVertical,
+  titleFontSize,
+  onPress,
+}) => {
   const cardHeight = width * LIFE_CARD_HEIGHT_RATIO;
   const availableImageWidth = Math.max(width - 16, 48);
   const imageSize = Math.min(availableImageWidth, width * LIFE_CARD_IMAGE_RATIO);
@@ -409,6 +425,9 @@ const LifeCard: FC<LifeCardProps> = ({ title, image, backgroundColor, width, pad
           paddingVertical,
         },
       ]}
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
     >
       <Image
         source={image}
@@ -723,39 +742,52 @@ const LeaderboardSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
   );
 };
 
-const LifeAtErbeSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
-  <View
-    style={[
-      styles.lifeContainer,
-      {
-        width: layout.innerContentWidth,
-        alignSelf: 'center',
-        paddingHorizontal: layout.lifeContainerPaddingHorizontal,
-        paddingVertical: layout.lifeContainerPaddingVertical,
-      },
-    ]}
-  >
+const LifeAtErbeSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  return (
     <View
       style={[
-        styles.lifeRow,
+        styles.lifeContainer,
         {
-          columnGap: layout.lifeCardSpacing,
-          gap: layout.lifeCardSpacing,
+          width: layout.innerContentWidth,
+          alignSelf: 'center',
+          paddingHorizontal: layout.lifeContainerPaddingHorizontal,
+          paddingVertical: layout.lifeContainerPaddingVertical,
         },
       ]}
     >
-      {lifeAtErbeCards.map((card) => (
-        <LifeCard
-          key={card.title}
-          {...card}
-          width={layout.lifeCardWidth}
-          paddingVertical={layout.lifeCardVerticalPadding}
-          titleFontSize={layout.lifeCardTitleFontSize}
-        />
-      ))}
+      <View
+        style={[
+          styles.lifeRow,
+          {
+            columnGap: layout.lifeCardSpacing,
+            gap: layout.lifeCardSpacing,
+          },
+        ]}
+      >
+        {lifeAtErbeCards.map((card) => {
+          let handlePress: (() => void) | undefined;
+          if (card.routeName) {
+            const routeName = card.routeName;
+            handlePress = () => navigation.navigate(routeName);
+          }
+
+          return (
+            <LifeCard
+              key={card.title}
+              {...card}
+              width={layout.lifeCardWidth}
+              paddingVertical={layout.lifeCardVerticalPadding}
+              titleFontSize={layout.lifeCardTitleFontSize}
+              onPress={handlePress}
+            />
+          );
+        })}
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 const LiterasikSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
   <View
