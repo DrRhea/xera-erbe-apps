@@ -20,21 +20,7 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-
-const categoryIcon = require('../../../assets/images/sekolah.png');
-
-type Category = {
-	id: string;
-	title: string;
-};
-
-const categories: Category[] = [
-	{ id: 'tka-snbt', title: 'TKA & SNBT' },
-	{ id: 'sma', title: 'SMA' },
-	{ id: 'kedinasan', title: 'Kedinasan' },
-	{ id: 'smp', title: 'SMP' },
-	{ id: 'mandiri-univ', title: 'Mandiri Univ' },
-];
+import { getCategoryIcon, getLearningCategories, type LearningCategory } from '../../data/learningCategories';
 
 const navItems: BottomNavigationItem[] = [
 	{ key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -48,6 +34,8 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 const DigidawScreen: FC = () => {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
+	const categories = useMemo<LearningCategory[]>(() => getLearningCategories(), []);
+	const categoryIcon = useMemo(() => getCategoryIcon(), []);
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
