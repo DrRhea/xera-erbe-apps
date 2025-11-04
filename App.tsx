@@ -16,7 +16,9 @@ import DigidawCategoriesDetailScreen from './src/screens/digidaw/DigidawCategori
 import DigidawQuestionScreen from './src/screens/digidaw/DigidawQuestionScreen';
 import MateriScreen from './src/screens/materi/MateriScreen';
 import MateriCategoriesScreen from './src/screens/materi/MateriCategoriesScreen';
+import MateriDetailScreen from './src/screens/materi/MateriDetailScreen';
 import type { CategoryIconKey } from './src/screens/digidaw/digidawData';
+import type { MateriIconKey } from './src/data/materiContent';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -25,11 +27,12 @@ export type RootStackParamList = {
     categoryId: string;
     categoryTitle: string;
   };
-  MateriSubject: {
+  MateriDetail: {
     categoryId: string;
     categoryTitle: string;
     subjectId: string;
     subjectTitle: string;
+    iconKey: MateriIconKey;
   };
   Tryout: undefined;
   Digidaw: undefined;
@@ -103,20 +106,12 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Materi" component={MateriScreen} />
           <Stack.Screen name="MateriCategory" component={MateriCategoriesScreen} />
+          <Stack.Screen name="MateriDetail" component={MateriDetailScreen} />
           <Stack.Screen name="Tryout" component={TryoutScreen} />
           <Stack.Screen name="Digidaw" component={DigidawScreen} />
           <Stack.Screen name="DigidawCategories" component={DigidawCategoriesScreen} />
           <Stack.Screen name="DigidawCategoryDetail" component={DigidawCategoriesDetailScreen} />
           <Stack.Screen name="DigidawQuestion" component={DigidawQuestionScreen} />
-          <Stack.Screen
-            name="MateriSubject"
-            children={({ route }) => (
-              <PlaceholderScreen
-                title={route.params.subjectTitle}
-                message={`Konten ${route.params.subjectTitle} untuk ${route.params.categoryTitle} akan hadir segera.`}
-              />
-            )}
-          />
           <Stack.Screen name="TryoutDesc" component={TryoutDescScreen} />
           <Stack.Screen name="TryoutRegistrationFree" component={TryoutRegistrationFreeScreen} />
           <Stack.Screen name="TryoutRegistrationPaid" component={TryoutRegistrationPaidScreen} />

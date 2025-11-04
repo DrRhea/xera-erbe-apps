@@ -20,6 +20,7 @@ import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import { getCategoryCollection, getIconComponent } from '../digidaw/digidawData';
+import type { MateriIconKey } from '../../data/materiContent';
 
 type MateriCategoryRoute = RouteProp<RootStackParamList, 'MateriCategory'>;
 
@@ -85,16 +86,17 @@ const MateriCategoriesScreen: FC = () => {
 			return Math.max((layout.innerContentWidth - gapsTotal) / columns, 120);
 		}, [layout.innerContentWidth, columns, cardGap]);
 
-		const handleSubjectPress = useCallback(
-			(subjectId: string, subjectTitle: string) => {
-				navigation.navigate('MateriSubject', {
+			const handleSubjectPress = useCallback(
+				(subjectId: string, subjectTitle: string, iconKey: string) => {
+					navigation.navigate('MateriDetail', {
 					categoryId,
 					categoryTitle: collection.title,
 					subjectId,
 					subjectTitle,
+						iconKey: iconKey as MateriIconKey,
 				});
 			},
-			[categoryId, collection.title, navigation],
+				[categoryId, collection.title, navigation],
 		);
 
 	return (
@@ -146,7 +148,7 @@ const MateriCategoriesScreen: FC = () => {
 										},
 										pressed ? styles.subjectCardPressed : null,
 									]}
-									onPress={() => handleSubjectPress(item.id, item.label)}
+									  onPress={() => handleSubjectPress(item.id, item.label, item.iconKey)}
 									accessibilityRole="button"
 									accessibilityLabel={`Buka rangkuman ${item.label}`}
 								>

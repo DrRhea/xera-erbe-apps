@@ -17,7 +17,6 @@ import HomeIcon from '../../../assets/icons/home-2.svg';
 import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
-import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
@@ -70,10 +69,6 @@ const DigidawCategoriesDetailScreen: FC = () => {
 		() => clamp(layout.horizontalPadding * 0.7, 16, 22),
 		[layout.horizontalPadding]
 	);
-	const actionSize = useMemo(
-		() => clamp(iconWrapperSize * 0.55, 28, 34),
-		[iconWrapperSize]
-	);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
@@ -107,7 +102,7 @@ const DigidawCategoriesDetailScreen: FC = () => {
 					<Text style={styles.sectionBreadcrumb}>{`${categoryTitle} ・ ${subjectTitle}`}</Text>
 					<SearchBar placeholder="Mau belajar apa nih?" />
 					<Text style={styles.sectionHeading}>{subjectTitle}</Text>
-					<View style={[styles.moduleList, { rowGap: moduleGap, gap: moduleGap }]}> 
+								<View style={[styles.moduleList, { rowGap: moduleGap, gap: moduleGap }]}> 
 						{modules.map((module) => (
 							<Pressable
 								key={module.id}
@@ -144,23 +139,11 @@ const DigidawCategoriesDetailScreen: FC = () => {
 								>
 									<Icon width={iconSize} height={iconSize} />
 								</View>
-								<View style={styles.moduleInfo}>
+												<View style={styles.moduleInfo}>
 									<Text numberOfLines={2} style={styles.moduleTitle}>
 										{module.title}
 									</Text>
 									<Text style={styles.moduleMeta}>Latihan {subjectTitle}</Text>
-								</View>
-								<View
-									style={[
-										styles.moduleAction,
-										{
-											width: actionSize,
-											height: actionSize,
-											borderRadius: actionSize / 2,
-										},
-									]}
-								>
-									<RightPointerIcon width={actionSize * 0.55} height={actionSize * 0.55} />
 								</View>
 							</Pressable>
 						))}
@@ -240,11 +223,6 @@ const styles = StyleSheet.create({
 		fontFamily: fontFamilies.medium,
 		fontSize: 12,
 		color: colors.textSecondary,
-	},
-	moduleAction: {
-		backgroundColor: '#E7F2FF',
-		justifyContent: 'center',
-		alignItems: 'center',
 	},
 	bottomNav: {
 		position: 'absolute',
