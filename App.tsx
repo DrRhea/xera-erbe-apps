@@ -18,6 +18,7 @@ import MateriScreen from './src/screens/materi/MateriScreen';
 import ReportScreen from './src/screens/report/ReportScreen';
 import NotificationScreen from './src/screens/notification/NotificationScreen';
 import LeaderboardScreen from './src/screens/leaderboard/LeaderboardScreen';
+import PromotionScreen from './src/screens/promotion/PromotionScreen';
 import SearchScreen from './src/screens/search/SearchScreen';
 import MateriCategoriesScreen from './src/screens/materi/MateriCategoriesScreen';
 import MateriDetailScreen from './src/screens/materi/MateriDetailScreen';
@@ -90,6 +91,7 @@ export type RootStackParamList = {
   Analysis: undefined;
   Report: undefined;
   Leaderboard: undefined;
+  Promotion: undefined;
   Notification: undefined;
   Search: undefined;
   Wallet: undefined;
@@ -131,6 +133,7 @@ export default function App() {
           />
           <Stack.Screen name="Report" component={ReportScreen} />
           <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+          <Stack.Screen name="Promotion" component={PromotionScreen} />
           <Stack.Screen name="Notification" component={NotificationScreen} />
           <Stack.Screen name="Search" component={SearchScreen} />
           <Stack.Screen
