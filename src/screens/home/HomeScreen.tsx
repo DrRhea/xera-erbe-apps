@@ -670,9 +670,14 @@ const SectionHeader: FC<{ title: string; cta?: string; centered?: boolean }> = (
 );
 
 const LeaderboardSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const firstPlace = leaderboardEntries.find((entry) => entry.rank === 1)!;
   const secondPlace = leaderboardEntries.find((entry) => entry.rank === 2)!;
   const thirdPlace = leaderboardEntries.find((entry) => entry.rank === 3)!;
+
+  const handleLeaderboardPress = useCallback(() => {
+    navigation.navigate('Leaderboard');
+  }, [navigation]);
 
   return (
     <View
@@ -698,6 +703,9 @@ const LeaderboardSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
             paddingVertical: clamp(layout.horizontalPadding * 0.45, 10, 16),
           },
         ]}
+        onPress={handleLeaderboardPress}
+        accessibilityRole="button"
+        accessibilityLabel="Buka Leaderboard"
       >
         <Text style={styles.leaderboardButtonText}>Cek Erbe Leaderboard</Text>
       </Pressable>

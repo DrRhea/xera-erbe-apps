@@ -17,6 +17,7 @@ import DigidawQuestionScreen from './src/screens/digidaw/DigidawQuestionScreen';
 import MateriScreen from './src/screens/materi/MateriScreen';
 import ReportScreen from './src/screens/report/ReportScreen';
 import NotificationScreen from './src/screens/notification/NotificationScreen';
+import LeaderboardScreen from './src/screens/leaderboard/LeaderboardScreen';
 import SearchScreen from './src/screens/search/SearchScreen';
 import MateriCategoriesScreen from './src/screens/materi/MateriCategoriesScreen';
 import MateriDetailScreen from './src/screens/materi/MateriDetailScreen';
@@ -88,6 +89,7 @@ export type RootStackParamList = {
   };
   Analysis: undefined;
   Report: undefined;
+  Leaderboard: undefined;
   Notification: undefined;
   Search: undefined;
   Wallet: undefined;
@@ -128,6 +130,7 @@ export default function App() {
             children={() => <PlaceholderScreen title="Analysis" message="Analysis screen coming soon." />}
           />
           <Stack.Screen name="Report" component={ReportScreen} />
+          <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
           <Stack.Screen name="Notification" component={NotificationScreen} />
           <Stack.Screen name="Search" component={SearchScreen} />
           <Stack.Screen
