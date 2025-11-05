@@ -16,6 +16,7 @@ export type AppHeaderProps = {
   contentHorizontalPadding?: number;
 	showBackButton?: boolean;
 	showNotificationButton?: boolean;
+	customContent?: React.ReactNode;
 };
 
 const AppHeader: FC<AppHeaderProps> = ({
@@ -25,6 +26,7 @@ const AppHeader: FC<AppHeaderProps> = ({
   contentHorizontalPadding = spacing.xxl,
   showBackButton = true,
   showNotificationButton = true,
+  customContent,
 }) => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
@@ -55,6 +57,7 @@ const AppHeader: FC<AppHeaderProps> = ({
 			>
 				<View style={styles.content}>
 					<View style={styles.leadingGroup}>
+						{showBackButton && (
 							<Pressable
 								onPress={handleBackPress}
 								hitSlop={12}
@@ -64,23 +67,26 @@ const AppHeader: FC<AppHeaderProps> = ({
 							>
 								<BackArrowIcon width={20} height={20} />
 							</Pressable>
-						<Text style={styles.title}>{title}</Text>
+						)}
+						{title ? <Text style={styles.title}>{title}</Text> : customContent}
 					</View>
 
-								<View style={styles.trailingGroup}>
-									<Image source={ErboLogo} style={styles.logo} resizeMode="contain" />
-									{showNotificationButton && (
-										<Pressable
-											accessibilityRole="button"
-											accessibilityLabel="Open notifications"
-											hitSlop={12}
-											onPress={onNotificationPress}
-											style={styles.notificationButton}
-										>
-											<NotifIcon style={styles.notificationIcon} />
-										</Pressable>
-									)}
-								</View>
+					<View style={styles.trailingGroup}>
+						{showNotificationButton && (
+							<>
+								<Image source={ErboLogo} style={styles.logo} resizeMode="contain" />
+								<Pressable
+									accessibilityRole="button"
+									accessibilityLabel="Open notifications"
+									hitSlop={12}
+									onPress={onNotificationPress}
+									style={styles.notificationButton}
+								>
+									<NotifIcon style={styles.notificationIcon} />
+								</Pressable>
+							</>
+						)}
+					</View>
 				</View>
 			</LinearGradient>
 		</View>
