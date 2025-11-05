@@ -20,7 +20,7 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { getCategoryModules, getIconComponent } from './digidawData';
+import { getCategoryModules, getIconComponent } from '../../data/digidawData';
 
 type DetailRoute = RouteProp<RootStackParamList, 'DigidawCategoryDetail'>;
 

@@ -19,7 +19,7 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { getCategoryCollection, getIconComponent } from '../digidaw/digidawData';
+import { getCategoryCollection, getIconComponent } from '../../data/digidawData';
 import type { MateriIconKey } from '../../data/materiContent';
 
 type MateriCategoryRoute = RouteProp<RootStackParamList, 'MateriCategory'>;
