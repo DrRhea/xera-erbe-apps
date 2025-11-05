@@ -39,7 +39,7 @@ const leaderboardGradients = gradients.leaderboard;
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
-  { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Analysis' },
+  { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
   { key: 'wallet', label: 'Wallet', Icon: TagIcon, routeName: 'Wallet' },
   { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
 ];
@@ -53,6 +53,7 @@ type ProgressCardProps = {
   progress: number;
   accentLabel: string;
   footerLabel: string;
+  routeName?: RoutesWithoutParams;
 };
 
 const progressData: ProgressCardProps[] = [
@@ -61,12 +62,14 @@ const progressData: ProgressCardProps[] = [
     progress: 0.75,
     accentLabel: '90',
     footerLabel: '/100 soal',
+    routeName: 'Report',
   },
   {
     title: 'Progress Harian',
     progress: 1.1,
     accentLabel: '23',
     footerLabel: '/20 soal',
+    routeName: 'Report',
   },
 ];
 
@@ -266,11 +269,18 @@ export const useResponsiveLayout = () => {
 
 type ResponsiveLayout = ReturnType<typeof useResponsiveLayout>;
 
-const ProgressCard: FC<ProgressCardProps> = ({ title, progress, accentLabel, footerLabel }) => {
+const ProgressCard: FC<ProgressCardProps> = ({ title, progress, accentLabel, footerLabel, routeName }) => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const widthPercent: PercentString = `${Math.min(progress, 1) * 100}%`;
 
-  return (
-    <View style={styles.progressCard}>
+  const handlePress = useCallback(() => {
+    if (routeName) {
+      navigation.navigate(routeName as never);
+    }
+  }, [navigation, routeName]);
+
+  const CardContent = (
+    <>
       <Text style={styles.progressTitle}>{title}</Text>
       <View style={styles.progressRow}>
         <View style={styles.progressTrack}>
@@ -282,6 +292,28 @@ const ProgressCard: FC<ProgressCardProps> = ({ title, progress, accentLabel, foo
           {footerLabel}
         </Text>
       </View>
+    </>
+  );
+
+  if (routeName) {
+    return (
+      <Pressable
+        style={({ pressed }) => [
+          styles.progressCard,
+          pressed && styles.progressCardPressed,
+        ]}
+        onPress={handlePress}
+        accessibilityRole="button"
+        accessibilityLabel={`${title}, ${Math.round(progress * 100)}% complete`}
+      >
+        {CardContent}
+      </Pressable>
+    );
+  }
+
+  return (
+    <View style={styles.progressCard}>
+      {CardContent}
     </View>
   );
 };
@@ -1014,6 +1046,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     paddingVertical: 12,
     paddingHorizontal: 12,
+  },
+  progressCardPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
   },
   progressTitle: {
     fontSize: 13,
