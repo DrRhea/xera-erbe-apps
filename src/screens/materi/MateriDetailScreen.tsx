@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -39,6 +39,10 @@ const MateriDetailScreen: FC = () => {
   const layout = useResponsiveLayout();
 
   const { categoryId, categoryTitle, subjectId, subjectTitle, iconKey } = route.params;
+
+  const handleNotificationPress = useCallback(() => {
+    navigation.navigate('Notification');
+  }, [navigation]);
 
   const Icon = useMemo(() => getMateriIconComponent(iconKey), [iconKey]);
   const modules = useMemo(() => getMateriModules(subjectId, subjectTitle), [subjectId, subjectTitle]);
@@ -83,7 +87,7 @@ const MateriDetailScreen: FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-          <AppHeader title="Materi" contentHorizontalPadding={contentHorizontalPadding} />
+          <AppHeader title="Materi" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
         </View>
         <View
           style={[

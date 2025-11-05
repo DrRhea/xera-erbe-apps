@@ -16,9 +16,13 @@ import DigidawCategoriesDetailScreen from './src/screens/digidaw/DigidawCategori
 import DigidawQuestionScreen from './src/screens/digidaw/DigidawQuestionScreen';
 import MateriScreen from './src/screens/materi/MateriScreen';
 import ReportScreen from './src/screens/report/ReportScreen';
+import NotificationScreen from './src/screens/notification/NotificationScreen';
+import LeaderboardScreen from './src/screens/leaderboard/LeaderboardScreen';
+import PromotionScreen from './src/screens/promotion/PromotionScreen';
+import SearchScreen from './src/screens/search/SearchScreen';
 import MateriCategoriesScreen from './src/screens/materi/MateriCategoriesScreen';
 import MateriDetailScreen from './src/screens/materi/MateriDetailScreen';
-import type { CategoryIconKey } from './src/screens/digidaw/digidawData';
+import type { CategoryIconKey } from './src/data/digidawData';
 import type { MateriIconKey } from './src/data/materiContent';
 
 export type RootStackParamList = {
@@ -86,6 +90,10 @@ export type RootStackParamList = {
   };
   Analysis: undefined;
   Report: undefined;
+  Leaderboard: undefined;
+  Promotion: undefined;
+  Notification: undefined;
+  Search: undefined;
   Wallet: undefined;
   Profile: undefined;
 };
@@ -124,6 +132,10 @@ export default function App() {
             children={() => <PlaceholderScreen title="Analysis" message="Analysis screen coming soon." />}
           />
           <Stack.Screen name="Report" component={ReportScreen} />
+          <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+          <Stack.Screen name="Promotion" component={PromotionScreen} />
+          <Stack.Screen name="Notification" component={NotificationScreen} />
+          <Stack.Screen name="Search" component={SearchScreen} />
           <Stack.Screen
             name="Wallet"
             children={() => <PlaceholderScreen title="Wallet" message="Wallet screen coming soon." />}

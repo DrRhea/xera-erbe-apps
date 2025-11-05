@@ -10,7 +10,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import { colors, fontFamilies } from '../../constants/theme';
@@ -38,8 +38,13 @@ type OptionVariant = 'default' | 'selected' | 'correct' | 'incorrect';
 
 const DigidawQuestionScreen: FC = () => {
   const route = useRoute<DigidawQuestionRoute>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { moduleId, moduleTitle, subjectTitle } = route.params;
   const layout = useResponsiveLayout();
+
+  const handleNotificationPress = useCallback(() => {
+    navigation.navigate('Notification');
+  }, [navigation]);
 
   const questions = useMemo(() => getModuleQuestions(moduleId, moduleTitle), [moduleId, moduleTitle]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -193,8 +198,8 @@ const DigidawQuestionScreen: FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.headerWrapper, { width: layout.contentWidth }]}> 
-          <AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} />
+        <View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
+          <AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
         </View>
 
         <View

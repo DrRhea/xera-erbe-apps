@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 import AppHeader from '../../components/AppHeader';
@@ -19,6 +20,7 @@ import UserIcon from '../../../assets/icons/user.svg';
 import ErboLogo from '../../../assets/images/logoutuhijo.png';
 import { colors, fontFamilies } from '../../constants/theme';
 import { useResponsiveLayout } from '../home/HomeScreen';
+import type { RootStackParamList } from '../../../App';
 
 // ============================================================================
 // INTERNAL COMPONENTS
@@ -235,12 +237,17 @@ const sampleReportData: ReportTableRow[] = [
 // ============================================================================
 
 const ReportScreen: FC = () => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const layout = useResponsiveLayout();
   const [activeNavKey, setActiveNavKey] = useState('Analysis');
 
   const contentWidth = layout.contentWidth;
   const contentHorizontalPadding = layout.horizontalPadding;
   const sectionSpacing = layout.sectionSpacing;
+
+  const handleNotificationPress = useCallback(() => {
+    navigation.navigate('Notification');
+  }, [navigation]);
 
   const handleNavSelect = (key: string) => {
     setActiveNavKey(key);
@@ -262,7 +269,7 @@ const ReportScreen: FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.headerWrapper, { width: contentWidth }]}>
-          <AppHeader title="Laporan" contentHorizontalPadding={contentHorizontalPadding} />
+          <AppHeader title="Laporan" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
         </View>
 
         <View
