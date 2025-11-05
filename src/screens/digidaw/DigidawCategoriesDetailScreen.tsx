@@ -27,7 +27,7 @@ type DetailRoute = RouteProp<RootStackParamList, 'DigidawCategoryDetail'>;
 
 const navItems: BottomNavigationItem[] = [
 	{ key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
-	{ key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Analysis' },
+	{ key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
 	{ key: 'wallet', label: 'Wallet', Icon: TagIcon, routeName: 'Wallet' },
 	{ key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
 ];
