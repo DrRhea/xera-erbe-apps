@@ -136,9 +136,9 @@ type LifeAtErbeCard = {
 };
 
 const lifeAtErbeCards: LifeAtErbeCard[] = [
-  { title: 'SNack-BT', image: SnackBtImage, backgroundColor: '#FFEDD2' },
-  { title: 'PoKe', image: PokeImage, backgroundColor: '#CDFEE2' },
-  { title: 'ImEng', image: ImEngImage, backgroundColor: '#F6C2DB' },
+  { title: 'SNack-BT', image: SnackBtImage, backgroundColor: '#FFEDD2', routeName: 'Snackbt' },
+  { title: 'PoKe', image: PokeImage, backgroundColor: '#CDFEE2', routeName: 'Poke' },
+  { title: 'ImEng', image: ImEngImage, backgroundColor: '#F6C2DB', routeName: 'ImEng' },
   { title: 'Materi', image: MateriImage, backgroundColor: '#E0F5FF', routeName: 'Materi' },
 ];
 

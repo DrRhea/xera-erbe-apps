@@ -18,8 +18,29 @@ import MateriScreen from './src/screens/materi/MateriScreen';
 import ReportScreen from './src/screens/report/ReportScreen';
 import MateriCategoriesScreen from './src/screens/materi/MateriCategoriesScreen';
 import MateriDetailScreen from './src/screens/materi/MateriDetailScreen';
-import type { CategoryIconKey } from './src/screens/digidaw/digidawData';
+import SnackbtScreen from './src/screens/snackbt/SnackbtScreen';
+import SnackbtDetailScreen from './src/screens/snackbt/SnackbtDetailScreen';
+import SnackbtQuestionScreen from './src/screens/snackbt/SnackbtQuestionScreen';
+import PokeScreen from './src/screens/poke/PokeScreen';
+import PokeDetailScreen from './src/screens/poke/PokeDetailScreen';
+import PokeQuestionScreen from './src/screens/poke/PokeQuestionScreen';
+import ImEngScreen from './src/screens/imeng/ImEngScreen';
+import ImEngQuestionScreen from './src/screens/imeng/ImEngQuestionScreen';
+import type { CategoryIconKey } from './src/data/digidawData';
 import type { MateriIconKey } from './src/data/materiContent';
+import type { ExamId } from './src/data/examContent';
+
+type ExamRouteParams = {
+  examId: ExamId;
+  examTitle: string;
+  subjectId: string;
+  subjectTitle: string;
+};
+
+type ExamQuestionRouteParams = ExamRouteParams & {
+  moduleId: string;
+  moduleTitle: string;
+};
 
 export type RootStackParamList = {
   Home: undefined;
@@ -56,6 +77,14 @@ export type RootStackParamList = {
     moduleId: string;
     moduleTitle: string;
   };
+  Snackbt: undefined;
+  SnackbtDetail: ExamRouteParams;
+  SnackbtQuestion: ExamQuestionRouteParams;
+  Poke: undefined;
+  PokeDetail: ExamRouteParams;
+  PokeQuestion: ExamQuestionRouteParams;
+  ImEng: undefined;
+  ImEngQuestion: ExamQuestionRouteParams;
   TryoutDesc: {
     tryoutId: string;
     title: string;
@@ -114,6 +143,14 @@ export default function App() {
           <Stack.Screen name="DigidawCategories" component={DigidawCategoriesScreen} />
           <Stack.Screen name="DigidawCategoryDetail" component={DigidawCategoriesDetailScreen} />
           <Stack.Screen name="DigidawQuestion" component={DigidawQuestionScreen} />
+          <Stack.Screen name="Snackbt" component={SnackbtScreen} />
+          <Stack.Screen name="SnackbtDetail" component={SnackbtDetailScreen} />
+          <Stack.Screen name="SnackbtQuestion" component={SnackbtQuestionScreen} />
+          <Stack.Screen name="Poke" component={PokeScreen} />
+          <Stack.Screen name="PokeDetail" component={PokeDetailScreen} />
+          <Stack.Screen name="PokeQuestion" component={PokeQuestionScreen} />
+          <Stack.Screen name="ImEng" component={ImEngScreen} />
+          <Stack.Screen name="ImEngQuestion" component={ImEngQuestionScreen} />
           <Stack.Screen name="TryoutDesc" component={TryoutDescScreen} />
           <Stack.Screen name="TryoutRegistrationFree" component={TryoutRegistrationFreeScreen} />
           <Stack.Screen name="TryoutRegistrationPaid" component={TryoutRegistrationPaidScreen} />
