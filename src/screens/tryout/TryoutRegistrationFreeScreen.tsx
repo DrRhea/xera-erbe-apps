@@ -13,7 +13,7 @@ import {
 	TextInput,
 	View,
 } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -70,7 +70,12 @@ const TryoutRegistrationFreeScreen: FC = () => {
 	const {
 		params: { tryoutId, title, dateLabel },
 	} = useRoute<TryoutRegistrationRouteProp>();
+	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
+
+	const handleNotificationPress = useCallback(() => {
+		navigation.navigate('Notification');
+	}, [navigation]);
 
 	const [identityState, setIdentityState] = useState<Record<IdentityFieldKey, string>>({
 		fullName: '',
@@ -177,7 +182,7 @@ const TryoutRegistrationFreeScreen: FC = () => {
 					keyboardShouldPersistTaps="handled"
 				>
 					<View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-						<AppHeader title="Kembali" contentHorizontalPadding={contentHorizontalPadding} />
+						<AppHeader title="Kembali" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
 					</View>
 
 					<View

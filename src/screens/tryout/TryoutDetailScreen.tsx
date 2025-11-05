@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 import {
   Image,
   Pressable,
@@ -83,6 +83,10 @@ const TryoutDetailScreen: FC = () => {
   const layout = useResponsiveLayout();
 
   const { tryoutId, title } = route.params;
+
+  const handleNotificationPress = useCallback(() => {
+    navigation.navigate('Notification');
+  }, [navigation]);
   const detail = useMemo(() => {
     const fallback: TryoutDetail = {
       title,
@@ -129,7 +133,7 @@ const TryoutDetailScreen: FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-          <AppHeader title="Tryout" contentHorizontalPadding={contentHorizontalPadding} />
+          <AppHeader title="Tryout" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
         </View>
 
         <View

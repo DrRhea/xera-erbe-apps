@@ -154,6 +154,10 @@ const TryoutDescScreen: FC = () => {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
 
+	const handleNotificationPress = useCallback(() => {
+		navigation.navigate('Notification');
+	}, [navigation]);
+
 	const description = useMemo(
 		() => tryoutDescriptions[tryoutId] ?? createGenericDescription(title),
 		[tryoutId, title]
@@ -253,7 +257,7 @@ const TryoutDescScreen: FC = () => {
 				showsVerticalScrollIndicator={false}
 			>
 				<View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-					<AppHeader title="Kembali" contentHorizontalPadding={contentHorizontalPadding} />
+					<AppHeader title="Kembali" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
 				</View>
 
 				<View

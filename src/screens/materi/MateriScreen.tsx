@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 import {
   Image,
   Pressable,
@@ -36,6 +36,10 @@ const MateriScreen: FC = () => {
   const layout = useResponsiveLayout();
   const categories = useMemo<LearningCategory[]>(() => getLearningCategories(), []);
   const categoryIcon = useMemo(() => getCategoryIcon(), []);
+
+  const handleNotificationPress = useCallback(() => {
+    navigation.navigate('Notification');
+  }, [navigation]);
 
   const contentHorizontalPadding = useMemo(
     () => clamp(layout.horizontalPadding, 20, 28),
@@ -85,7 +89,7 @@ const MateriScreen: FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.headerWrapper, { width: contentWidth }]}>
-          <AppHeader title="Materi" contentHorizontalPadding={contentHorizontalPadding} />
+          <AppHeader title="Materi" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
         </View>
         <View
           style={[
