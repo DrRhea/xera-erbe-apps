@@ -16,7 +16,7 @@ import AppHeader from '../../components/AppHeader';
 import { colors, fontFamilies } from '../../constants/theme';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import type { RootStackParamList } from '../../../App';
-import { getModuleQuestions, type DigidawQuestionOption } from './digidawData';
+import { getModuleQuestions, type DigidawQuestionOption } from '../../data/digidawData'
 
 import LeftPointerIcon from '../../../assets/icons/leftpointer.svg';
 import RightPointerIcon from '../../../assets/icons/rightpointer.svg';

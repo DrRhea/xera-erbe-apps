@@ -22,7 +22,7 @@ import { useResponsiveLayout } from '../home/HomeScreen';
 import {
 	getCategoryCollection,
 	getIconComponent,
-} from './digidawData';
+} from '../../data/digidawData';
 
 type DigidawCategoriesRoute = RouteProp<RootStackParamList, 'DigidawCategories'>;
 
