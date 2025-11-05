@@ -3,7 +3,7 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, ImageSourcePropType, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import Svg, { Path, type SvgProps } from 'react-native-svg';
+import type { SvgProps } from 'react-native-svg';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
@@ -26,13 +26,13 @@ import AdminImage from '../../../assets/images/other1.png';
 import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
 import SearchBar from '../../components/SearchBar';
 import HomeIcon from '../../../assets/icons/home-2.svg';
-import PromoIcon from '../../../assets/icons/promo.svg';
 import ArrowIcon from '../../../assets/icons/vector.svg';
 import NotificationIcon from '../../../assets/icons/notifdot.svg';
 import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
 import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
 import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
 import { colors, fontFamilies, gradients } from '../../constants/theme';
+import PromotionBanner from '../../components/PromotionBanner';
 import type { RootStackParamList } from '../../../App';
 
 const leaderboardGradients = gradients.leaderboard;
@@ -149,6 +149,14 @@ const LIFE_CARD_TITLE_MARGIN_RATIO = 10 / 82;
 const RECOMMENDATION_TOTAL_SLIDES = 4;
 const ACTIVE_RECOMMENDATION_INDEX = 1;
 
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const guidelineBaseWidth = 375;
+
+const scale = (size: number, width: number) => (width / guidelineBaseWidth) * size;
+
+const moderateScale = (size: number, width: number, factor = 0.5) => size + (scale(size, width) - size) * factor;
+
 const literasikCards = [
   {
     title: '5 Cara Upgrade Skill\nTanpa Stuck Lama-Lama',
@@ -165,14 +173,6 @@ const literasikCards = [
     image: LiterasikImage,
   },
 ];
-
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
-const guidelineBaseWidth = 375;
-
-const scale = (size: number, width: number) => (width / guidelineBaseWidth) * size;
-
-const moderateScale = (size: number, width: number, factor = 0.5) => size + (scale(size, width) - size) * factor;
 
 export const useResponsiveLayout = () => {
   const { width } = useWindowDimensions();
@@ -649,77 +649,6 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
   );
 };
 
-const RecommendationWave: FC = () => (
-  <Svg viewBox="0 0 387 84" style={styles.recommendationWave}>
-    <Path d="M0 42C52 68 130 86 200 70C270 54 320 64 387 84V84H0V42Z" fill={colors.white} />
-  </Svg>
-);
-
-const RecommendationsCard: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
-  const badgeHorizontal = Math.max(layout.horizontalPadding * 0.75, 14);
-  const badgeVertical = Math.max(layout.horizontalPadding * 0.45, 10);
-  const codeLabelHorizontal = Math.max(layout.horizontalPadding * 0.6, 12);
-  const codeLabelVertical = Math.max(layout.horizontalPadding * 0.35, 6);
-  const codeBadgeHorizontal = Math.max(layout.horizontalPadding, 20);
-  const codeBadgeVertical = Math.max(layout.horizontalPadding * 0.35, 8);
-
-  return (
-    <View style={styles.recommendationCard}>
-      <LinearGradient
-        colors={['#CFE8E6', '#86C8C6']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[
-          styles.recommendationGradient,
-          {
-            paddingHorizontal: layout.recommendationPaddingHorizontal,
-            paddingVertical: layout.recommendationPaddingVertical,
-            minHeight: clamp(layout.screenWidth * 0.36, 150, 196),
-          },
-        ]}
-      >
-        <RecommendationWave />
-        <View style={styles.recommendationTopRow}>
-          <View
-            style={[
-              styles.recommendationBadge,
-              { paddingHorizontal: badgeHorizontal, paddingVertical: badgeVertical },
-            ]}
-          >
-            <Text style={styles.recommendationBadgeText}>{`SUPER\nPTN!`}</Text>
-          </View>
-          <View style={styles.recommendationIconWrapper}>
-            <PromoIcon width={62} height={62} />
-          </View>
-          <View style={styles.recommendationDiscountGroup}>
-            <Text style={styles.recommendationDiscount}>30%</Text>
-            <Text style={styles.recommendationSuffix}>off</Text>
-          </View>
-        </View>
-        <View style={styles.recommendationCodeWrapper}>
-          <View
-            style={[
-              styles.recommendationCodeLabel,
-              { paddingHorizontal: codeLabelHorizontal, paddingVertical: codeLabelVertical },
-            ]}
-          >
-            <PromoIcon width={26} height={26} />
-            <Text style={styles.recommendationCodeLabelText}>{`KODE\nPROMO`}</Text>
-          </View>
-          <View
-            style={[
-              styles.recommendationCodeBadge,
-              { paddingHorizontal: codeBadgeHorizontal, paddingVertical: codeBadgeVertical },
-            ]}
-          >
-            <Text style={styles.recommendationCodeText}>SUPERPTN</Text>
-          </View>
-        </View>
-      </LinearGradient>
-    </View>
-  );
-};
-
 const RecommendationCarouselIndicators: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
   <View style={[styles.recommendationDots, { columnGap: layout.recommendationDotsGap, gap: layout.recommendationDotsGap }]}>
     {Array.from({ length: RECOMMENDATION_TOTAL_SLIDES }).map((_, index) => (
@@ -887,7 +816,19 @@ const HomeScreen: FC = () => {
           ]}
         >
           <SectionHeader title="See Our Recommendations" cta="Selengkapnya" />
-          <RecommendationsCard layout={layout} />
+          <PromotionBanner
+            layout={{
+              screenWidth: layout.screenWidth,
+              horizontalPadding: layout.horizontalPadding,
+              recommendationPaddingHorizontal: layout.recommendationPaddingHorizontal,
+              recommendationPaddingVertical: layout.recommendationPaddingVertical,
+            }}
+            badgeText={`SUPER\nPTN!`}
+            discountText="30%"
+            suffixText="off"
+            promoCode="SUPERPTN"
+            codeLabel={`KODE\nPROMO`}
+          />
           <RecommendationCarouselIndicators layout={layout} />
         </View>
         <View
@@ -1170,108 +1111,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-  },
-  recommendationCard: {
-    marginTop: 20,
-  },
-  recommendationGradient: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    minHeight: 157,
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    position: 'relative',
-  },
-  recommendationWave: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    width: '100%',
-    height: 84,
-  },
-  recommendationTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    zIndex: 1,
-  },
-  recommendationBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: 18,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    zIndex: 1,
-  },
-  recommendationBadgeText: {
-    color: colors.white,
-    fontFamily: fontFamilies.extraBold,
-    fontSize: 18,
-    lineHeight: 22,
-    letterSpacing: 0.4,
-    textAlign: 'center',
-  },
-  recommendationIconWrapper: {
-    paddingHorizontal: 12,
-    zIndex: 1,
-  },
-  recommendationDiscountGroup: {
-    alignItems: 'flex-end',
-    zIndex: 1,
-  },
-  recommendationDiscount: {
-    fontSize: 50,
-    color: colors.accent,
-    fontFamily: fontFamilies.extraBold,
-    textShadowColor: '#FFFFFF',
-    textShadowOffset: { width: 3, height: 3 },
-    textShadowRadius: 1,
-  },
-  recommendationSuffix: {
-    marginTop: -6,
-    fontSize: 15,
-    color: colors.white,
-    fontFamily: fontFamilies.bold,
-    textShadowColor: colors.primary,
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 0,
-  },
-  recommendationCodeWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-    zIndex: 1,
-  },
-  recommendationCodeLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.white,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginRight: 12,
-  },
-  recommendationCodeLabelText: {
-    marginLeft: 8,
-    fontSize: 9,
-    lineHeight: 11,
-    color: colors.primary,
-    fontFamily: fontFamilies.bold,
-    textAlign: 'center',
-  },
-  recommendationCodeBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: 30,
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-  },
-  recommendationCodeText: {
-    fontSize: 13,
-    color: colors.white,
-    fontFamily: fontFamilies.bold,
-    letterSpacing: 0.4,
   },
   recommendationDots: {
     flexDirection: 'row',
