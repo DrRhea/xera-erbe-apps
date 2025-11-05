@@ -662,10 +662,14 @@ const RecommendationCarouselIndicators: FC<{ layout: ResponsiveLayout }> = ({ la
   </View>
 );
 
-const SectionHeader: FC<{ title: string; cta?: string; centered?: boolean }> = ({ title, cta, centered }) => (
+const SectionHeader: FC<{ title: string; cta?: string; centered?: boolean; onPress?: () => void }> = ({ title, cta, centered, onPress }) => (
   <View style={[styles.sectionHeader, centered && styles.sectionHeaderCentered]}>
     <Text style={[styles.sectionTitle, centered && styles.sectionTitleCentered]}>{title}</Text>
-    {cta ? <Text style={styles.sectionCta}>{cta}</Text> : null}
+    {cta ? (
+      <Pressable onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined}>
+        <Text style={styles.sectionCta}>{cta}</Text>
+      </Pressable>
+    ) : null}
   </View>
 );
 
@@ -789,6 +793,7 @@ const HomeScreen: FC = () => {
   });
 
   const layout = useResponsiveLayout();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded || fontError) {
@@ -825,7 +830,12 @@ const HomeScreen: FC = () => {
             },
           ]}
         >
-          <SectionHeader title="See Our Recommendations" cta="Selengkapnya" />
+          <SectionHeader
+            title="See Our Recommendations"
+            cta="Selengkapnya"
+            onPress={() => navigation.navigate('Promotion')}
+          />
+          
           <PromotionBanner
             layout={{
               screenWidth: layout.screenWidth,
