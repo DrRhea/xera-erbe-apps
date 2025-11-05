@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 import {
 	Pressable,
 	SafeAreaView,
@@ -41,6 +41,10 @@ const DigidawCategoriesScreen: FC = () => {
 	const layout = useResponsiveLayout();
 
 	const { categoryId, categoryTitle } = route.params;
+
+	const handleNotificationPress = useCallback(() => {
+		navigation.navigate('Notification');
+	}, [navigation]);
 
 	const collection = useMemo(
 		() => getCategoryCollection(categoryId, categoryTitle),
@@ -102,7 +106,7 @@ const DigidawCategoriesScreen: FC = () => {
 				showsVerticalScrollIndicator={false}
 			>
 				<View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-					<AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} />
+					<AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
 				</View>
 				<View
 					style={[

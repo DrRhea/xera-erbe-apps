@@ -81,6 +81,10 @@ const TryoutScreen: FC = () => {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
 
+	const handleNotificationPress = useCallback(() => {
+		navigation.navigate('Notification');
+	}, [navigation]);
+
 	const activeCardGap = useMemo(() => clamp(layout.horizontalPadding * 0.6, 12, 18), [layout.horizontalPadding]);
 	const activeCardPaddingVertical = useMemo(
 		() => clamp(layout.horizontalPadding * 0.7, 16, 22),
@@ -159,7 +163,7 @@ const TryoutScreen: FC = () => {
 				showsVerticalScrollIndicator={false}
 			>
 				<View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-					<AppHeader title="Tryout" contentHorizontalPadding={contentHorizontalPadding} />
+					<AppHeader title="Tryout" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
 				</View>
 				<View
 					style={[

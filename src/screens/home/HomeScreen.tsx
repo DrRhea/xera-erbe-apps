@@ -587,7 +587,7 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
       >
         <View style={styles.searchRow}>
           <SearchBar placeholder="Mau belajar apa nih?" style={styles.searchBarWrapper} />
-          <Pressable style={styles.notificationButton}>
+          <Pressable style={styles.notificationButton} onPress={() => navigation.navigate('Notification')}>
             <NotificationIcon style={styles.notificationIcon} />
           </Pressable>
         </View>

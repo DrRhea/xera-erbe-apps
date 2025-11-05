@@ -6,6 +6,7 @@ import React, {
 	useRef,
 	useState,
 } from 'react';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import {
 	Image,
 	ImageSourcePropType,
@@ -146,9 +147,14 @@ type TryoutQuestionRoute = RouteProp<RootStackParamList, 'TryoutQuestion'>;
 
 const TryoutQuestionScreen: FC = () => {
 	const route = useRoute<TryoutQuestionRoute>();
+	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const { subtestId, subtestTitle, tryoutTitle } = route.params;
 	const layout = useResponsiveLayout();
 	const sheetRef = useRef<BottomSheet>(null);
+
+	const handleNotificationPress = useCallback(() => {
+		navigation.navigate('Notification');
+	}, [navigation]);
 
 	const questions = useMemo(() => buildQuestions(subtestId, subtestTitle), [subtestId, subtestTitle]);
 	const questionNumbers = useMemo(
@@ -396,8 +402,8 @@ const TryoutQuestionScreen: FC = () => {
 					]}
 					showsVerticalScrollIndicator={false}
 				>
-					<View style={[styles.headerWrapper, { width: layout.contentWidth, marginBottom: sectionSpacing }]}> 
-						<AppHeader title="Tryout" contentHorizontalPadding={contentHorizontalPadding} />
+					<View style={[styles.headerWrapper, { width: layout.contentWidth, marginBottom: sectionSpacing }]}>
+						<AppHeader title="Tryout" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
 					</View>
 
 					<View

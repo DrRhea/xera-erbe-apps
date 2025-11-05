@@ -40,6 +40,10 @@ const MateriCategoriesScreen: FC = () => {
 
 	const { categoryId, categoryTitle } = route.params;
 
+	const handleNotificationPress = useCallback(() => {
+		navigation.navigate('Notification');
+	}, [navigation]);
+
 	const collection = useMemo(
 		() => getCategoryCollection(categoryId, categoryTitle),
 		[categoryId, categoryTitle],
@@ -114,7 +118,7 @@ const MateriCategoriesScreen: FC = () => {
 				showsVerticalScrollIndicator={false}
 			>
 				<View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-					<AppHeader title="Materi" contentHorizontalPadding={contentHorizontalPadding} />
+					<AppHeader title="Materi" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
 				</View>
 				<View
 					style={[

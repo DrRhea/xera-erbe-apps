@@ -15,6 +15,7 @@ export type AppHeaderProps = {
 	onNotificationPress?: () => void;
   contentHorizontalPadding?: number;
 	showBackButton?: boolean;
+	showNotificationButton?: boolean;
 };
 
 const AppHeader: FC<AppHeaderProps> = ({
@@ -23,6 +24,7 @@ const AppHeader: FC<AppHeaderProps> = ({
   onNotificationPress,
   contentHorizontalPadding = spacing.xxl,
   showBackButton = true,
+  showNotificationButton = true,
 }) => {
 	const insets = useSafeAreaInsets();
 	const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
@@ -67,15 +69,17 @@ const AppHeader: FC<AppHeaderProps> = ({
 
 								<View style={styles.trailingGroup}>
 									<Image source={ErboLogo} style={styles.logo} resizeMode="contain" />
-									<Pressable
-										accessibilityRole="button"
-										accessibilityLabel="Open notifications"
-										hitSlop={12}
-										onPress={onNotificationPress}
-										style={styles.notificationButton}
-									>
-										<NotifIcon style={styles.notificationIcon} />
-									</Pressable>
+									{showNotificationButton && (
+										<Pressable
+											accessibilityRole="button"
+											accessibilityLabel="Open notifications"
+											hitSlop={12}
+											onPress={onNotificationPress}
+											style={styles.notificationButton}
+										>
+											<NotifIcon style={styles.notificationIcon} />
+										</Pressable>
+									)}
 								</View>
 				</View>
 			</LinearGradient>

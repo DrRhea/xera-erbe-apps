@@ -16,6 +16,7 @@ import DigidawCategoriesDetailScreen from './src/screens/digidaw/DigidawCategori
 import DigidawQuestionScreen from './src/screens/digidaw/DigidawQuestionScreen';
 import MateriScreen from './src/screens/materi/MateriScreen';
 import ReportScreen from './src/screens/report/ReportScreen';
+import NotificationScreen from './src/screens/notification/NotificationScreen';
 import MateriCategoriesScreen from './src/screens/materi/MateriCategoriesScreen';
 import MateriDetailScreen from './src/screens/materi/MateriDetailScreen';
 import type { CategoryIconKey } from './src/screens/digidaw/digidawData';
@@ -86,6 +87,7 @@ export type RootStackParamList = {
   };
   Analysis: undefined;
   Report: undefined;
+  Notification: undefined;
   Wallet: undefined;
   Profile: undefined;
 };
@@ -124,6 +126,7 @@ export default function App() {
             children={() => <PlaceholderScreen title="Analysis" message="Analysis screen coming soon." />}
           />
           <Stack.Screen name="Report" component={ReportScreen} />
+          <Stack.Screen name="Notification" component={NotificationScreen} />
           <Stack.Screen
             name="Wallet"
             children={() => <PlaceholderScreen title="Wallet" message="Wallet screen coming soon." />}

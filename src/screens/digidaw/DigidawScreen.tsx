@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 import {
 	Image,
 	Pressable,
@@ -36,6 +36,10 @@ const DigidawScreen: FC = () => {
 	const layout = useResponsiveLayout();
 	const categories = useMemo<LearningCategory[]>(() => getLearningCategories(), []);
 	const categoryIcon = useMemo(() => getCategoryIcon(), []);
+
+	const handleNotificationPress = useCallback(() => {
+		navigation.navigate('Notification');
+	}, [navigation]);
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
@@ -85,7 +89,7 @@ const DigidawScreen: FC = () => {
 				showsVerticalScrollIndicator={false}
 			>
 				<View style={[styles.headerWrapper, { width: contentWidth }]}>
-					<AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} showBackButton={false} />
+					<AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} showBackButton={false} onNotificationPress={handleNotificationPress} />
 				</View>
 				<View
 					style={[
