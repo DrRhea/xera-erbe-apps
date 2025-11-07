@@ -5,7 +5,6 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 
 import AuthLayout from './AuthLayout';
 import { colors, fontFamilies } from '../../constants/theme';
-import { useAppFonts } from '../../hooks/useAppFonts';
 import { registerMockUser } from '../../services/mockAuthService';
 import type { RootStackParamList } from '../../../App';
 
@@ -15,7 +14,6 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const RegisterScreen: React.FC = () => {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-	const [fontsLoaded] = useAppFonts();
 
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
@@ -83,10 +81,6 @@ const RegisterScreen: React.FC = () => {
 			},
 		]);
 	}, [email, handleNavigateToLogin, isSubmitDisabled, name, password]);
-
-	if (!fontsLoaded) {
-		return null;
-	}
 
 	return (
 		<AuthLayout>
