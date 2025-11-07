@@ -6,10 +6,9 @@ import React, {
 	useRef,
 	useState,
 } from 'react';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { CommonActions, useNavigation, type NavigationProp } from '@react-navigation/native';
 import {
 	Image,
-	ImageSourcePropType,
 	Modal,
 	Pressable,
 	SafeAreaView,
@@ -35,6 +34,12 @@ import { colors, fontFamilies } from '../../constants/theme';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import type { RootStackParamList } from '../../../App';
 import { resolveTryoutSubtest } from '../../data/tryoutContent';
+import {
+	getTryoutQuestions,
+	type TryoutQuestion,
+	type TryoutQuestionOption,
+} from '../../data/tryoutQuestions';
+import { markTryoutSubtestCompleted } from '../../data/tryoutProgress';
 import LeftPointerIcon from '../../../assets/icons/leftpointer.svg';
 import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
 
@@ -52,104 +57,12 @@ const formatSeconds = (totalSeconds: number): string => {
 	return [hours, minutes, seconds].map((segment) => segment.toString().padStart(2, '0')).join(':');
 };
 
-type QuestionOption = {
-	id: string;
-	label: string;
-	text?: string;
-};
-
-type Question = {
-	id: string;
-	number: number;
-	subject: string;
-	prompt: string;
-	options: QuestionOption[];
-	image?: ImageSourcePropType;
-};
-
 type QuestionState = {
 	answerId: string | null;
 	flagged: boolean;
 };
 
 type QuestionStatus = 'current' | 'answered' | 'flagged' | 'unanswered';
-
-const baseOptions: QuestionOption[] = [
-	{ id: 'opt-a', label: 'A', text: '8√2 cm' },
-	{ id: 'opt-b', label: 'B', text: '12 cm' },
-	{ id: 'opt-c', label: 'C', text: '16√2 cm' },
-	{ id: 'opt-d', label: 'D', text: '24 cm' },
-	{ id: 'opt-e', label: 'E', text: '32 cm' },
-];
-
-const questionSeeds: Record<
-	string,
-	{
-		prompt: string;
-		options?: QuestionOption[];
-		count?: number;
-	}
-> = {
-	math: {
-		prompt:
-			'Diketahui sebuah persegi memiliki luas 256 cm². Tentukan keliling persegi tersebut.',
-	},
-	literasi: {
-		prompt:
-			'Bacalah paragraf singkat tentang perubahan iklim berikut lalu tentukan ide pokok paragraf tersebut.',
-		options: [
-			{ id: 'opt-a', label: 'A', text: 'Dampak perubahan iklim terhadap cuaca ekstrem.' },
-			{ id: 'opt-b', label: 'B', text: 'Peran manusia dalam mitigasi perubahan iklim.' },
-			{ id: 'opt-c', label: 'C', text: 'Pengaruh perubahan iklim terhadap kesehatan.' },
-			{ id: 'opt-d', label: 'D', text: 'Perubahan iklim dan transportasi publik.' },
-			{ id: 'opt-e', label: 'E', text: 'Kemajuan teknologi energi terbarukan.' },
-		],
-	},
-	science: {
-		prompt:
-			'Sebuah benda bermassa 2 kg ditarik dengan gaya konstan 10 N. Tentukan percepatan benda tersebut.',
-	},
-	penalaran: {
-		prompt:
-			'Jika pola bilangan 2, 6, 12, 20, ... berlanjut, berapakah suku ke-6 dari pola tersebut?',
-	},
-	kognitif: {
-		prompt:
-			'Seseorang membeli barang seharga Rp150.000 dengan diskon 20%. Berapa harga yang harus dibayar?',
-	},
-	numerasi: {
-		prompt:
-			'Dalam sebuah kelas terdapat 28 siswa. Jika 3/4 dari siswa menyukai matematika, berapa banyak siswa yang menyukainya?',
-		options: [
-			{ id: 'opt-a', label: 'A', text: '18 siswa' },
-			{ id: 'opt-b', label: 'B', text: '20 siswa' },
-			{ id: 'opt-c', label: 'C', text: '21 siswa' },
-			{ id: 'opt-d', label: 'D', text: '24 siswa' },
-			{ id: 'opt-e', label: 'E', text: '26 siswa' },
-		],
-	},
-};
-
-const buildQuestions = (subtestId: string, subject: string): Question[] => {
-	const seed = questionSeeds[subtestId] ?? {
-		prompt:
-			'Pilih jawaban terbaik berdasarkan informasi yang diberikan pada soal berikut.',
-	};
-	const optionsSource = seed.options ?? baseOptions;
-	const total = seed.count ?? 20;
-
-		return Array.from({ length: total }).map((_, index) => ({
-		id: `${subtestId || 'question'}-${index + 1}`,
-		number: index + 1,
-		subject,
-				prompt:
-					index === 0 ? seed.prompt : `${seed.prompt} - variasi ${index + 1}`,
-		options: optionsSource.map((option) => ({
-			...option,
-			id: `${option.id}-${subtestId || 'default'}-${index + 1}`,
-		})),
-	}));
-};
 
 type TryoutQuestionRoute = RouteProp<RootStackParamList, 'TryoutQuestion'>;
 
@@ -192,7 +105,10 @@ const TryoutQuestionScreen: FC = () => {
 		navigation.navigate('Notification');
 	}, [navigation]);
 
-	const questions = useMemo(() => buildQuestions(subtestId, subtestDetail.title), [subtestDetail.title, subtestId]);
+	const questions = useMemo(
+		() => getTryoutQuestions(tryoutId, subtestId, subtestDetail.title),
+		[tryoutId, subtestId, subtestDetail.title]
+	);
 	const questionNumbers = useMemo(
 		() => questions.map((question) => question.number),
 		[questions]
@@ -220,8 +136,8 @@ const TryoutQuestionScreen: FC = () => {
 			}
 
 		const snapPoints = useMemo<(string | number)[]>(() => [210, '70%'], []);
-		const optionRows = useMemo<QuestionOption[][]>(() => {
-			const rows: QuestionOption[][] = [];
+		const optionRows = useMemo<TryoutQuestionOption[][]>(() => {
+			const rows: TryoutQuestionOption[][] = [];
 			for (let index = 0; index < currentQuestion.options.length; index += 2) {
 				rows.push(currentQuestion.options.slice(index, index + 2));
 			}
@@ -417,8 +333,23 @@ const TryoutQuestionScreen: FC = () => {
 	}, []);
 
 	const handleSubmitConfirm = useCallback(() => {
+		markTryoutSubtestCompleted(tryoutId, subtestId);
 		setSubmitDialogVisible(false);
-	}, []);
+		navigation.dispatch(
+			CommonActions.reset({
+				index: 0,
+				routes: [
+					{
+						name: 'TryoutDetail',
+						params: {
+							tryoutId,
+							title: tryoutTitle,
+						},
+					},
+				],
+			})
+		);
+	}, [navigation, tryoutId, subtestId, tryoutTitle]);
 
 	const renderSheetBackground = useCallback(
 		({ style }: BottomSheetBackgroundProps) => (
@@ -451,7 +382,12 @@ const TryoutQuestionScreen: FC = () => {
 					showsVerticalScrollIndicator={false}
 				>
 					<View style={[styles.headerWrapper, { width: layout.contentWidth, marginBottom: sectionSpacing }]}>
-						<AppHeader title="Tryout" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
+						<AppHeader
+							title="Tryout"
+							contentHorizontalPadding={contentHorizontalPadding}
+							onNotificationPress={handleNotificationPress}
+							showBackButton={false}
+						/>
 					</View>
 
 					<View
@@ -507,7 +443,7 @@ const TryoutQuestionScreen: FC = () => {
 						</View>
 
 						<View style={styles.optionsGrid}>
-							{optionRows.map((rowOptions: QuestionOption[], rowIndex: number) => (
+							{optionRows.map((rowOptions: TryoutQuestionOption[], rowIndex: number) => (
 								<View
 									key={`option-row-${rowIndex}`}
 									style={[
@@ -517,7 +453,7 @@ const TryoutQuestionScreen: FC = () => {
 										},
 									]}
 								>
-									{rowOptions.map((option: QuestionOption, optionIndex: number) => {
+									{rowOptions.map((option: TryoutQuestionOption, optionIndex: number) => {
 										const isSelected = currentState.answerId === option.id;
 
 										return (
