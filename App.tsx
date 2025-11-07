@@ -33,6 +33,7 @@ import ImEngScreen from './src/screens/imeng/ImEngScreen';
 import ImEngQuestionScreen from './src/screens/imeng/ImEngQuestionScreen';
 import LoginScreen from './src/screens/login/LoginScreen';
 import RegisterScreen from './src/screens/login/RegisterScreen';
+import LiterasikScreen from './src/screens/literasik/LiterasikScreen';
 import type { CategoryIconKey } from './src/data/digidawData';
 import type { MateriIconKey } from './src/data/materiContent';
 import type { ExamId } from './src/data/examContent';
@@ -53,6 +54,7 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Home: undefined;
+  Literasik: undefined;
   Materi: undefined;
   MateriCategory: {
     categoryId: string;
@@ -154,6 +156,7 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Literasik" component={LiterasikScreen} />
           <Stack.Screen name="Materi" component={MateriScreen} />
           <Stack.Screen name="MateriCategory" component={MateriCategoriesScreen} />
           <Stack.Screen name="MateriDetail" component={MateriDetailScreen} />
