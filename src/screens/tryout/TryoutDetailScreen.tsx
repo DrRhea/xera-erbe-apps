@@ -21,50 +21,9 @@ import ClockIcon from '../../../assets/icons/clock.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
+import { resolveTryoutDefinition, type TryoutSubtest } from '../../data/tryoutContent';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
-
-type Subtest = {
-  id: string;
-  title: string;
-  durationMinutes: number;
-};
-
-type TryoutDetail = {
-  title: string;
-  subtests: Subtest[];
-};
-
-const tryoutDetails: Record<string, TryoutDetail> = {
-  'to-tka-smp-5': {
-    title: 'TO TKA SMP #5',
-    subtests: [
-      { id: 'math', title: 'TKA Matematika', durationMinutes: 30 },
-      { id: 'literasi', title: 'TKA Literasi Indonesia', durationMinutes: 30 },
-    ],
-  },
-  'to-tka-sma-6': {
-    title: 'TO TKA SMA #6',
-    subtests: [
-      { id: 'math', title: 'TKA Matematika', durationMinutes: 35 },
-      { id: 'science', title: 'TKA Sains Terapan', durationMinutes: 35 },
-    ],
-  },
-  'to-snbt-2': {
-    title: 'TO SNBT #2',
-    subtests: [
-      { id: 'penalaran', title: 'Penalaran Umum', durationMinutes: 30 },
-      { id: 'kognitif', title: 'Kemampuan Kognitif', durationMinutes: 30 },
-    ],
-  },
-  'to-11-sma-2': {
-    title: 'TO 11 SMA #2',
-    subtests: [
-      { id: 'literasi', title: 'Literasi Membaca', durationMinutes: 25 },
-      { id: 'numerasi', title: 'Literasi Numerasi', durationMinutes: 25 },
-    ],
-  },
-};
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -87,13 +46,7 @@ const TryoutDetailScreen: FC = () => {
   const handleNotificationPress = useCallback(() => {
     navigation.navigate('Notification');
   }, [navigation]);
-  const detail = useMemo(() => {
-    const fallback: TryoutDetail = {
-      title,
-      subtests: [],
-    };
-    return tryoutDetails[tryoutId] ?? fallback;
-  }, [tryoutId, title]);
+  const detail = useMemo(() => resolveTryoutDefinition(tryoutId, title), [tryoutId, title]);
 
   const contentHorizontalPadding = useMemo(
     () => clamp(layout.horizontalPadding, 20, 28),
@@ -179,7 +132,7 @@ const TryoutDetailScreen: FC = () => {
 
           <View style={[styles.subtestList, { rowGap: subtestGap, gap: subtestGap }]}>
             {detail.subtests.length ? (
-              detail.subtests.map((subtest) => (
+              detail.subtests.map((subtest: TryoutSubtest) => (
                 <Pressable
                   key={subtest.id}
                   style={[

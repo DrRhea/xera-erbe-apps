@@ -10,15 +10,16 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import {
 	Image,
 	ImageSourcePropType,
+	Modal,
 	Pressable,
 	SafeAreaView,
 	ScrollView,
 	StatusBar,
-		StyleSheet,
+	StyleSheet,
 	Text,
-		TextStyle,
+	TextStyle,
 	View,
-		ViewStyle,
+	ViewStyle,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheet, {
@@ -33,8 +34,7 @@ import AppHeader from '../../components/AppHeader';
 import { colors, fontFamilies } from '../../constants/theme';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import type { RootStackParamList } from '../../../App';
-
-import HintIcon from '../../../assets/icons/hint.svg';
+import { resolveTryoutSubtest } from '../../data/tryoutContent';
 import LeftPointerIcon from '../../../assets/icons/leftpointer.svg';
 import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
 
@@ -43,6 +43,14 @@ const poweredByLogo = require('../../../assets/images/logoutuhijo.png');
 
 const clamp = (value: number, min: number, max: number) =>
 	Math.min(Math.max(value, min), max);
+
+const formatSeconds = (totalSeconds: number): string => {
+	const safeSeconds = Math.max(Math.floor(totalSeconds), 0);
+	const hours = Math.floor(safeSeconds / 3600);
+	const minutes = Math.floor((safeSeconds % 3600) / 60);
+	const seconds = safeSeconds % 60;
+	return [hours, minutes, seconds].map((segment) => segment.toString().padStart(2, '0')).join(':');
+};
 
 type QuestionOption = {
 	id: string;
@@ -148,15 +156,43 @@ type TryoutQuestionRoute = RouteProp<RootStackParamList, 'TryoutQuestion'>;
 const TryoutQuestionScreen: FC = () => {
 	const route = useRoute<TryoutQuestionRoute>();
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-	const { subtestId, subtestTitle, tryoutTitle } = route.params;
+	const { tryoutId, subtestId, subtestTitle, tryoutTitle } = route.params;
 	const layout = useResponsiveLayout();
 	const sheetRef = useRef<BottomSheet>(null);
+
+	const subtestDetail = useMemo(
+		() => resolveTryoutSubtest(tryoutId, subtestId, subtestTitle),
+		[tryoutId, subtestId, subtestTitle]
+	);
+	const initialDurationSeconds = useMemo(
+		() => Math.max(subtestDetail.durationMinutes, 0) * 60,
+		[subtestDetail.durationMinutes]
+	);
+	const [remainingSeconds, setRemainingSeconds] = useState(initialDurationSeconds);
+	const [isSubmitDialogVisible, setSubmitDialogVisible] = useState(false);
+	const formattedTimer = useMemo(() => formatSeconds(remainingSeconds), [remainingSeconds]);
+	const isTimerRunning = remainingSeconds > 0;
+
+	useEffect(() => {
+		// Reset the countdown if the selected subtest changes.
+		setRemainingSeconds(initialDurationSeconds);
+	}, [initialDurationSeconds]);
+
+	useEffect(() => {
+		if (!isTimerRunning) {
+			return;
+		}
+		const intervalId = setInterval(() => {
+			setRemainingSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+		}, 1000);
+		return () => clearInterval(intervalId);
+	}, [isTimerRunning]);
 
 	const handleNotificationPress = useCallback(() => {
 		navigation.navigate('Notification');
 	}, [navigation]);
 
-	const questions = useMemo(() => buildQuestions(subtestId, subtestTitle), [subtestId, subtestTitle]);
+	const questions = useMemo(() => buildQuestions(subtestId, subtestDetail.title), [subtestDetail.title, subtestId]);
 	const questionNumbers = useMemo(
 		() => questions.map((question) => question.number),
 		[questions]
@@ -372,6 +408,18 @@ const TryoutQuestionScreen: FC = () => {
 		setCurrentQuestionIndex((prev) => clamp(prev - 1, 0, totalQuestions - 1));
 	}, [totalQuestions]);
 
+	const handleSubmitPress = useCallback(() => {
+		setSubmitDialogVisible(true);
+	}, []);
+
+	const handleSubmitKeepWorking = useCallback(() => {
+		setSubmitDialogVisible(false);
+	}, []);
+
+	const handleSubmitConfirm = useCallback(() => {
+		setSubmitDialogVisible(false);
+	}, []);
+
 	const renderSheetBackground = useCallback(
 		({ style }: BottomSheetBackgroundProps) => (
 			<LinearGradient
@@ -436,7 +484,7 @@ const TryoutQuestionScreen: FC = () => {
 								<Text style={styles.summaryMeta}>{`${tryoutTitle} • ${totalQuestions} Soal`}</Text>
 							</View>
 							<View style={styles.timerBadge}>
-								<Text style={styles.timerBadgeText}>00:25:41</Text>
+								<Text style={styles.timerBadgeText}>{formattedTimer}</Text>
 							</View>
 						</View>
 
@@ -533,15 +581,6 @@ const TryoutQuestionScreen: FC = () => {
 							</Pressable>
 
 							<Pressable
-								onPress={() => {}}
-								accessibilityRole="button"
-								accessibilityLabel="Buka hint"
-								style={styles.hintButton}
-							>
-								<HintIcon width={30} height={30} />
-							</Pressable>
-
-							<Pressable
 								onPress={handleNext}
 								disabled={isLastQuestion}
 								accessibilityRole="button"
@@ -593,6 +632,7 @@ const TryoutQuestionScreen: FC = () => {
 						</BottomSheetScrollView>
 
 						<Pressable
+							onPress={handleSubmitPress}
 							style={styles.submitButton}
 							accessibilityRole="button"
 							accessibilityLabel="Kirim dan selesaikan tryout"
@@ -601,6 +641,40 @@ const TryoutQuestionScreen: FC = () => {
 						</Pressable>
 					</BottomSheetView>
 				</BottomSheet>
+
+				<Modal
+					visible={isSubmitDialogVisible}
+					transparent
+					animationType="fade"
+					onRequestClose={handleSubmitKeepWorking}
+				>
+					<View style={styles.submitModalBackdrop}>
+						<View style={styles.submitModalCard}>
+							<Text style={styles.submitModalTitle}>Yakin mau selesai?</Text>
+							<Text style={styles.submitModalMessage}>
+								Masih ada waktu untuk memeriksa jawabanmu, lho. Klik selesai jika kamu sudah yakin dengan jawabanmu, ya.
+							</Text>
+							<View style={styles.submitModalActions}>
+								<Pressable
+									onPress={handleSubmitKeepWorking}
+									style={[styles.submitModalButton, styles.submitModalSecondaryButton]}
+									accessibilityRole="button"
+									accessibilityLabel="Kembali ke soal"
+								>
+									<Text style={styles.submitModalSecondaryLabel}>Belum Selesai</Text>
+								</Pressable>
+								<Pressable
+									onPress={handleSubmitConfirm}
+									style={[styles.submitModalButton, styles.submitModalPrimaryButton]}
+									accessibilityRole="button"
+									accessibilityLabel="Selesaikan tryout"
+								>
+									<Text style={styles.submitModalPrimaryLabel}>Selesai</Text>
+								</Pressable>
+							</View>
+						</View>
+					</View>
+				</Modal>
 			</SafeAreaView>
 		</GestureHandlerRootView>
 	);
@@ -793,19 +867,6 @@ const styles = StyleSheet.create({
 	flagButtonTextActive: {
 		color: colors.white,
 	},
-	hintButton: {
-		width: 44,
-		height: 44,
-		borderRadius: 22,
-		backgroundColor: '#318DB6',
-		alignItems: 'center',
-		justifyContent: 'center',
-		shadowColor: '#000000',
-		shadowOpacity: 0.05,
-		shadowRadius: 8,
-		shadowOffset: { width: 0, height: 3 },
-		elevation: 2,
-	},
 	poweredWrapper: {
 		width: '100%',
 		flexDirection: 'row',
@@ -863,6 +924,69 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 	submitButtonText: {
+		fontFamily: fontFamilies.extraBold,
+		fontSize: 15,
+		color: colors.white,
+	},
+	submitModalBackdrop: {
+		flex: 1,
+		backgroundColor: 'rgba(0,0,0,0.4)',
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingHorizontal: 32,
+	},
+	submitModalCard: {
+		width: '100%',
+		maxWidth: 360,
+		backgroundColor: colors.white,
+		borderRadius: 24,
+		paddingHorizontal: 28,
+		paddingVertical: 26,
+		alignItems: 'center',
+		rowGap: 18,
+		shadowColor: '#000000',
+		shadowOpacity: 0.08,
+		shadowRadius: 12,
+		shadowOffset: { width: 0, height: 6 },
+		elevation: 6,
+	},
+	submitModalTitle: {
+		fontFamily: fontFamilies.extraBold,
+		fontSize: 18,
+		color: colors.primaryDark,
+		textAlign: 'center',
+	},
+	submitModalMessage: {
+		fontFamily: fontFamilies.medium,
+		fontSize: 13,
+		color: colors.primaryDark,
+		textAlign: 'center',
+		lineHeight: 20,
+	},
+	submitModalActions: {
+		width: '100%',
+		flexDirection: 'row',
+		columnGap: 14,
+	},
+	submitModalButton: {
+		flex: 1,
+		borderRadius: 18,
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingVertical: 12,
+	},
+	submitModalSecondaryButton: {
+		backgroundColor: '#F18C1E',
+	},
+	submitModalPrimaryButton: {
+		backgroundColor: colors.success,
+	},
+	submitModalSecondaryLabel: {
+		fontFamily: fontFamilies.extraBold,
+		fontSize: 15,
+		color: colors.white,
+	},
+	submitModalPrimaryLabel: {
 		fontFamily: fontFamilies.extraBold,
 		fontSize: 15,
 		color: colors.white,

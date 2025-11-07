@@ -35,3 +35,4 @@ export const getMateriModules = (subjectId: string, subjectTitle: string): Mater
 
 export const getMateriIconComponent = (iconKey: MateriIconKey): FC<SvgProps> =>
   getLearningIconComponent(iconKey);
+3
