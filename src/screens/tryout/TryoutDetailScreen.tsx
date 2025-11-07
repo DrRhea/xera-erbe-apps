@@ -172,7 +172,7 @@ const TryoutDetailScreen: FC = () => {
       >
   <View style={[styles.headerWrapper, { width: layout.contentWidth }]}> 
           <AppHeader
-            title={detail.title}
+            title="Tryout"
             contentHorizontalPadding={contentHorizontalPadding}
             onNotificationPress={handleNotificationPress}
           />
