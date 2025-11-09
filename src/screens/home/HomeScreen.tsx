@@ -887,7 +887,11 @@ const HomeScreen: FC = () => {
             },
           ]}
         >
-          <SectionHeader title="Literasik" cta="Cek Lainnya" />
+          <SectionHeader
+            title="Literasik"
+            cta="Cek Lainnya"
+            onPress={() => navigation.navigate('Literasik')}
+          />
           <LiterasikSection layout={layout} />
         </View>
         <View

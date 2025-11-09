@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -9,7 +9,13 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -21,50 +27,14 @@ import ClockIcon from '../../../assets/icons/clock.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
+import {
+  DEFAULT_SUBTEST_DURATION_MINUTES,
+  resolveTryoutDefinition,
+  type TryoutSubtest,
+} from '../../data/tryoutContent';
+import { getCompletedSubtests } from '../../data/tryoutProgress';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
-
-type Subtest = {
-  id: string;
-  title: string;
-  durationMinutes: number;
-};
-
-type TryoutDetail = {
-  title: string;
-  subtests: Subtest[];
-};
-
-const tryoutDetails: Record<string, TryoutDetail> = {
-  'to-tka-smp-5': {
-    title: 'TO TKA SMP #5',
-    subtests: [
-      { id: 'math', title: 'TKA Matematika', durationMinutes: 30 },
-      { id: 'literasi', title: 'TKA Literasi Indonesia', durationMinutes: 30 },
-    ],
-  },
-  'to-tka-sma-6': {
-    title: 'TO TKA SMA #6',
-    subtests: [
-      { id: 'math', title: 'TKA Matematika', durationMinutes: 35 },
-      { id: 'science', title: 'TKA Sains Terapan', durationMinutes: 35 },
-    ],
-  },
-  'to-snbt-2': {
-    title: 'TO SNBT #2',
-    subtests: [
-      { id: 'penalaran', title: 'Penalaran Umum', durationMinutes: 30 },
-      { id: 'kognitif', title: 'Kemampuan Kognitif', durationMinutes: 30 },
-    ],
-  },
-  'to-11-sma-2': {
-    title: 'TO 11 SMA #2',
-    subtests: [
-      { id: 'literasi', title: 'Literasi Membaca', durationMinutes: 25 },
-      { id: 'numerasi', title: 'Literasi Numerasi', durationMinutes: 25 },
-    ],
-  },
-};
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -73,50 +43,118 @@ const navItems: BottomNavigationItem[] = [
   { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
 ];
 
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 const minutesLabel = (minutes: number) => `${minutes} menit`;
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+type TryoutDetailRouteProp = RouteProp<RootStackParamList, 'TryoutDetail'>;
+
+type TryoutDetailNavigationProp = NavigationProp<RootStackParamList>;
 
 const TryoutDetailScreen: FC = () => {
-  const route = useRoute<RouteProp<RootStackParamList, 'TryoutDetail'>>();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const route = useRoute<TryoutDetailRouteProp>();
+  const navigation = useNavigation<TryoutDetailNavigationProp>();
   const layout = useResponsiveLayout();
 
   const { tryoutId, title } = route.params;
 
+  const detail = useMemo(() => resolveTryoutDefinition(tryoutId, title), [tryoutId, title]);
+
+  const [completedSubtests, setCompletedSubtests] = useState<string[]>(() =>
+    getCompletedSubtests(tryoutId)
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      setCompletedSubtests(getCompletedSubtests(tryoutId));
+    }, [tryoutId])
+  );
+
   const handleNotificationPress = useCallback(() => {
     navigation.navigate('Notification');
   }, [navigation]);
-  const detail = useMemo(() => {
-    const fallback: TryoutDetail = {
-      title,
-      subtests: [],
-    };
-    return tryoutDetails[tryoutId] ?? fallback;
-  }, [tryoutId, title]);
+
+  const handleStartSubtest = useCallback(
+    (subtest: TryoutSubtest) => {
+      if (completedSubtests.includes(subtest.id)) {
+        return;
+      }
+
+      navigation.navigate('TryoutQuestion', {
+        tryoutId: detail.id,
+        tryoutTitle: detail.title,
+        subtestId: subtest.id,
+        subtestTitle: subtest.title,
+      });
+    },
+    [completedSubtests, detail.id, detail.title, navigation]
+  );
+
+  const completedCount = completedSubtests.length;
+  const totalSubtests = detail.subtests.length;
+  const totalDurationMinutes = useMemo(
+    () =>
+      detail.subtests.reduce(
+        (accumulator, subtest) =>
+          accumulator + (subtest.durationMinutes ?? DEFAULT_SUBTEST_DURATION_MINUTES),
+        0
+      ),
+    [detail.subtests]
+  );
 
   const contentHorizontalPadding = useMemo(
     () => clamp(layout.horizontalPadding, 20, 28),
     [layout.horizontalPadding]
   );
-  const sectionSpacing = useMemo(() => clamp(layout.sectionSpacing * 0.7, 20, 32), [layout.sectionSpacing]);
-  const activeCardPaddingVertical = useMemo(
+
+  const sectionSpacing = useMemo(
+    () => clamp(layout.sectionSpacing * 0.7, 20, 32),
+    [layout.sectionSpacing]
+  );
+
+  const heroGap = useMemo(
+    () => clamp(layout.horizontalPadding * 0.5, 14, 22),
+    [layout.horizontalPadding]
+  );
+
+  const heroPaddingVertical = useMemo(
     () => clamp(layout.horizontalPadding * 0.8, 18, 28),
     [layout.horizontalPadding]
   );
-  const activeCardPaddingHorizontal = useMemo(
+
+  const heroPaddingHorizontal = useMemo(
     () => clamp(layout.horizontalPadding, 18, 28),
     [layout.horizontalPadding]
   );
-  const iconWrapperSize = useMemo(() => clamp(layout.horizontalPadding * 2.2, 52, 62), [layout.horizontalPadding]);
-  const iconImageSize = useMemo(() => clamp(iconWrapperSize * 0.85, 40, 52), [iconWrapperSize]);
+
+  const iconWrapperSize = useMemo(
+    () => clamp(layout.horizontalPadding * 2.2, 52, 62),
+    [layout.horizontalPadding]
+  );
+
+  const iconImageSize = useMemo(
+    () => clamp(iconWrapperSize * 0.85, 40, 52),
+    [iconWrapperSize]
+  );
+
   const subtestCardPadding = useMemo(
     () => clamp(layout.horizontalPadding * 0.85, 18, 26),
     [layout.horizontalPadding]
   );
-  const subtestGap = useMemo(() => clamp(layout.horizontalPadding * 0.45, 12, 20), [layout.horizontalPadding]);
-  const subtestIconSize = useMemo(() => clamp(iconWrapperSize * 0.85, 44, 56), [iconWrapperSize]);
-  const metaGap = useMemo(() => clamp(layout.horizontalPadding * 0.35, 10, 16), [layout.horizontalPadding]);
+
+  const subtestGap = useMemo(
+    () => clamp(layout.horizontalPadding * 0.45, 12, 20),
+    [layout.horizontalPadding]
+  );
+
+  const subtestIconSize = useMemo(
+    () => clamp(iconWrapperSize * 0.85, 44, 56),
+    [iconWrapperSize]
+  );
+
+  const metaGap = useMemo(
+    () => clamp(layout.horizontalPadding * 0.35, 10, 16),
+    [layout.horizontalPadding]
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -132,8 +170,12 @@ const TryoutDetailScreen: FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-          <AppHeader title="Tryout" contentHorizontalPadding={contentHorizontalPadding} onNotificationPress={handleNotificationPress} />
+  <View style={[styles.headerWrapper, { width: layout.contentWidth }]}> 
+          <AppHeader
+            title="Tryout"
+            contentHorizontalPadding={contentHorizontalPadding}
+            onNotificationPress={handleNotificationPress}
+          />
         </View>
 
         <View
@@ -150,17 +192,18 @@ const TryoutDetailScreen: FC = () => {
         >
           <View
             style={[
-              styles.activeCard,
+              styles.heroCard,
               {
-                paddingVertical: activeCardPaddingVertical,
-                paddingHorizontal: activeCardPaddingHorizontal,
-                columnGap: clamp(layout.horizontalPadding * 0.5, 14, 20),
+                paddingVertical: heroPaddingVertical,
+                paddingHorizontal: heroPaddingHorizontal,
+                columnGap: heroGap,
+                gap: heroGap,
               },
             ]}
           >
             <View
               style={[
-                styles.activeIconWrapper,
+                styles.heroIconWrapper,
                 {
                   width: iconWrapperSize,
                   height: iconWrapperSize,
@@ -168,9 +211,24 @@ const TryoutDetailScreen: FC = () => {
                 },
               ]}
             >
-              <Image source={tryoutCardImage} style={{ width: iconImageSize, height: iconImageSize }} resizeMode="contain" />
+              <Image
+                source={tryoutCardImage}
+                style={{ width: iconImageSize, height: iconImageSize }}
+                resizeMode="contain"
+              />
             </View>
-            <Text style={styles.activeTitle}>{detail.title}</Text>
+            <View style={styles.heroContent}>
+              <Text style={styles.heroTitle}>{detail.title}</Text>
+              <View style={[styles.heroMetaRow, { columnGap: metaGap, gap: metaGap }]}>
+                <Text style={styles.heroMetaText}>{`${completedCount}/${totalSubtests} selesai`}</Text>
+                <View style={styles.metaDivider} />
+                <Text style={styles.heroMetaText}>{`${totalSubtests} subtes`}</Text>
+              </View>
+              <View style={[styles.heroMetaRow, { columnGap: metaGap, gap: metaGap }]}>
+                <ClockIcon width={16} height={16} />
+                <Text style={styles.heroMetaText}>{minutesLabel(totalDurationMinutes)}</Text>
+              </View>
+            </View>
           </View>
 
           <View style={styles.sectionHeaderRow}>
@@ -179,54 +237,72 @@ const TryoutDetailScreen: FC = () => {
 
           <View style={[styles.subtestList, { rowGap: subtestGap, gap: subtestGap }]}>
             {detail.subtests.length ? (
-              detail.subtests.map((subtest) => (
-                <Pressable
-                  key={subtest.id}
-                  style={[
-                    styles.subtestCard,
-                    {
-                      padding: subtestCardPadding,
-                      columnGap: subtestGap,
-                    },
-                  ]}
-                  onPress={() =>
-                    navigation.navigate('TryoutQuestion', {
-                      tryoutId,
-                      tryoutTitle: detail.title,
-                      subtestId: subtest.id,
-                      subtestTitle: subtest.title,
-                    })
-                  }
-                  accessibilityRole="button"
-                  accessibilityLabel={`Mulai ${subtest.title}`}
-                >
-                  <View
+              detail.subtests.map((subtest) => {
+                const isCompleted = completedSubtests.includes(subtest.id);
+                const durationMinutes = subtest.durationMinutes ?? DEFAULT_SUBTEST_DURATION_MINUTES;
+
+                return (
+                  <Pressable
+                    key={subtest.id}
                     style={[
-                      styles.subtestIconWrapper,
+                      styles.subtestCard,
                       {
-                        width: subtestIconSize,
-                        height: subtestIconSize,
-                        borderRadius: clamp(subtestIconSize * 0.18, 10, 16),
+                        padding: subtestCardPadding,
+                        columnGap: subtestGap,
+                        gap: subtestGap,
                       },
+                      isCompleted && styles.subtestCardCompleted,
                     ]}
+                    onPress={() => handleStartSubtest(subtest)}
+                    disabled={isCompleted}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: isCompleted }}
+                    accessibilityLabel={
+                      isCompleted
+                        ? `${subtest.title} sudah selesai`
+                        : `Mulai ${subtest.title}`
+                    }
                   >
-                    <Image
-                      source={tryoutCardImage}
-                      style={{ width: subtestIconSize * 0.75, height: subtestIconSize * 0.75 }}
-                      resizeMode="contain"
-                    />
-                  </View>
-                  <View style={styles.subtestContent}>
-                    <Text style={styles.subtestTitle}>{subtest.title}</Text>
-                    <View style={[styles.subtestMeta, { columnGap: metaGap, gap: metaGap }]}>
-                      <ClockIcon width={16} height={16} />
-                      <Text style={styles.subtestMetaText}>{minutesLabel(subtest.durationMinutes)}</Text>
+                    <View
+                      style={[
+                        styles.subtestIconWrapper,
+                        {
+                          width: subtestIconSize,
+                          height: subtestIconSize,
+                          borderRadius: clamp(subtestIconSize * 0.18, 10, 16),
+                        },
+                      ]}
+                    >
+                      <Image
+                        source={tryoutCardImage}
+                        style={{ width: subtestIconSize * 0.75, height: subtestIconSize * 0.75 }}
+                        resizeMode="contain"
+                      />
                     </View>
-                  </View>
-                </Pressable>
-              ))
+                    <View style={styles.subtestContent}>
+                      <View style={styles.subtestHeaderRow}>
+                        <Text style={styles.subtestTitle}>{subtest.title}</Text>
+                        {isCompleted ? (
+                          <View style={styles.subtestStatusBadge}>
+                            <Text style={styles.subtestStatusText}>Selesai</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                      <View style={[styles.subtestMeta, { columnGap: metaGap, gap: metaGap }]}>
+                        <ClockIcon width={16} height={16} />
+                        <Text style={styles.subtestMetaText}>{minutesLabel(durationMinutes)}</Text>
+                        {typeof subtest.questionCount === 'number' ? (
+                          <Text style={styles.subtestMetaText}>{`${subtest.questionCount} soal`}</Text>
+                        ) : null}
+                      </View>
+                    </View>
+                  </Pressable>
+                );
+              })
             ) : (
-              <Text style={styles.emptyStateCopy}>Belum ada subtes yang tersedia untuk tryout ini.</Text>
+              <Text style={styles.emptyStateCopy}>
+                Belum ada subtes yang tersedia untuk tryout ini.
+              </Text>
             )}
           </View>
         </View>
@@ -262,24 +338,43 @@ const styles = StyleSheet.create({
   contentWrapper: {
     alignSelf: 'center',
   },
-  activeCard: {
+  heroCard: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
     borderRadius: 20,
   },
-  activeIconWrapper: {
+  heroIconWrapper: {
     backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
     borderTopRightRadius: 14,
   },
-  activeTitle: {
+  heroContent: {
     flex: 1,
+    rowGap: 10,
+    gap: 10,
+  },
+  heroTitle: {
     fontFamily: fontFamilies.bold,
     fontSize: 15,
     color: colors.white,
+  },
+  heroMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  heroMetaText: {
+    fontFamily: fontFamilies.medium,
+    fontSize: 12,
+    color: colors.white,
+  },
+  metaDivider: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.6)',
   },
   sectionHeaderRow: {
     width: '100%',
@@ -304,6 +399,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
+  subtestCardCompleted: {
+    opacity: 0.6,
+  },
   subtestIconWrapper: {
     backgroundColor: colors.white,
     justifyContent: 'center',
@@ -313,14 +411,33 @@ const styles = StyleSheet.create({
   },
   subtestContent: {
     flex: 1,
+    rowGap: 8,
+    gap: 8,
+  },
+  subtestHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   subtestTitle: {
     fontFamily: fontFamilies.bold,
     fontSize: 15,
     color: colors.sectionTitle,
+    flex: 1,
+  },
+  subtestStatusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: colors.success,
+    marginLeft: 12,
+  },
+  subtestStatusText: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 12,
+    color: colors.white,
   },
   subtestMeta: {
-    marginTop: 6,
     flexDirection: 'row',
     alignItems: 'center',
   },
