@@ -11,390 +11,22 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import AppHeader from '../../components/AppHeader';
-import { colors, fontFamilies, spacing, radii } from '../../constants/theme';
+import SearchBar from '../../components/SearchBar';
+import { colors, fontFamilies, spacing } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
+import { searchData, type SearchCategory } from '../../data/searchData';
 
-// Import assets
+// Assets
 import TryoutImage from '../../../assets/images/tryout.png';
 import MateriImage from '../../../assets/images/materi.png';
-import SearchBar from '../../components/SearchBar';
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-type SearchCategory = 'tryout' | 'materi' | 'digidaw';
-
-type SearchResult = {
-  id: string;
-  title: string;
-  subtitle?: string;
-  image: any;
-  category: SearchCategory;
-  routeName?: keyof RootStackParamList;
-  routeParams?: any;
-};
-
-// ============================================================================
-// SAMPLE DATA
-// ============================================================================
-
-const tryoutResults: SearchResult[] = [
-  {
-    id: 'to-snbt-1',
-    title: 'TO SNBT #1',
-    subtitle: 'Subtes TO SNBT #1',
-    image: TryoutImage,
-    category: 'tryout',
-    routeName: 'TryoutDesc',
-    routeParams: {
-      tryoutId: 'to-snbt-1',
-      title: 'TO SNBT #1',
-      dateLabel: '15 November 2024',
-      statusLabel: 'Gratis',
-      statusVariant: 'free' as const,
-    },
-  },
-  {
-    id: 'to-snbt-2',
-    title: 'TO SNBT #2',
-    subtitle: 'Subtes TO SNBT #2',
-    image: TryoutImage,
-    category: 'tryout',
-    routeName: 'TryoutDesc',
-    routeParams: {
-      tryoutId: 'to-snbt-2',
-      title: 'TO SNBT #2',
-      dateLabel: '22 November 2024',
-      statusLabel: 'Rp 25.000',
-      statusVariant: 'paid' as const,
-    },
-  },
-  {
-    id: 'to-snbt-3',
-    title: 'TO SNBT #3',
-    subtitle: 'Subtes TO SNBT #3',
-    image: TryoutImage,
-    category: 'tryout',
-    routeName: 'TryoutDesc',
-    routeParams: {
-      tryoutId: 'to-snbt-3',
-      title: 'TO SNBT #3',
-      dateLabel: '29 November 2024',
-      statusLabel: 'Rp 35.000',
-      statusVariant: 'paid' as const,
-    },
-  },
-];
-
-const digidawResults: SearchResult[] = [
-  {
-    id: 'digidaw-basic',
-    title: 'DIGIDAW Basic',
-    subtitle: 'Pelajari konsep dasar matematika',
-    image: TryoutImage,
-    category: 'digidaw',
-    routeName: 'Digidaw',
-    routeParams: {},
-  },
-  {
-    id: 'digidaw-advanced',
-    title: 'DIGIDAW Advanced',
-    subtitle: 'Pelajari konsep lanjutan matematika',
-    image: TryoutImage,
-    category: 'digidaw',
-    routeName: 'Digidaw',
-    routeParams: {},
-  },
-];
-
-const materiResults: SearchResult[] = [
-  {
-    id: 'matematika',
-    title: 'Matematika',
-    subtitle: 'Pelajari konsep dasar matematika',
-    image: MateriImage,
-    category: 'materi',
-    routeName: 'MateriCategory',
-    routeParams: {
-      categoryId: 'matematika',
-      categoryTitle: 'Matematika',
-    },
-  },
-  {
-    id: 'bahasa-indonesia',
-    title: 'Bahasa Indonesia',
-    subtitle: 'Pelajari tata bahasa dan sastra',
-    image: MateriImage,
-    category: 'materi',
-    routeName: 'MateriCategory',
-    routeParams: {
-      categoryId: 'bahasa-indonesia',
-      categoryTitle: 'Bahasa Indonesia',
-    },
-  },
-  {
-    id: 'bahasa-inggris',
-    title: 'Bahasa Inggris',
-    subtitle: 'Pelajari grammar dan vocabulary',
-    image: MateriImage,
-    category: 'materi',
-    routeName: 'MateriCategory',
-    routeParams: {
-      categoryId: 'bahasa-inggris',
-      categoryTitle: 'Bahasa Inggris',
-    },
-  },
-  {
-    id: 'fisika',
-    title: 'Fisika',
-    subtitle: 'Pelajari hukum-hukum fisika',
-    image: MateriImage,
-    category: 'materi',
-    routeName: 'MateriCategory',
-    routeParams: {
-      categoryId: 'fisika',
-      categoryTitle: 'Fisika',
-    },
-  },
-  {
-    id: 'kimia',
-    title: 'Kimia',
-    subtitle: 'Pelajari reaksi dan unsur kimia',
-    image: MateriImage,
-    category: 'materi',
-    routeName: 'MateriCategory',
-    routeParams: {
-      categoryId: 'kimia',
-      categoryTitle: 'Kimia',
-    },
-  },
-  {
-    id: 'biologi',
-    title: 'Biologi',
-    subtitle: 'Pelajari ekosistem dan organisme',
-    image: MateriImage,
-    category: 'materi',
-    routeName: 'MateriCategory',
-    routeParams: {
-      categoryId: 'biologi',
-      categoryTitle: 'Biologi',
-    },
-  },
-];
-
-// ============================================================================
-// RESPONSIVE LAYOUT HOOK
-// ============================================================================
-
-const useResponsiveLayout = () => {
-  const { width } = useWindowDimensions();
-
-  const contentWidth = Math.min(width, 440);
-  const horizontalPadding = Math.max((width - contentWidth) / 2 + spacing.xxl, spacing.xxl);
-  const sectionSpacing = Math.max(spacing.xxl * 1.5, 24);
-
-  // Search bar dimensions
-  const searchBarHeight = 48;
-  const searchBarPaddingHorizontal = Math.max(horizontalPadding * 0.8, 16);
-  const searchIconSize = 20;
-
-  // Toggle dimensions
-  const toggleButtonWidth = Math.max((contentWidth - horizontalPadding * 2 - spacing.md * 2) / 3, 80);
-  const toggleHeight = 36;
-
-  // Result card dimensions
-  const cardGap = Math.max(spacing.lg, 12);
-  const cardPadding = Math.max(spacing.lg, 16);
-  const cardImageSize = Math.max(cardPadding * 2, 48);
-  const cardBorderRadius = Math.max(radii.lg, 12);
-
-  return {
-    screenWidth: width,
-    contentWidth,
-    horizontalPadding,
-    sectionSpacing,
-    searchBarHeight,
-    searchBarPaddingHorizontal,
-    searchIconSize,
-    toggleButtonWidth,
-    toggleHeight,
-    cardGap,
-    cardPadding,
-    cardImageSize,
-    cardBorderRadius,
-  };
-};
-
-// ============================================================================
-// COMPONENTS
-// ============================================================================
-
-type SearchResultCardProps = {
-  result: SearchResult;
-  layout: ReturnType<typeof useResponsiveLayout>;
-  onPress: (result: SearchResult) => void;
-};
-
-const SearchResultCard: FC<SearchResultCardProps> = ({ result, layout, onPress }) => {
-  const handlePress = useCallback(() => {
-    onPress(result);
-  }, [result, onPress]);
-
-  return (
-    <Pressable
-      style={[
-        styles.resultCard,
-        {
-          padding: layout.cardPadding,
-          borderRadius: layout.cardBorderRadius,
-          marginBottom: layout.cardGap,
-        },
-      ]}
-      onPress={handlePress}
-      accessibilityRole="button"
-      accessibilityLabel={`Buka ${result.title}`}
-    >
-      <View style={styles.resultContent}>
-        <Text style={styles.resultTitle} numberOfLines={1}>
-          {result.title}
-        </Text>
-        {result.subtitle && (
-          <Text style={styles.resultSubtitle} numberOfLines={2}>
-            {result.subtitle}
-          </Text>
-        )}
-      </View>
-      <Image
-        source={result.image}
-        style={[
-          styles.resultImage,
-          {
-            width: layout.cardImageSize,
-            height: layout.cardImageSize,
-            borderRadius: layout.cardImageSize * 0.2,
-          },
-        ]}
-        resizeMode="cover"
-      />
-    </Pressable>
-  );
-};
-
-type CategoryToggleProps = {
-  activeCategory: SearchCategory;
-  onCategoryChange: (category: SearchCategory) => void;
-  layout: ReturnType<typeof useResponsiveLayout>;
-};
-
-const CategoryToggle: FC<CategoryToggleProps> = ({ activeCategory, onCategoryChange, layout }) => {
-  const handleTryoutPress = useCallback(() => {
-    onCategoryChange('tryout');
-  }, [onCategoryChange]);
-
-  const handleMateriPress = useCallback(() => {
-    onCategoryChange('materi');
-  }, [onCategoryChange]);
-
-  const handleDigidawPress = useCallback(() => {
-    onCategoryChange('digidaw');
-  }, [onCategoryChange]);
-
-  return (
-    <View
-      style={[
-        styles.toggleContainer,
-        {
-          width: layout.contentWidth - layout.horizontalPadding * 2,
-          marginBottom: layout.sectionSpacing,
-        },
-      ]}
-    >
-      <Pressable
-        style={[
-          styles.toggleButton,
-          {
-            width: layout.toggleButtonWidth,
-            height: layout.toggleHeight,
-          },
-          activeCategory === 'tryout' && styles.toggleButtonActive,
-        ]}
-        onPress={handleTryoutPress}
-        accessibilityRole="button"
-        accessibilityLabel="Cari Tryout"
-        accessibilityState={{ selected: activeCategory === 'tryout' }}
-      >
-        <Text
-          style={[
-            styles.toggleText,
-            activeCategory === 'tryout' && styles.toggleTextActive,
-          ]}
-        >
-          Tryout
-        </Text>
-      </Pressable>
-
-      <Pressable
-        style={[
-          styles.toggleButton,
-          {
-            width: layout.toggleButtonWidth,
-            height: layout.toggleHeight,
-          },
-          activeCategory === 'materi' && styles.toggleButtonActive,
-        ]}
-        onPress={handleMateriPress}
-        accessibilityRole="button"
-        accessibilityLabel="Cari Materi"
-        accessibilityState={{ selected: activeCategory === 'materi' }}
-      >
-        <Text
-          style={[
-            styles.toggleText,
-            activeCategory === 'materi' && styles.toggleTextActive,
-          ]}
-        >
-          Materi
-        </Text>
-      </Pressable>
-
-      <Pressable
-        style={[
-          styles.toggleButton,
-          {
-            width: layout.toggleButtonWidth,
-            height: layout.toggleHeight,
-          },
-          activeCategory === 'digidaw' && styles.toggleButtonActive,
-        ]}
-        onPress={handleDigidawPress}
-        accessibilityRole="button"
-        accessibilityLabel="Cari Digidaw"
-        accessibilityState={{ selected: activeCategory === 'digidaw' }}
-      >
-        <Text
-          style={[
-            styles.toggleText,
-            activeCategory === 'digidaw' && styles.toggleTextActive,
-          ]}
-        >
-          Digidaw
-        </Text>
-      </Pressable>
-    </View>
-  );
-};
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
+import DigidawImage from '../../../assets/images/digidaw.png';
 
 const SearchScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const layout = useResponsiveLayout();
-
+  const { width } = useWindowDimensions();
   const [activeCategory, setActiveCategory] = useState<SearchCategory>('tryout');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -402,197 +34,226 @@ const SearchScreen: FC = () => {
     navigation.navigate('Notification');
   }, [navigation]);
 
-  const handleResultPress = useCallback(
-    (result: SearchResult) => {
-      if (result.routeName && result.routeParams) {
-        navigation.navigate(result.routeName, result.routeParams);
-      }
-    },
-    [navigation]
-  );
-
-  const filteredResults = useMemo(() => {
-    let allResults: SearchResult[];
-    if (activeCategory === 'tryout') {
-      allResults = tryoutResults;
-    } else if (activeCategory === 'materi') {
-      allResults = materiResults;
-    } else {
-      allResults = digidawResults;
-    }
-
-    if (!searchQuery.trim()) {
-      return allResults;
-    }
-
-    const query = searchQuery.toLowerCase();
-    return allResults.filter(
-      (result) =>
-        result.title.toLowerCase().includes(query) ||
-        (result.subtitle && result.subtitle.toLowerCase().includes(query))
+  const results = useMemo(() => {
+    const list = searchData?.[activeCategory] ?? [];
+    return list.filter((item) =>
+      (item?.title ?? '').toLowerCase().includes((searchQuery ?? '').toLowerCase())
     );
-  }, [activeCategory, searchQuery]);
+  }, [searchQuery, activeCategory]);
+
+
+  const getImageSource = (category: 'tryout' | 'materi' | 'digidaw') => {
+    switch (category) {
+      case 'materi':
+        return MateriImage;
+      case 'digidaw':
+        return DigidawImage;
+      default:
+        return TryoutImage;
+    }
+  };
+  
+  const safeNavigate = useCallback(function <T extends keyof RootStackParamList>(
+  routeName: T,
+  params?: RootStackParamList[T]
+) {
+  (navigation.navigate as any)(routeName, params);
+}, [navigation]);
+
+
+
+
+  const handlePress = (item: any) => {
+    if (!item?.routeName) {
+      console.log("routeName missing for:", item);
+      return;
+    }
+safeNavigate(item.routeName as keyof RootStackParamList, item.routeParams);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      <View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
-        <AppHeader
-          title=""
-          contentHorizontalPadding={layout.horizontalPadding}
-          onNotificationPress={handleNotificationPress}
-          showBackButton={true}
-          customContent={
-            <View style={styles.searchBarWrapper}>
+      {/* Header gradient
+      <LinearGradient
+        colors={['#227C9D', '#8EF6E4']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.headerGradient}
+      > */}
+        <View style={[styles.headerWrapper, { width }]}>
+          <AppHeader
+            title=""
+            contentHorizontalPadding={spacing.xl}
+            showLogo={false}
+            onNotificationPress={handleNotificationPress}
+            showBackButton={true}
+            customContent={
+              // <View style={{ maxWidth: 180}}>
               <SearchBar
-                placeholder="Cari tryout atau materi..."
+                placeholder={
+                  activeCategory === 'tryout'
+                    ? 'Cari Tryout'
+                    : activeCategory === 'materi'
+                    ? 'Cari Materi'
+                    : 'Cari Digidaw'
+                }
                 value={searchQuery}
                 onChangeText={setSearchQuery}
+                style={{ flex: 1, maxWidth: 240 }}
               />
-            </View>
-          }
-        />
-      </View>
+              // </View>
+            }
+          />
+        </View>
+      {/* </LinearGradient> */}
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingHorizontal: layout.horizontalPadding,
-            paddingBottom: layout.sectionSpacing * 2,
-          },
-        ]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Category toggle */}
+        <View style={styles.toggleContainer}>
+          {['Tryout', 'Materi', 'Digidaw'].map((label) => {
+            const key = label.toLowerCase() as 'tryout' | 'materi' | 'digidaw';
+            const isActive = activeCategory === key;
+            return (
+              <Pressable
+                key={label}
+                style={[styles.toggleButton, isActive && styles.toggleActive]}
+                onPress={() => setActiveCategory(key)}
+              >
+                <Text style={[styles.toggleText, isActive && styles.toggleTextActive]}>
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
-
-        <CategoryToggle
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-          layout={layout}
-        />
-
-        <View style={styles.resultsContainer}>
-          {filteredResults.length > 0 ? (
-            filteredResults.map((result) => (
-              <SearchResultCard
-                key={result.id}
-                result={result}
-                layout={layout}
-                onPress={handleResultPress}
-              />
-            ))
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>
-                {searchQuery.trim()
-                  ? `Tidak ada hasil untuk "${searchQuery}"`
-                  : `Belum ada ${activeCategory === 'tryout' ? 'tryout' : activeCategory === 'materi' ? 'materi' : 'digidaw'} tersedia`}
-              </Text>
-            </View>
-          )}
+        {/* Results */}
+        <View style={styles.resultList}>
+          {results.map((item) => (
+            <Pressable
+              key={item.id}
+              style={styles.card}
+              onPress={() => handlePress(item)}
+            >
+              <View style={styles.cardLeft}>
+                <Image
+                  source={getImageSource(activeCategory)}
+                  style={styles.cardImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.cardRight}>
+                <View
+                  style={[
+                    styles.freeBadge,
+                    { backgroundColor: item.free ? '#C9FFD9' : '#FFE1C1' },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.freeText,
+                      { color: item.free ? '#097969' : '#C15A00' },
+                    ]}
+                  >
+                    {item.free ? 'Free' : 'Premium'}
+                  </Text>
+                </View>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardDate}>{item.date}</Text>
+              </View>
+              <Pressable
+                style={[styles.buttonOrange, !item.free && { backgroundColor: '#FFCF99' }]}
+                onPress={() => handlePress(item)}
+              >
+                <Text style={styles.buttonOrangeText}>Lihat Detail</Text>
+              </Pressable>
+            </Pressable>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-// ============================================================================
-// STYLES
-// ============================================================================
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
+  safeArea: { flex: 1, backgroundColor: '#F3F4F6' },
+  headerGradient: {
+    paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 50,
+    paddingBottom: 12,
   },
-  scrollView: {
-    flex: 1,
-  },
+  headerWrapper: { alignSelf: 'center' },
+  scrollView: { flex: 1 },
   scrollContent: {
-    alignItems: 'center',
-  },
-  headerWrapper: {
-    alignSelf: 'center',
-  },
-  searchBarWrapper: {
-    flex: 1,
-    marginLeft: spacing.md,
-    marginRight: spacing.xl,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 80,
   },
   toggleContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'space-around',
+    marginBottom: 24,
   },
   toggleButton: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: radii.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
+    backgroundColor: '#E5E5E5',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
   },
-  toggleButtonActive: {
-    backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.2,
-    elevation: 4,
-  },
+  toggleActive: { backgroundColor: '#FFAE6C' },
   toggleText: {
-    fontSize: 14,
     fontFamily: fontFamilies.semiBold,
-    color: colors.primaryDark,
+    color: '#555',
+    fontSize: 14,
   },
-  toggleTextActive: {
-    color: colors.white,
-  },
-  resultsContainer: {
-    width: '100%',
-  },
-  resultCard: {
+  toggleTextActive: { color: '#fff' },
+  resultList: { gap: 16 },
+  card: {
     flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 16,
     alignItems: 'center',
-    backgroundColor: colors.white,
+    justifyContent: 'space-between',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  resultContent: {
-    flex: 1,
-  },
-  resultImage: {
-    marginLeft: spacing.lg,
-  },
-  resultTitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.bold,
-    color: colors.primaryDark,
+  cardLeft: { width: 48, height: 48, marginRight: 12 },
+  cardImage: { width: '100%', height: '100%' },
+  cardRight: { flex: 1, justifyContent: 'center' },
+  freeBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     marginBottom: 4,
   },
-  resultSubtitle: {
-    fontSize: 14,
+  freeText: { fontSize: 12, fontFamily: fontFamilies.semiBold },
+  cardTitle: { fontSize: 16, fontFamily: fontFamilies.bold, color: '#003049' },
+  cardDate: {
+    fontSize: 13,
     fontFamily: fontFamilies.medium,
-    color: colors.mutedText,
-    lineHeight: 18,
+    color: '#555',
+    marginTop: 2,
   },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.xxl * 2,
+  buttonOrange: {
+    backgroundColor: '#FFAE6C',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  emptyStateText: {
-    fontSize: 16,
-    fontFamily: fontFamilies.medium,
-    color: colors.mutedText,
-    textAlign: 'center',
+  buttonOrangeText: {
+    color: '#fff',
+    fontFamily: fontFamilies.bold,
+    fontSize: 12,
   },
 });
 

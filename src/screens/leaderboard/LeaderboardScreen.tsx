@@ -1,7 +1,6 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback } from 'react';
 import {
   Image,
-  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -11,6 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -21,16 +21,7 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies, gradients, radii, spacing } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 
-// Import leaderboard assets
-import Avatar1 from '../../../assets/images/Ava1.png';
-import Avatar2 from '../../../assets/images/Ava2.png';
-import Avatar3 from '../../../assets/images/Ava3.png';
-import Avatar4 from '../../../assets/images/Ava4.png';
-import Avatar5 from '../../../assets/images/Ava5.png';
-import Avatar6 from '../../../assets/images/Ava6.png';
-import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
-import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
-import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
+import { getLeaderboardData, type LeaderboardEntry } from '../../data/leaderboardData';
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -39,77 +30,11 @@ const navItems: BottomNavigationItem[] = [
   { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
 ];
 
-type LeaderboardEntry = {
-  rank: number;
-  name: string;
-  grade: string;
-  score: number;
-  avatar: any;
-  Badge: any;
-  scoreColor: string;
-  isCurrentUser?: boolean;
-};
-
-const leaderboardData: LeaderboardEntry[] = [
-  {
-    rank: 1,
-    name: 'Gitaak',
-    grade: '9 SMP',
-    score: 981,
-    avatar: Avatar4,
-    Badge: RedBadgeIcon,
-    scoreColor: '#EF0F0F',
-  },
-  {
-    rank: 2,
-    name: 'Fikri',
-    grade: '9 SMP',
-    score: 865,
-    avatar: Avatar1,
-    Badge: OrangeBadgeIcon,
-    scoreColor: '#FD7600',
-  },
-  {
-    rank: 3,
-    name: 'Aldo',
-    grade: '9 SMP',
-    score: 812,
-    avatar: Avatar3,
-    Badge: BlueBadgeIcon,
-    scoreColor: colors.primary,
-  },
-  {
-    rank: 4,
-    name: 'Nataa',
-    grade: '9 SMP',
-    score: 756,
-    avatar: Avatar2,
-    Badge: null,
-    scoreColor: colors.primaryDark,
-    isCurrentUser: true,
-  },
-  {
-    rank: 5,
-    name: 'Sari',
-    grade: '9 SMP',
-    score: 698,
-    avatar: Avatar5,
-    Badge: null,
-    scoreColor: colors.primaryDark,
-  },
-  {
-    rank: 6,
-    name: 'Budi',
-    grade: '9 SMP',
-    score: 645,
-    avatar: Avatar6,
-    Badge: null,
-    scoreColor: colors.primaryDark,
-  },
-];
+const leaderboardData: LeaderboardEntry[] = getLeaderboardData();
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
+// Reuse responsive helper (keperluan sizing)
 const useResponsiveLayout = () => {
   const { width } = useWindowDimensions();
 
@@ -121,7 +46,6 @@ const useResponsiveLayout = () => {
   const headerHeight = 200;
   const headerPaddingVertical = Math.max(spacing.xxl, 20);
   const headerPaddingHorizontal = horizontalPadding;
-
 
   // Top 3 podium dimensions
   const podiumHeight = Math.max(headerHeight * 0.6, 120);
@@ -170,13 +94,10 @@ const useResponsiveLayout = () => {
   };
 };
 
-type PodiumColumnProps = LeaderboardEntry & {
-  layout: ReturnType<typeof useResponsiveLayout>;
-  position: 'first' | 'second' | 'third';
-};
+const leaderboardGradients = gradients.leaderboard;
 
-const PodiumColumn: FC<PodiumColumnProps> = ({
-  rank,
+// ===== Podium components copied from HomeScreen (First / Second / Third) =====
+const FirstPlaceColumn: FC<LeaderboardEntry & { layout: ReturnType<typeof useResponsiveLayout> }> = ({
   name,
   grade,
   score,
@@ -184,129 +105,96 @@ const PodiumColumn: FC<PodiumColumnProps> = ({
   Badge,
   scoreColor,
   layout,
-  position,
-}) => {
-  const getPodiumColor = () => {
-    switch (position) {
-      case 'first':
-        return ['#FFD700', '#FFA500']; // Gold
-      case 'second':
-        return ['#C0C0C0', '#A8A8A8']; // Silver
-      case 'third':
-        return ['#CD7F32', '#A0522D']; // Bronze
-      default:
-        return ['#E0E0E0', '#B0B0B0'];
-    }
-  };
-
-  const podiumColors = getPodiumColor();
-  const podiumHeight = position === 'first' ? layout.podiumHeight : layout.podiumHeight * 0.8;
-
-  return (
-    <View style={styles.podiumColumn}>
-      <View
-        style={[
-          styles.podiumBase,
-          {
-            width: layout.podiumWidth,
-            height: podiumHeight,
-            backgroundColor: podiumColors[0],
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.podiumTop,
-            {
-              backgroundColor: podiumColors[1],
-              height: podiumHeight * 0.7,
-            },
-          ]}
-        >
-          <View
-            style={[
-              styles.avatarContainer,
-              {
-                width: layout.avatarSize,
-                height: layout.avatarSize,
-                borderWidth: layout.avatarBorderWidth,
-                borderColor: podiumColors[1],
-                borderRadius: layout.avatarSize * 0.5,
-              },
-            ]}
-          >
-            <Image
-              source={avatar}
-              style={[
-                styles.avatar,
-                {
-                  width: layout.avatarSize - layout.avatarBorderWidth * 2,
-                  height: layout.avatarSize - layout.avatarBorderWidth * 2,
-                  borderRadius: (layout.avatarSize - layout.avatarBorderWidth * 2) * 0.5,
-                },
-              ]}
-              resizeMode="cover"
-            />
-            {Badge && (
-              <View
-                style={[
-                  styles.badge,
-                  {
-                    width: layout.badgeSize,
-                    height: layout.badgeSize,
-                    bottom: -layout.badgeSize * 0.3,
-                    right: -layout.badgeSize * 0.3,
-                  },
-                ]}
-              >
-                <Badge width={layout.badgeSize} height={layout.badgeSize} />
-              </View>
-            )}
-          </View>
-          <Text
-            style={[
-              styles.podiumName,
-              {
-                fontSize: clamp(layout.podiumWidth * 0.15, 10, 14),
-              },
-            ]}
-            numberOfLines={1}
-          >
-            {name}
-          </Text>
-          <Text
-            style={[
-              styles.podiumScore,
-              {
-                color: scoreColor,
-                fontSize: clamp(layout.podiumWidth * 0.18, 12, 16),
-              },
-            ]}
-          >
-            {score}
-          </Text>
+}) => (
+  <View style={styles.podiumColumn}>
+    <LinearGradient
+      colors={[...leaderboardGradients[1]]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.leaderboardGradient, styles.leaderboardGradientFirst]}
+    >
+      <View style={styles.leaderboardMedal}>
+        {Badge && <Badge width={68} height={75} />}
+        <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <View style={styles.leaderboardRankBadgeFirst}>
+          <Text style={styles.leaderboardRankText}>1</Text>
         </View>
       </View>
-      <Text
-        style={[
-          styles.rankNumber,
-          {
-            fontSize: clamp(layout.podiumWidth * 0.2, 14, 18),
-            top: position === 'first' ? -layout.podiumHeight * 0.1 : -layout.podiumHeight * 0.05,
-          },
-        ]}
-      >
-        {rank}
-      </Text>
-    </View>
-  );
-};
+      <View style={styles.leaderboardMeta}>
+        <Text style={styles.leaderboardName}>{name}</Text>
+        <Text style={styles.leaderboardGrade}>{grade}</Text>
+        <Text style={[styles.leaderboardScore, { color: scoreColor }]}>{score}</Text>
+      </View>
+    </LinearGradient>
+  </View>
+);
 
-type LeaderboardListItemProps = LeaderboardEntry & {
-  layout: ReturnType<typeof useResponsiveLayout>;
-};
+const SecondPlaceColumn: FC<LeaderboardEntry & { layout: ReturnType<typeof useResponsiveLayout> }> = ({
+  name,
+  grade,
+  score,
+  avatar,
+  Badge,
+  scoreColor,
+  layout,
+}) => (
+  <View style={styles.podiumColumn}>
+    <LinearGradient
+      colors={[...leaderboardGradients[2]]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.leaderboardGradient, styles.leaderboardGradientSecond]}
+    >
+      <View style={styles.leaderboardMedal}>
+        {Badge && <Badge width={68} height={75} />}
+        <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <View style={styles.leaderboardRankBadgeSecond}>
+          <Text style={styles.leaderboardRankText}>2</Text>
+        </View>
+      </View>
+      <View style={styles.leaderboardMeta}>
+        <Text style={styles.leaderboardName}>{name}</Text>
+        <Text style={styles.leaderboardGrade}>{grade}</Text>
+        <Text style={[styles.leaderboardScore, { color: scoreColor }]}>{score}</Text>
+      </View>
+    </LinearGradient>
+  </View>
+);
 
-const LeaderboardListItem: FC<LeaderboardListItemProps> = ({
+const ThirdPlaceColumn: FC<LeaderboardEntry & { layout: ReturnType<typeof useResponsiveLayout> }> = ({
+  name,
+  grade,
+  score,
+  avatar,
+  Badge,
+  scoreColor,
+  layout,
+}) => (
+  <View style={styles.podiumColumn}>
+    <LinearGradient
+      colors={[...leaderboardGradients[3]]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[styles.leaderboardGradient, styles.leaderboardGradientThird]}
+    >
+      <View style={styles.leaderboardMedal}>
+        {Badge && <Badge width={68} height={75} />}
+        <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <View style={styles.leaderboardRankBadgeThird}>
+          <Text style={styles.leaderboardRankText}>3</Text>
+        </View>
+      </View>
+      <View style={styles.leaderboardMeta}>
+        <Text style={styles.leaderboardName}>{name}</Text>
+        <Text style={styles.leaderboardGrade}>{grade}</Text>
+        <Text style={[styles.leaderboardScore, { color: scoreColor }]}>{score}</Text>
+      </View>
+    </LinearGradient>
+  </View>
+);
+// =========================================================================
+
+const LeaderboardListItem: FC<LeaderboardEntry & { layout: ReturnType<typeof useResponsiveLayout> }> = ({
   rank,
   name,
   grade,
@@ -324,7 +212,7 @@ const LeaderboardListItem: FC<LeaderboardListItemProps> = ({
           height: layout.listItemHeight,
           paddingHorizontal: layout.listItemPaddingHorizontal,
           paddingVertical: layout.listItemPaddingVertical,
-          backgroundColor: isCurrentUser ? '#F0F8FF' : colors.white,
+          backgroundColor: isCurrentUser ? '#FFAE6C' : colors.white, 
         },
       ]}
     >
@@ -426,6 +314,7 @@ const LeaderboardScreen: FC = () => {
     navigation.navigate('Notification');
   }, [navigation]);
 
+  // top 3 and rest
   const topThree = leaderboardData.slice(0, 3);
   const restOfList = leaderboardData.slice(3);
 
@@ -436,9 +325,10 @@ const LeaderboardScreen: FC = () => {
       <View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
         <AppHeader
           title="Leaderboard"
-          contentHorizontalPadding={layout.horizontalPadding}
           onNotificationPress={handleNotificationPress}
           showBackButton={true}
+          compactRightGroup={true}
+          contentHorizontalPadding={layout.horizontalPadding - 10}
         />
       </View>
 
@@ -452,23 +342,7 @@ const LeaderboardScreen: FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View
-          // style={[
-          //   styles.headerSection,
-          //   {
-          //     width: layout.contentWidth,
-          //     height: layout.headerHeight,
-          //     paddingVertical: layout.headerPaddingVertical,
-          //     paddingHorizontal: layout.headerPaddingHorizontal,
-          //   },
-          // ]}
-        >
-
-          {/* <View style={styles.trophyContainer}>
-            <Text style={styles.headerTitle}>Leaderboard</Text>
-            <Text style={styles.headerSubtitle}>November 2024</Text>
-          </View> */}
-
+        <View>
           <View
             style={[
               styles.podiumContainer,
@@ -478,9 +352,10 @@ const LeaderboardScreen: FC = () => {
               },
             ]}
           >
-            <PodiumColumn {...topThree[1]} layout={layout} position="second" />
-            <PodiumColumn {...topThree[0]} layout={layout} position="first" />
-            <PodiumColumn {...topThree[2]} layout={layout} position="third" />
+            {/* NOTE: posisi 2 - 1 - 3 untuk tampilan yang sama seperti HomeScreen */}
+            <SecondPlaceColumn {...topThree[1]} layout={layout} />
+            <FirstPlaceColumn {...topThree[0]} layout={layout} />
+            <ThirdPlaceColumn {...topThree[2]} layout={layout} />
           </View>
         </View>
 
@@ -525,26 +400,6 @@ const styles = StyleSheet.create({
   headerWrapper: {
     alignSelf: 'center',
   },
-  headerSection: {
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trophyContainer: {
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontFamily: fontFamilies.bold,
-    color: colors.white,
-    marginTop: spacing.md,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    fontFamily: fontFamilies.medium,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: spacing.xs,
-  },
   podiumContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -554,51 +409,95 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  podiumBase: {
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  podiumTop: {
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
+  leaderboardGradient: {
+    width: '100%',
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
     alignItems: 'center',
     paddingTop: spacing.sm,
     paddingBottom: spacing.md,
+    paddingHorizontal: 12,
   },
-  avatarContainer: {
-    position: 'relative',
+  leaderboardGradientFirst: {
+    minHeight: 210,
+    paddingTop: 28,
+  },
+  leaderboardGradientSecond: {
+    minHeight: 160,
+  },
+  leaderboardGradientThird: {
+    minHeight: 160,
+  },
+  leaderboardMedal: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: 68,
+    height: 75,
+    position: 'relative',
+    marginBottom: 4,
   },
-  avatar: {},
-  badge: {
+  leaderboardRankBadgeFirst: {
     position: 'absolute',
+    bottom: -4.25,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
-  podiumName: {
-    fontFamily: fontFamilies.bold,
+  leaderboardRankBadgeSecond: {
+    position: 'absolute',
+    bottom: -2,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  leaderboardRankBadgeThird: {
+    position: 'absolute',
+    bottom: -2,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  leaderboardRankText: {
     color: colors.white,
-    textAlign: 'center',
-    marginTop: spacing.xs,
+    fontFamily: fontFamilies.bold,
+    fontSize: 11,
   },
-  podiumGrade: {
-    fontFamily: fontFamilies.medium,
-    color: 'rgba(255,255,255,0.8)',
+  leaderboardAvatar: {
+    position: 'absolute',
+    width: 58,
+    height: 58,
+    top: 8,
+    borderRadius: 29,
+  },
+  leaderboardMeta: {
+    alignItems: 'center',
+    marginTop: 4,
+    flex: 1,
+    justifyContent: 'space-evenly',
+  },
+  leaderboardName: {
+    fontSize: 14,
+    color: colors.darkText,
+    fontFamily: fontFamilies.semiBold,
     textAlign: 'center',
+  },
+  leaderboardGrade: {
+    fontSize: 10,
+    color: '#617283',
     marginTop: 2,
-  },
-  podiumScore: {
-    fontFamily: fontFamilies.bold,
-    textAlign: 'center',
-    marginTop: spacing.xs,
-  },
-  rankNumber: {
-    position: 'absolute',
-    fontFamily: fontFamilies.bold,
-    color: colors.white,
+    fontFamily: fontFamilies.semiBold,
     textAlign: 'center',
   },
+  leaderboardScore: {
+    fontSize: 16,
+    marginTop: 8,
+    fontFamily: fontFamilies.bold,
+    textAlign: 'center',
+  },
+
   listSection: {
     paddingHorizontal: spacing.xxl,
   },

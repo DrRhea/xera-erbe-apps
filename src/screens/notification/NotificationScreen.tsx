@@ -14,50 +14,8 @@ import Svg, { Circle } from 'react-native-svg';
 import AppHeader from '../../components/AppHeader';
 import { colors, fontFamilies, spacing, radii } from '../../constants/theme';
 import DigidawImage from '../../../assets/images/digidaw.png';
+import { getNotificationData, type NotificationItem } from '../../data/notificationData';
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
-type NotificationItem = {
-  id: string;
-  title: string;
-  image: any; // Can be string (URI) or require() result
-  buttonText?: string;
-  isUnread?: boolean;
-  onButtonPress?: () => void;
-};
-
-// ============================================================================
-// SAMPLE DATA
-// ============================================================================
-
-const notificationData: NotificationItem[] = [
-  {
-    id: '1',
-    title: 'Discount 50% TO SNBT November',
-    image: 'http://localhost:3845/assets/9734481c6d70331df091d226a8cf907a22a4c0e3.png',
-    buttonText: 'Claim',
-    isUnread: true,
-  },
-  {
-    id: '2',
-    title: 'Selesaikan Progress Harianmu!',
-    image: DigidawImage,
-    buttonText: "Let's DIGIDAW",
-    isUnread: false,
-  },
-  {
-    id: '3',
-    title: 'Progress Mingguanmu Selesai!',
-    image: DigidawImage,
-    isUnread: false,
-  },
-];
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -156,7 +114,7 @@ const NotificationCard: FC<NotificationCardProps> = ({ item, layout }) => {
 
 const NotificationScreen: FC = () => {
   const layout = useResponsiveLayout();
-  const [notifications] = useState<NotificationItem[]>(notificationData);
+  const [notifications] = useState<NotificationItem[]>(getNotificationData());
 
   return (
     <SafeAreaView style={styles.container}>

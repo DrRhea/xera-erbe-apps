@@ -10,13 +10,15 @@ import ErboLogo from '../../assets/images/logoutuhputih.png';
 import { colors, fontFamilies, gradients, radii, spacing } from '../constants/theme';
 
 export type AppHeaderProps = {
-	title: string;
-	onBackPress?: () => void;
-	onNotificationPress?: () => void;
+  title: string;
+  onBackPress?: () => void;
+  onNotificationPress?: () => void;
   contentHorizontalPadding?: number;
-	showBackButton?: boolean;
-	showNotificationButton?: boolean;
-	customContent?: React.ReactNode;
+  showBackButton?: boolean;
+  showNotificationButton?: boolean;
+  showLogo?: boolean; // 👈 Tambahan baru
+  customContent?: React.ReactNode;
+  compactRightGroup?: boolean;
 };
 
 const AppHeader: FC<AppHeaderProps> = ({
@@ -26,120 +28,133 @@ const AppHeader: FC<AppHeaderProps> = ({
   contentHorizontalPadding = spacing.xxl,
   showBackButton = true,
   showNotificationButton = true,
+  showLogo = true, // 👈 Default: logo tampil
   customContent,
+  compactRightGroup = false,
 }) => {
-	const insets = useSafeAreaInsets();
-	const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
 
-	const handleBackPress = useCallback(() => {
-		if (onBackPress) {
-			onBackPress();
-			return;
-		}
+  const handleBackPress = useCallback(() => {
+    if (onBackPress) {
+      onBackPress();
+      return;
+    }
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [navigation, onBackPress]);
 
-		if (navigation.canGoBack()) {
-			navigation.goBack();
-		}
-	}, [navigation, onBackPress]);
+  const shouldShowBackButton = showBackButton && (onBackPress || navigation.canGoBack());
 
-	const shouldShowBackButton = showBackButton && (onBackPress || navigation.canGoBack());
+  return (
+    <View style={styles.wrapper}>
+      <LinearGradient
+        colors={[...gradients.header]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[
+          styles.gradient,
+          { paddingTop: insets.top + spacing.lg, paddingHorizontal: contentHorizontalPadding },
+        ]}
+      >
+        <View style={styles.content}>
+          {/* Left Side */}
+          <View style={styles.leadingGroup}>
+            {shouldShowBackButton && (
+              <Pressable
+                onPress={handleBackPress}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="Go back"
+                style={styles.backButton}
+              >
+                <BackArrowIcon width={20} height={20} />
+              </Pressable>
+            )}
+            {title ? <Text style={styles.title}>{title}</Text> : customContent}
+          </View>
 
-	return (
-		<View style={styles.wrapper}>
-			<LinearGradient
-				colors={[...gradients.header]}
-				start={{ x: 0, y: 0 }}
-				end={{ x: 0, y: 1 }}
-				style={[
-					styles.gradient,
-					{ paddingTop: insets.top + spacing.lg, paddingHorizontal: contentHorizontalPadding },
-				]}
-			>
-				<View style={styles.content}>
-					<View style={styles.leadingGroup}>
-						{showBackButton && (
-							<Pressable
-								onPress={handleBackPress}
-								hitSlop={12}
-								accessibilityRole="button"
-								accessibilityLabel="Go back"
-								style={styles.backButton}
-							>
-								<BackArrowIcon width={20} height={20} />
-							</Pressable>
-						)}
-						{title ? <Text style={styles.title}>{title}</Text> : customContent}
-					</View>
+          {/* Right Side */}
+          <View
+            style={[
+              styles.trailingGroup,
+              compactRightGroup && { gap: -6, marginRight: -6 },
+            ]}
+          >
+            {showLogo && ( 
+              <Image
+                source={ErboLogo}
+                style={[styles.logo, compactRightGroup && { marginRight: 8, width: 98 }]}
+                resizeMode="contain"
+              />
+            )}
 
-					<View style={styles.trailingGroup}>
-						{showNotificationButton && (
-							<>
-								<Image source={ErboLogo} style={styles.logo} resizeMode="contain" />
-								<Pressable
-									accessibilityRole="button"
-									accessibilityLabel="Open notifications"
-									hitSlop={12}
-									onPress={onNotificationPress}
-									style={styles.notificationButton}
-								>
-									<NotifIcon style={styles.notificationIcon} />
-								</Pressable>
-							</>
-						)}
-					</View>
-				</View>
-			</LinearGradient>
-		</View>
-	);
+            {showNotificationButton && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Open notifications"
+                hitSlop={12}
+                onPress={onNotificationPress}
+                style={[styles.notificationButton, compactRightGroup && { marginLeft: -4 }]}
+              >
+                <NotifIcon style={styles.notificationIcon} />
+              </Pressable>
+            )}
+          </View>
+        </View>
+      </LinearGradient>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-	wrapper: {
-		borderBottomLeftRadius: radii.xl,
-		borderBottomRightRadius: radii.xl,
-		overflow: 'hidden',
-	},
-	gradient: {
-		paddingBottom: 20,
-	},
-	content: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-	},
-	leadingGroup: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	backButton: {
-		padding: 4,
-		marginRight: spacing.md,
-	},
-	title: {
-		fontSize: 22,
-		color: colors.white,
-		fontFamily: fontFamilies.bold,
-	},
-	trailingGroup: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	logo: {
-		width: 103,
-		height: 28,
-		marginRight: 16,
-	},
-	notificationButton: {
-			width: 44,
-			height: 44,
-			justifyContent: 'center',
-			alignItems: 'center',
-	},
-		notificationIcon: {
-			width: 28,
-			height: 28,
-			transform: [{ translateY: 5 }],
-		},
+  wrapper: {
+    borderBottomLeftRadius: radii.xl,
+    borderBottomRightRadius: radii.xl,
+    overflow: 'hidden',
+  },
+  gradient: {
+    paddingBottom: 20,
+  },
+  content: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  leadingGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    padding: 4,
+    marginRight: spacing.md,
+  },
+  title: {
+    fontSize: 22,
+    color: colors.white,
+    fontFamily: fontFamilies.bold,
+  },
+  trailingGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 103,
+    height: 28,
+    marginRight: 16,
+  },
+  notificationButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationIcon: {
+    width: 28,
+    height: 28,
+    transform: [{ translateY: 5 }],
+  },
 });
 
 export default AppHeader;
