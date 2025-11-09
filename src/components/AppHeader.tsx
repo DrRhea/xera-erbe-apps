@@ -16,8 +16,9 @@ export type AppHeaderProps = {
   contentHorizontalPadding?: number;
   showBackButton?: boolean;
   showNotificationButton?: boolean;
+  showLogo?: boolean; // 👈 Tambahan baru
   customContent?: React.ReactNode;
-  compactRightGroup?: boolean; // 🆕 tambahan baru
+  compactRightGroup?: boolean;
 };
 
 const AppHeader: FC<AppHeaderProps> = ({
@@ -27,8 +28,9 @@ const AppHeader: FC<AppHeaderProps> = ({
   contentHorizontalPadding = spacing.xxl,
   showBackButton = true,
   showNotificationButton = true,
+  showLogo = true, // 👈 Default: logo tampil
   customContent,
-  compactRightGroup = false, 
+  compactRightGroup = false,
 }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
@@ -38,7 +40,6 @@ const AppHeader: FC<AppHeaderProps> = ({
       onBackPress();
       return;
     }
-
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
@@ -58,7 +59,7 @@ const AppHeader: FC<AppHeaderProps> = ({
         ]}
       >
         <View style={styles.content}>
-          {/* Left Side: Back + Title */}
+          {/* Left Side */}
           <View style={styles.leadingGroup}>
             {shouldShowBackButton && (
               <Pressable
@@ -74,30 +75,31 @@ const AppHeader: FC<AppHeaderProps> = ({
             {title ? <Text style={styles.title}>{title}</Text> : customContent}
           </View>
 
-          {/* Right Side: Logo + Notification */}
+          {/* Right Side */}
           <View
             style={[
               styles.trailingGroup,
-              compactRightGroup && { gap: -6, marginRight: -6 }, 
+              compactRightGroup && { gap: -6, marginRight: -6 },
             ]}
           >
+            {showLogo && ( 
+              <Image
+                source={ErboLogo}
+                style={[styles.logo, compactRightGroup && { marginRight: 8, width: 98 }]}
+                resizeMode="contain"
+              />
+            )}
+
             {showNotificationButton && (
-              <>
-                <Image
-                  source={ErboLogo}
-                  style={[styles.logo, compactRightGroup && { marginRight: 8, width: 98 }]}
-                  resizeMode="contain"
-                />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Open notifications"
-                  hitSlop={12}
-                  onPress={onNotificationPress}
-                  style={[styles.notificationButton, compactRightGroup && { marginLeft: -4 }]}
-                >
-                  <NotifIcon style={styles.notificationIcon} />
-                </Pressable>
-              </>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Open notifications"
+                hitSlop={12}
+                onPress={onNotificationPress}
+                style={[styles.notificationButton, compactRightGroup && { marginLeft: -4 }]}
+              >
+                <NotifIcon style={styles.notificationIcon} />
+              </Pressable>
             )}
           </View>
         </View>

@@ -404,7 +404,7 @@ const LeaderboardScreen: FC = () => {
           onNotificationPress={handleNotificationPress}
           showBackButton={true}
           compactRightGroup={true}
-          contentHorizontalPadding={layout.horizontalPadding}
+          contentHorizontalPadding={layout.horizontalPadding - 10}
         />
       </View>
 
