@@ -21,6 +21,7 @@ import ErboLogo from '../../../assets/images/logoutuhijo.png';
 import { colors, fontFamilies } from '../../constants/theme';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import type { RootStackParamList } from '../../../App';
+import { sampleReportData, type ReportTableRow } from '../../data/reportData';
 
 // ============================================================================
 // INTERNAL COMPONENTS
@@ -104,14 +105,6 @@ const ProgressCircle: FC<{ percentage: number; size?: number }> = ({ percentage,
       />
     </Svg>
   );
-};
-
-// Report Table Row Type
-type ReportTableRow = {
-  subject: string;
-  score: number;
-  totalQuestions: number;
-  percentage: number;
 };
 
 // Report Table Component
@@ -199,37 +192,6 @@ const bottomNavItems: BottomNavigationItem[] = [
   { key: 'Analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
   { key: 'Wallet', label: 'Wallet', Icon: TagIcon, routeName: 'Wallet' },
   { key: 'Profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
-];
-
-// ============================================================================
-// SAMPLE DATA
-// ============================================================================
-
-const sampleReportData: ReportTableRow[] = [
-  {
-    subject: 'Penalaran Matematika',
-    score: 47,
-    totalQuestions: 116,
-    percentage: 85.5,
-  },
-  {
-    subject: 'Literasi Bahasa Indonesia',
-    score: 72,
-    totalQuestions: 185,
-    percentage: 65.9,
-  },
-  {
-    subject: 'Literasi Bahasa Inggris',
-    score: 60,
-    totalQuestions: 120,
-    percentage: 50.0,
-  },
-  {
-    subject: 'Bahasa Inggris',
-    score: 55,
-    totalQuestions: 115,
-    percentage: 30.8,
-  },
 ];
 
 // ============================================================================

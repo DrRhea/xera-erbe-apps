@@ -21,32 +21,11 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
+import { getUpcomingTryouts, type TryoutItem } from '../../data/promotionData';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
 
-const upcomingTryouts = [
-  {
-    id: 'to-tka-smp-6',
-    title: 'Tryout TKA SMP #6',
-    dateLabel: '18 November 2025',
-    statusLabel: 'Free',
-    statusVariant: 'free',
-  },
-  {
-    id: 'to-snbt-3',
-    title: 'TO SNBT #3',
-    dateLabel: '18 November 2025',
-    statusLabel: 'Free',
-    statusVariant: 'free',
-  },
-  {
-    id: 'to-snbt-4',
-    title: 'TO SNBT #4',
-    dateLabel: '25 November 2025',
-    statusLabel: 'Rp 10.000,-',
-    statusVariant: 'paid',
-  },
-];
+const upcomingTryouts: TryoutItem[] = getUpcomingTryouts();
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
