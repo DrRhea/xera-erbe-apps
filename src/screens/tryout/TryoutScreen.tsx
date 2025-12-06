@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState } from 'react';
 import {
 	Image,
 	Pressable,
@@ -9,7 +9,7 @@ import {
 	Text,
 	View,
 } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, type NavigationProp } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import SearchBar from '../../components/SearchBar';
@@ -21,11 +21,13 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { activeTryouts, upcomingTryouts } from '../../data/tryoutScreenData';
+import { tryoutService, type TryoutPackage, type TryoutEnrollment } from '../../services/tryoutService';
+import { authService } from '../../services/authService';
 
 type ActiveTryout = {
 	id: string;
 	title: string;
+	enrollmentStatus?: 'pending' | 'approved' | 'rejected';
 };
 
 type UpcomingTryout = {
@@ -34,6 +36,8 @@ type UpcomingTryout = {
 	dateLabel: string;
 	statusLabel: string;
 	statusVariant: 'free' | 'paid';
+	enrollmentType: 'open' | 'paid' | 'free_with_proof';
+	enrollmentStatus?: 'pending' | 'approved' | 'rejected';
 };
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
@@ -50,6 +54,76 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 const TryoutScreen: FC = () => {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
+	const [activeTryouts, setActiveTryouts] = useState<ActiveTryout[]>([]);
+	const [upcomingTryouts, setUpcomingTryouts] = useState<UpcomingTryout[]>([]);
+
+	useFocusEffect(
+		useCallback(() => {
+			const fetchData = async () => {
+				try {
+					const packages = await tryoutService.getPackages(undefined); // Fetch all
+					const user = await authService.getUser();
+					
+					const active: ActiveTryout[] = [];
+					const upcoming: UpcomingTryout[] = [];
+
+					for (const pkg of packages) {
+						// Fetch enrollment for this package
+						// Note: In a real app, we should have an endpoint to get all my enrollments at once
+						// to avoid N+1. For now, we iterate.
+						let enrollmentStatus: 'pending' | 'approved' | 'rejected' | undefined;
+						try {
+							const enrollments = await tryoutService.getMyEnrollments(pkg.id);
+							const myEnrollment = enrollments.find(e => e.userId === user?.id);
+							if (myEnrollment) {
+								enrollmentStatus = myEnrollment.status;
+							}
+						} catch (e) {
+							console.log('Error fetching enrollment', e);
+						}
+
+						if (pkg.isActive) {
+							active.push({
+								id: pkg.id,
+								title: pkg.title,
+								enrollmentStatus,
+							});
+						} else {
+							// Format date
+							const date = new Date(pkg.startsAt);
+							const dateLabel = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+							
+							let statusLabel = 'Gratis';
+							let statusVariant: 'free' | 'paid' = 'free';
+							
+							if (pkg.enrollmentType === 'paid') {
+								statusLabel = 'Berbayar';
+								statusVariant = 'paid';
+							} else if (pkg.enrollmentType === 'free_with_proof') {
+								statusLabel = 'Gratis (Syarat)';
+								statusVariant = 'free';
+							}
+
+							upcoming.push({
+								id: pkg.id,
+								title: pkg.title,
+								dateLabel,
+								statusLabel,
+								statusVariant,
+								enrollmentType: pkg.enrollmentType,
+								enrollmentStatus,
+							});
+						}
+					}
+					setActiveTryouts(active);
+					setUpcomingTryouts(upcoming);
+				} catch (error) {
+					console.error('Failed to fetch tryouts', error);
+				}
+			};
+			fetchData();
+		}, [])
+	);
 
 	const handleNotificationPress = useCallback(() => {
 		navigation.navigate('Notification');
@@ -96,24 +170,47 @@ const TryoutScreen: FC = () => {
 	);
 
 	const handleActiveCardPress = useCallback(
-		(tryoutId: string, tryoutTitle: string) => {
-			navigation.navigate('TryoutDetail', {
-				tryoutId,
-				title: tryoutTitle,
-			});
+		(tryout: ActiveTryout) => {
+			if (tryout.enrollmentStatus === 'approved') {
+				navigation.navigate('TryoutDetail', {
+					tryoutId: tryout.id,
+					title: tryout.title,
+				});
+			} else if (tryout.enrollmentStatus === 'pending') {
+				alert('Pendaftaran sedang diverifikasi admin.');
+			} else {
+				// Not enrolled or rejected, go to description/registration
+				// Since we don't have full details here, we might need to fetch or pass defaults
+				// For active tryouts, we assume they are "open" or we should check enrollmentType
+				// But for now, let's just navigate to TryoutDesc which handles registration logic
+				// We need to pass params expected by TryoutDesc
+				navigation.navigate('TryoutDesc', {
+					tryoutId: tryout.id,
+					title: tryout.title,
+					dateLabel: 'Sekarang',
+					statusLabel: 'Aktif',
+					statusVariant: 'free', // Default, logic should be better
+				});
+			}
 		},
 		[navigation]
 	);
 
 	const handleUpcomingCardPress = useCallback(
 		(tryout: UpcomingTryout) => {
-			navigation.navigate('TryoutDesc', {
-				tryoutId: tryout.id,
-				title: tryout.title,
-				dateLabel: tryout.dateLabel,
-				statusLabel: tryout.statusLabel,
-				statusVariant: tryout.statusVariant,
-			});
+			if (tryout.enrollmentStatus === 'approved') {
+				alert('Kamu sudah terdaftar! Tunggu tanggal mainnya ya.');
+			} else if (tryout.enrollmentStatus === 'pending') {
+				alert('Pendaftaran sedang diverifikasi admin.');
+			} else {
+				navigation.navigate('TryoutDesc', {
+					tryoutId: tryout.id,
+					title: tryout.title,
+					dateLabel: tryout.dateLabel,
+					statusLabel: tryout.statusLabel,
+					statusVariant: tryout.statusVariant,
+				});
+			}
 		},
 		[navigation]
 	);
@@ -166,7 +263,7 @@ const TryoutScreen: FC = () => {
 							{activeTryouts.map((tryout) => (
 								<Pressable
 									key={tryout.id}
-									onPress={() => handleActiveCardPress(tryout.id, tryout.title)}
+									onPress={() => handleActiveCardPress(tryout)}
 									style={[
 										styles.activeCard,
 										{
@@ -204,10 +301,15 @@ const TryoutScreen: FC = () => {
 												{
 													paddingHorizontal: actionBadgePaddingHorizontal,
 													paddingVertical: actionBadgePaddingVertical,
+													backgroundColor: tryout.enrollmentStatus === 'approved' ? colors.accent : 
+																	 tryout.enrollmentStatus === 'pending' ? '#FFC107' : '#2196F3'
 												},
 											]}
 										>
-											<Text style={styles.activeActionLabel}>Kerjakan</Text>
+											<Text style={styles.activeActionLabel}>
+												{tryout.enrollmentStatus === 'approved' ? 'Kerjakan' : 
+												 tryout.enrollmentStatus === 'pending' ? 'Menunggu' : 'Daftar'}
+											</Text>
 										</View>
 									</View>
 								</Pressable>
@@ -256,17 +358,22 @@ const TryoutScreen: FC = () => {
 												]}
 											>
 												{tryout.statusLabel}
-											</Text>
-										</View>
-										<Text style={styles.upcomingTitle}>{tryout.title}</Text>
-										<Text style={styles.upcomingDate}>{tryout.dateLabel}</Text>
-									</View>
 									<View
 										style={[
 											styles.upcomingCta,
 											{
 												paddingHorizontal: actionBadgePaddingHorizontal,
 												paddingVertical: actionBadgePaddingVertical,
+												backgroundColor: tryout.enrollmentStatus === 'approved' ? '#4CAF50' : 
+																 tryout.enrollmentStatus === 'pending' ? '#FFC107' : colors.accent
+											},
+										]}
+									>
+										<Text style={styles.upcomingCtaLabel}>
+											{tryout.enrollmentStatus === 'approved' ? 'Terdaftar' : 
+											 tryout.enrollmentStatus === 'pending' ? 'Menunggu' : 'Daftar Sekarang'}
+										</Text>
+									</View>ingVertical: actionBadgePaddingVertical,
 											},
 										]}
 									>

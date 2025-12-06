@@ -5,7 +5,7 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 
 import AuthLayout from './AuthLayout';
 import { colors, fontFamilies } from '../../constants/theme';
-import { registerMockUser } from '../../services/mockAuthService';
+import { authService } from '../../services/authService';
 import type { RootStackParamList } from '../../../App';
 
 const buttonGradient = ['#1C637B', '#B0ED9F'] as const;
@@ -57,29 +57,28 @@ const RegisterScreen: React.FC = () => {
 		setSubmitting(true);
 		setErrorMessage('');
 
-		const result = registerMockUser({
-			name,
-			email,
-			password,
-		});
+		try {
+			await authService.register({
+				name,
+				email,
+				password,
+			});
 
-		if (!result.success) {
-			setErrorMessage(result.error);
+			setName('');
+			setEmail('');
+			setPassword('');
 			setSubmitting(false);
-			return;
+
+			Alert.alert('Registrasi Berhasil', 'Akun kamu sudah siap. Yuk masuk sekarang!', [
+				{
+					text: 'Masuk',
+					onPress: handleNavigateToLogin,
+				},
+			]);
+		} catch (error: any) {
+			setSubmitting(false);
+			setErrorMessage(error.response?.data?.message || 'Registration failed');
 		}
-
-		setName('');
-		setEmail('');
-		setPassword('');
-		setSubmitting(false);
-
-		Alert.alert('Registrasi Berhasil', 'Akun kamu sudah siap. Yuk masuk sekarang!', [
-			{
-				text: 'Masuk',
-				onPress: handleNavigateToLogin,
-			},
-		]);
 	}, [email, handleNavigateToLogin, isSubmitDisabled, name, password]);
 
 	return (

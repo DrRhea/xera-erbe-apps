@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import {
   useFocusEffect,
@@ -27,12 +28,9 @@ import ClockIcon from '../../../assets/icons/clock.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import {
-  DEFAULT_SUBTEST_DURATION_MINUTES,
-  resolveTryoutDefinition,
-  type TryoutSubtest,
-} from '../../data/tryoutContent';
-import { getCompletedSubtests } from '../../data/tryoutProgress';
+import { tryoutService, type TryoutSubtest } from '../../services/tryoutService';
+import { authService } from '../../services/authService';
+import { DEFAULT_SUBTEST_DURATION_MINUTES } from '../../data/tryoutContent';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
 
@@ -57,15 +55,41 @@ const TryoutDetailScreen: FC = () => {
 
   const { tryoutId, title } = route.params;
 
-  const detail = useMemo(() => resolveTryoutDefinition(tryoutId, title), [tryoutId, title]);
-
-  const [completedSubtests, setCompletedSubtests] = useState<string[]>(() =>
-    getCompletedSubtests(tryoutId)
-  );
+  const [subtests, setSubtests] = useState<TryoutSubtest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
+  const [completedSubtests, setCompletedSubtests] = useState<string[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      setCompletedSubtests(getCompletedSubtests(tryoutId));
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+          const [subtestsData, user, enrollments] = await Promise.all([
+            tryoutService.getSubtests(tryoutId),
+            authService.getUser(),
+            tryoutService.getMyEnrollments(tryoutId)
+          ]);
+          
+          setSubtests(subtestsData);
+          
+          const myEnrollment = enrollments.find(e => e.userId === user?.id);
+          if (myEnrollment) {
+            setEnrollmentId(myEnrollment.id);
+            if (myEnrollment.sessions) {
+              const completed = myEnrollment.sessions
+                .filter(s => s.status === 'completed')
+                .map(s => s.subtestId);
+              setCompletedSubtests(completed);
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
     }, [tryoutId])
   );
 
@@ -78,27 +102,34 @@ const TryoutDetailScreen: FC = () => {
       if (completedSubtests.includes(subtest.id)) {
         return;
       }
+      
+      if (!enrollmentId) {
+        alert('Enrollment not found');
+        return;
+      }
 
       navigation.navigate('TryoutQuestion', {
-        tryoutId: detail.id,
-        tryoutTitle: detail.title,
+        tryoutId: tryoutId,
+        tryoutTitle: title,
         subtestId: subtest.id,
         subtestTitle: subtest.title,
+        enrollmentId: enrollmentId, // Pass enrollmentId
+        duration: subtest.durationMinutes,
       });
     },
-    [completedSubtests, detail.id, detail.title, navigation]
+    [completedSubtests, tryoutId, title, navigation, enrollmentId]
   );
 
   const completedCount = completedSubtests.length;
-  const totalSubtests = detail.subtests.length;
+  const totalSubtests = subtests.length;
   const totalDurationMinutes = useMemo(
     () =>
-      detail.subtests.reduce(
+      subtests.reduce(
         (accumulator, subtest) =>
-          accumulator + (subtest.durationMinutes ?? DEFAULT_SUBTEST_DURATION_MINUTES),
+          accumulator + (subtest.durationMinutes ?? 0),
         0
       ),
-    [detail.subtests]
+    [subtests]
   );
 
   const contentHorizontalPadding = useMemo(
@@ -218,7 +249,7 @@ const TryoutDetailScreen: FC = () => {
               />
             </View>
             <View style={styles.heroContent}>
-              <Text style={styles.heroTitle}>{detail.title}</Text>
+              <Text style={styles.heroTitle}>{title}</Text>
               <View style={[styles.heroMetaRow, { columnGap: metaGap, gap: metaGap }]}>
                 <Text style={styles.heroMetaText}>{`${completedCount}/${totalSubtests} selesai`}</Text>
                 <View style={styles.metaDivider} />
@@ -236,8 +267,10 @@ const TryoutDetailScreen: FC = () => {
           </View>
 
           <View style={[styles.subtestList, { rowGap: subtestGap, gap: subtestGap }]}>
-            {detail.subtests.length ? (
-              detail.subtests.map((subtest) => {
+            {loading ? (
+              <ActivityIndicator size="large" color={colors.primary} />
+            ) : subtests.length ? (
+              subtests.map((subtest) => {
                 const isCompleted = completedSubtests.includes(subtest.id);
                 const durationMinutes = subtest.durationMinutes ?? DEFAULT_SUBTEST_DURATION_MINUTES;
 

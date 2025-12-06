@@ -5,7 +5,7 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 
 import AuthLayout from './AuthLayout';
 import { colors, fontFamilies } from '../../constants/theme';
-import { loginMockUser } from '../../services/mockAuthService';
+import { authService } from '../../services/authService';
 import type { RootStackParamList } from '../../../App';
 
 const buttonGradient = ['#1C637B', '#B0ED9F'] as const;
@@ -50,26 +50,24 @@ const LoginScreen: React.FC = () => {
 		setSubmitting(true);
 		setErrorMessage('');
 
-		const result = loginMockUser({ email, password });
-
-		if (!result.success) {
-			setErrorMessage(result.error);
+		try {
+			const result = await authService.login(email, password);
 			setSubmitting(false);
-			return;
+
+			Alert.alert('Selamat datang', `Hai ${result.user.name}!`, [
+				{
+					text: 'Mulai Belajar',
+					onPress: () =>
+						navigation.reset({
+							index: 0,
+							routes: [{ name: 'Home' }],
+						}),
+				},
+			]);
+		} catch (error: any) {
+			setSubmitting(false);
+			setErrorMessage(error.response?.data?.message || 'Login failed');
 		}
-
-		setSubmitting(false);
-
-		Alert.alert('Selamat datang', `Hai ${result.user.name}!`, [
-			{
-				text: 'Mulai Belajar',
-				onPress: () =>
-					navigation.reset({
-						index: 0,
-						routes: [{ name: 'Home' }],
-					}),
-			},
-		]);
 	}, [email, isSubmitDisabled, navigation, password]);
 
 	return (

@@ -14,6 +14,7 @@ import {
 	View,
 } from 'react-native';
 import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
+import * as DocumentPicker from 'expo-document-picker';
 
 import AppHeader from '../../components/AppHeader';
 import BottomNavigation, { type BottomNavigationItem } from '../../components/BottomNavigation';
@@ -26,6 +27,7 @@ import ChevronIcon from '../../../assets/icons/vector.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
+import { tryoutService } from '../../services/tryoutService';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
 
@@ -78,6 +80,7 @@ const TryoutRegistrationPaidScreen: FC = () => {
 		phone: '',
 		socialMedia: '',
 	});
+	const [proofPayment, setProofPayment] = useState<any>(null);
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
@@ -140,13 +143,39 @@ const TryoutRegistrationPaidScreen: FC = () => {
 		setIdentityState((prev) => ({ ...prev, [key]: value }));
 	}, []);
 
-	const handleUploadPress = useCallback(() => {
-		Alert.alert('Upload Pembayaran', 'Integrasikan unggahan bukti pembayaran di tahap berikutnya.');
+	const handleUploadPress = useCallback(async () => {
+		try {
+			const result = await DocumentPicker.getDocumentAsync({
+				type: ['image/*', 'application/pdf'],
+				copyToCacheDirectory: true,
+			});
+			
+			if (result.canceled) return;
+			
+			setProofPayment(result.assets[0]);
+		} catch (err) {
+			console.log('Error picking document', err);
+		}
 	}, []);
 
-	const handleSubmit = useCallback(() => {
-		Alert.alert('Kirim Form', 'Fitur pembayaran akan tersedia segera.');
-	}, []);
+	const handleSubmit = useCallback(async () => {
+		if (!proofPayment) {
+			Alert.alert('Error', 'Mohon lengkapi bukti pembayaran.');
+			return;
+		}
+		
+		try {
+			await tryoutService.requestEnrollment(tryoutId, {
+				proofPayment
+			});
+			Alert.alert('Sukses', 'Pendaftaran berhasil dikirim. Menunggu verifikasi admin.', [
+				{ text: 'OK', onPress: () => navigation.navigate('Tryout') }
+			]);
+		} catch (error) {
+			Alert.alert('Error', 'Gagal mendaftar tryout.');
+			console.error(error);
+		}
+	}, [proofPayment, tryoutId, navigation]);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
@@ -270,7 +299,9 @@ const TryoutRegistrationPaidScreen: FC = () => {
 								<View style={[styles.uploadIconWrapper, { width: uploadIconSize, height: uploadIconSize }]}>
 									<UploadIcon width={uploadIconSize} height={uploadIconSize} />
 								</View>
-								<Text style={[styles.uploadHelper, { fontSize: uploadHelperFontSize }]}>{paymentUploadHelper}</Text>
+								<Text style={[styles.uploadHelper, { fontSize: uploadHelperFontSize }]}>
+									{proofPayment ? proofPayment.name : paymentUploadHelper}
+								</Text>
 							</Pressable>
 						</View>
 

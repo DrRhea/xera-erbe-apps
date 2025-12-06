@@ -33,13 +33,13 @@ import AppHeader from '../../components/AppHeader';
 import { colors, fontFamilies } from '../../constants/theme';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import type { RootStackParamList } from '../../../App';
-import { resolveTryoutSubtest } from '../../data/tryoutContent';
 import {
 	getTryoutQuestions,
 	type TryoutQuestion,
 	type TryoutQuestionOption,
 } from '../../data/tryoutQuestions';
 import { markTryoutSubtestCompleted } from '../../data/tryoutProgress';
+import { tryoutService } from '../../services/tryoutService';
 import LeftPointerIcon from '../../../assets/icons/leftpointer.svg';
 import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
 
@@ -69,17 +69,25 @@ type TryoutQuestionRoute = RouteProp<RootStackParamList, 'TryoutQuestion'>;
 const TryoutQuestionScreen: FC = () => {
 	const route = useRoute<TryoutQuestionRoute>();
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-	const { tryoutId, subtestId, subtestTitle, tryoutTitle } = route.params;
+	// @ts-ignore
+	const { tryoutId, subtestId, subtestTitle, tryoutTitle, duration } = route.params;
 	const layout = useResponsiveLayout();
 	const sheetRef = useRef<BottomSheet>(null);
 
+	const [durationMinutes, setDurationMinutes] = useState(duration || 30);
+
 	const subtestDetail = useMemo(
-		() => resolveTryoutSubtest(tryoutId, subtestId, subtestTitle),
-		[tryoutId, subtestId, subtestTitle]
+		() => ({
+			id: subtestId,
+			title: subtestTitle,
+			durationMinutes: durationMinutes
+		}),
+		[subtestId, subtestTitle, durationMinutes]
 	);
+	
 	const initialDurationSeconds = useMemo(
-		() => Math.max(subtestDetail.durationMinutes, 0) * 60,
-		[subtestDetail.durationMinutes]
+		() => Math.max(durationMinutes, 0) * 60,
+		[durationMinutes]
 	);
 	const [remainingSeconds, setRemainingSeconds] = useState(initialDurationSeconds);
 	const [isSubmitDialogVisible, setSubmitDialogVisible] = useState(false);
@@ -105,10 +113,44 @@ const TryoutQuestionScreen: FC = () => {
 		navigation.navigate('Notification');
 	}, [navigation]);
 
-	const questions = useMemo(
-		() => getTryoutQuestions(tryoutId, subtestId, subtestDetail.title),
-		[tryoutId, subtestId, subtestDetail.title]
-	);
+	const [questions, setQuestions] = useState<TryoutQuestion[]>([]);
+	const [sessionId, setSessionId] = useState<string | null>(null);
+
+	useEffect(() => {
+		const init = async () => {
+			try {
+				// @ts-ignore
+				const { enrollmentId } = route.params;
+				if (!enrollmentId) return;
+
+				const session = await tryoutService.startSession(enrollmentId, subtestId);
+				setSessionId(session.id);
+				
+				// Fetch subtest details to get duration
+				// We can't easily get it from here unless we pass it or fetch it.
+				// Assuming default for now or passed via params if we update navigation.
+				// Actually, let's fetch subtests again or assume 30.
+				
+				const q = await tryoutService.getQuestions(subtestId);
+				
+				const mapped: TryoutQuestion[] = q.map((x: any) => ({
+					id: x.id,
+					number: x.number,
+					question: x.prompt,
+					options: x.options.map((o: any) => ({
+						id: o.id,
+						label: o.label,
+						text: o.body
+					}))
+				}));
+				setQuestions(mapped);
+			} catch (e) {
+				console.error('Failed to init session', e);
+			}
+		};
+		init();
+	}, [subtestId, route.params]);
+
 	const questionNumbers = useMemo(
 		() => questions.map((question) => question.number),
 		[questions]
@@ -280,7 +322,7 @@ const TryoutQuestionScreen: FC = () => {
 	);
 
 	const handleSelectOption = useCallback(
-		(optionId: string) => {
+		async (optionId: string) => {
 			setQuestionStates((prev) =>
 				prev.map((state, index) =>
 					index === currentQuestionIndex
@@ -291,8 +333,16 @@ const TryoutQuestionScreen: FC = () => {
 						: state
 				)
 			);
+			
+			if (sessionId && currentQuestion) {
+				try {
+					await tryoutService.recordAnswer(sessionId, currentQuestion.id, optionId);
+				} catch (e) {
+					console.error('Failed to record answer', e);
+				}
+			}
 		},
-		[currentQuestionIndex]
+		[currentQuestionIndex, sessionId, currentQuestion]
 	);
 
 	const handleToggleFlag = useCallback(() => {
@@ -332,7 +382,15 @@ const TryoutQuestionScreen: FC = () => {
 		setSubmitDialogVisible(false);
 	}, []);
 
-	const handleSubmitConfirm = useCallback(() => {
+	const handleSubmitConfirm = useCallback(async () => {
+		if (sessionId) {
+			try {
+				await tryoutService.completeSession(sessionId);
+			} catch (e) {
+				console.error('Failed to complete session', e);
+			}
+		}
+
 		markTryoutSubtestCompleted(tryoutId, subtestId);
 		setSubmitDialogVisible(false);
 		navigation.dispatch(
@@ -349,7 +407,7 @@ const TryoutQuestionScreen: FC = () => {
 				],
 			})
 		);
-	}, [navigation, tryoutId, subtestId, tryoutTitle]);
+	}, [navigation, tryoutId, subtestId, tryoutTitle, sessionId]);
 
 	const renderSheetBackground = useCallback(
 		({ style }: BottomSheetBackgroundProps) => (
