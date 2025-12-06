@@ -358,6 +358,11 @@ const TryoutScreen: FC = () => {
 												]}
 											>
 												{tryout.statusLabel}
+											</Text>
+										</View>
+										<Text style={styles.upcomingTitle}>{tryout.title}</Text>
+										<Text style={styles.upcomingDate}>{tryout.dateLabel}</Text>
+									</View>
 									<View
 										style={[
 											styles.upcomingCta,
@@ -373,11 +378,6 @@ const TryoutScreen: FC = () => {
 											{tryout.enrollmentStatus === 'approved' ? 'Terdaftar' : 
 											 tryout.enrollmentStatus === 'pending' ? 'Menunggu' : 'Daftar Sekarang'}
 										</Text>
-									</View>ingVertical: actionBadgePaddingVertical,
-											},
-										]}
-									>
-										<Text style={styles.upcomingCtaLabel}>Daftar Sekarang</Text>
 									</View>
 								</Pressable>
 							))}

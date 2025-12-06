@@ -49,7 +49,7 @@ const RegisterScreen: React.FC = () => {
 		navigation.navigate('Login');
 	}, [navigation]);
 
-	const handleRegister = useCallback(() => {
+	const handleRegister = useCallback(async () => {
 		if (isSubmitDisabled) {
 			return;
 		}
