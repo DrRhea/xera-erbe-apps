@@ -58,5 +58,12 @@ export const authService = {
   async isAuthenticated(): Promise<boolean> {
     const token = await AsyncStorage.getItem('accessToken');
     return !!token;
+  },
+
+  async updateProfile(data: Partial<RegisterData>): Promise<any> {
+    const response = await api.patch('/users/me', data);
+    const updatedUser = response.data;
+    await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+    return updatedUser;
   }
 };

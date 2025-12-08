@@ -37,6 +37,8 @@ import ImEngQuestionScreen from './src/screens/imeng/ImEngQuestionScreen';
 import LoginScreen from './src/screens/login/LoginScreen';
 import RegisterScreen from './src/screens/login/RegisterScreen';
 import LiterasikScreen from './src/screens/literasik/LiterasikScreen';
+import ProfileScreen from './src/screens/profile/ProfileScreen';
+import EditProfileScreen from './src/screens/profile/EditProfileScreen';
 import type { CategoryIconKey } from './src/data/digidawData';
 import type { MateriIconKey } from './src/data/materiContent';
 import type { ExamId } from './src/data/examContent';
@@ -135,6 +137,7 @@ export type RootStackParamList = {
   Search: undefined;
   Wallet: undefined;
   Profile: undefined;
+  EditProfile: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -214,10 +217,8 @@ const AppContent = () => {
               name="Wallet"
               children={() => <PlaceholderScreen title="Wallet" message="Wallet screen coming soon." />}
             />
-            <Stack.Screen
-              name="Profile"
-              children={() => <PlaceholderScreen title="Profile" message="Profile screen coming soon." />}
-            />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
           </>
         )}
       </Stack.Navigator>
