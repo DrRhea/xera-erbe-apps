@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 
@@ -16,7 +17,7 @@ import AppHeader from '../../components/AppHeader';
 import { colors, fontFamilies } from '../../constants/theme';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import type { RootStackParamList } from '../../../App';
-import { getModuleQuestions, type DigidawQuestionOption } from '../../data/digidawData'
+import { bankSoalService } from '../../services/bankSoalService';
 
 import LeftPointerIcon from '../../../assets/icons/leftpointer.svg';
 import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
@@ -36,6 +37,22 @@ type QuestionState = {
 
 type OptionVariant = 'default' | 'selected' | 'correct' | 'incorrect';
 
+export type DigidawQuestionOption = {
+  id: string;
+  label: string;
+  text: string;
+};
+
+export type DigidawQuestion = {
+  id: string;
+  number: number;
+  prompt: string;
+  options: DigidawQuestionOption[];
+  correctOptionId: string;
+  hint?: string;
+  explanation?: string;
+};
+
 const DigidawQuestionScreen: FC = () => {
   const route = useRoute<DigidawQuestionRoute>();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -46,17 +63,44 @@ const DigidawQuestionScreen: FC = () => {
     navigation.navigate('Notification');
   }, [navigation]);
 
-  const questions = useMemo(() => getModuleQuestions(moduleId, moduleTitle), [moduleId, moduleTitle]);
+  const [questions, setQuestions] = useState<DigidawQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [questionStates, setQuestionStates] = useState<QuestionState[]>(() =>
-    questions.map(() => ({ selectedOptionId: null, isEvaluated: false }))
-  );
+  const [questionStates, setQuestionStates] = useState<QuestionState[]>([]);
   const [isHintVisible, setHintVisible] = useState(false);
 
   useEffect(() => {
-    setCurrentIndex(0);
-    setQuestionStates(questions.map(() => ({ selectedOptionId: null, isEvaluated: false })));
-  }, [questions]);
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        const session = await bankSoalService.startModuleSession(moduleId);
+        const mappedQuestions: DigidawQuestion[] = session.questions.map((q, index) => {
+          const correctOption = q.options.find((o) => o.isCorrect);
+          return {
+            id: q.id,
+            number: index + 1,
+            prompt: q.prompt,
+            options: q.options.map((o) => ({
+              id: o.id,
+              label: o.label,
+              text: o.body,
+            })),
+            correctOptionId: correctOption ? correctOption.id : '',
+            hint: '',
+            explanation: '',
+          };
+        });
+        setQuestions(mappedQuestions);
+        setQuestionStates(mappedQuestions.map(() => ({ selectedOptionId: null, isEvaluated: false })));
+        setCurrentIndex(0);
+      } catch (error) {
+        console.error('Failed to fetch questions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, [moduleId]);
 
   const currentQuestion = questions[currentIndex];
   const currentState = questionStates[currentIndex];
@@ -180,8 +224,22 @@ const DigidawQuestionScreen: FC = () => {
   const hasSelection = Boolean(currentState?.selectedOptionId);
   const showExplanation = Boolean(currentState?.isEvaluated);
 
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </SafeAreaView>
+    );
+  }
+
   if (!currentQuestion) {
-    return null;
+    return (
+      <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ fontFamily: fontFamilies.medium, color: colors.textSecondary }}>
+          Tidak ada soal tersedia.
+        </Text>
+      </SafeAreaView>
+    );
   }
 
   return (

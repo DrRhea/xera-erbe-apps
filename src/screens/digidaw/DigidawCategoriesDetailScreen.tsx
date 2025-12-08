@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState, useEffect } from 'react';
 import {
 	Pressable,
 	SafeAreaView,
@@ -20,7 +20,8 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { getCategoryModules, getIconComponent } from '../../data/digidawData';
+import { getIconComponent } from '../../data/digidawData';
+import { bankSoalService, Module } from '../../services/bankSoalService';
 
 type DetailRoute = RouteProp<RootStackParamList, 'DigidawCategoryDetail'>;
 
@@ -44,10 +45,19 @@ const DigidawCategoriesDetailScreen: FC = () => {
 	}, [navigation]);
 
 	const Icon = useMemo(() => getIconComponent(iconKey), [iconKey]);
-	const modules = useMemo(
-		() => getCategoryModules(subjectId, subjectTitle),
-		[subjectId, subjectTitle]
-	);
+	const [modules, setModules] = useState<Module[]>([]);
+
+	useEffect(() => {
+		const fetchModules = async () => {
+			try {
+				const data = await bankSoalService.getModules(subjectId);
+				setModules(data);
+			} catch (error) {
+				console.error('Failed to fetch modules:', error);
+			}
+		};
+		fetchModules();
+	}, [subjectId]);
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),

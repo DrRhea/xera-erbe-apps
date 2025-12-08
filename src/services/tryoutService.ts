@@ -172,4 +172,9 @@ export const tryoutService = {
     });
     return response.data;
   },
+
+  async getMyProgress(): Promise<{ daily: { current: number; target: number }; weekly: { current: number; target: number } }> {
+    const response = await api.get('/tryout/my-progress');
+    return response.data;
+  },
 };

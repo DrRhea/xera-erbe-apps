@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { fontFamilies } from './src/constants/theme';
 import HomeScreen from './src/screens/home/HomeScreen';
 import TryoutScreen from './src/screens/tryout/TryoutScreen';
 import TryoutDetailScreen from './src/screens/tryout/TryoutDetailScreen';
@@ -144,59 +147,90 @@ const navigationTheme = {
   },
 };
 
-export default function App() {
+const AppContent = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [fontsLoaded] = useFonts({
+    [fontFamilies.regular]: require('./assets/fonts/montserrat/Montserrat-Regular.ttf'),
+    [fontFamilies.medium]: require('./assets/fonts/montserrat/Montserrat-Medium.ttf'),
+    [fontFamilies.semiBold]: require('./assets/fonts/montserrat/Montserrat-SemiBold.ttf'),
+    [fontFamilies.bold]: require('./assets/fonts/montserrat/Montserrat-Bold.ttf'),
+    [fontFamilies.extraBold]: require('./assets/fonts/montserrat/Montserrat-ExtraBold.ttf'),
+    [fontFamilies.hero]: require('./assets/fonts/playpensans/PlaypenSans-ExtraBold.ttf'),
+  });
+
   useEffect(() => {
-    SplashScreen.hideAsync().catch(() => null);
-  }, []);
+    if (!isLoading && fontsLoaded) {
+      SplashScreen.hideAsync().catch(() => null);
+    }
+  }, [isLoading, fontsLoaded]);
+
+  if (isLoading || !fontsLoaded) {
+    return null;
+  }
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme}>
-        <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Literasik" component={LiterasikScreen} />
-          <Stack.Screen name="Materi" component={MateriScreen} />
-          <Stack.Screen name="MateriCategory" component={MateriCategoriesScreen} />
-          <Stack.Screen name="MateriDetail" component={MateriDetailScreen} />
-          <Stack.Screen name="Tryout" component={TryoutScreen} />
-          <Stack.Screen name="Digidaw" component={DigidawScreen} />
-          <Stack.Screen name="DigidawCategories" component={DigidawCategoriesScreen} />
-          <Stack.Screen name="DigidawCategoryDetail" component={DigidawCategoriesDetailScreen} />
-          <Stack.Screen name="DigidawQuestion" component={DigidawQuestionScreen} />
-          <Stack.Screen name="Snackbt" component={SnackbtScreen} />
-          <Stack.Screen name="SnackbtDetail" component={SnackbtDetailScreen} />
-          <Stack.Screen name="SnackbtQuestion" component={SnackbtQuestionScreen} />
-          <Stack.Screen name="Poke" component={PokeScreen} />
-          <Stack.Screen name="PokeDetail" component={PokeDetailScreen} />
-          <Stack.Screen name="PokeQuestion" component={PokeQuestionScreen} />
-          <Stack.Screen name="ImEng" component={ImEngScreen} />
-          <Stack.Screen name="ImEngQuestion" component={ImEngQuestionScreen} />
-          <Stack.Screen name="TryoutDesc" component={TryoutDescScreen} />
-          <Stack.Screen name="TryoutRegistrationFree" component={TryoutRegistrationFreeScreen} />
-          <Stack.Screen name="TryoutRegistrationPaid" component={TryoutRegistrationPaidScreen} />
-          <Stack.Screen name="TryoutDetail" component={TryoutDetailScreen} />
-          <Stack.Screen name="TryoutQuestion" component={TryoutQuestionScreen} />
-          <Stack.Screen
-            name="Analysis"
-            children={() => <PlaceholderScreen title="Analysis" message="Analysis screen coming soon." />}
-          />
-          <Stack.Screen name="Report" component={ReportScreen} />
-          <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
-          <Stack.Screen name="Promotion" component={PromotionScreen} />
-          <Stack.Screen name="Notification" component={NotificationScreen} />
-          <Stack.Screen name="Search" component={SearchScreen} />
-          <Stack.Screen
-            name="Wallet"
-            children={() => <PlaceholderScreen title="Wallet" message="Wallet screen coming soon." />}
-          />
-          <Stack.Screen
-            name="Profile"
-            children={() => <PlaceholderScreen title="Profile" message="Profile screen coming soon." />}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <NavigationContainer theme={navigationTheme}>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!isAuthenticated ? (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Literasik" component={LiterasikScreen} />
+            <Stack.Screen name="Materi" component={MateriScreen} />
+            <Stack.Screen name="MateriCategory" component={MateriCategoriesScreen} />
+            <Stack.Screen name="MateriDetail" component={MateriDetailScreen} />
+            <Stack.Screen name="Tryout" component={TryoutScreen} />
+            <Stack.Screen name="Digidaw" component={DigidawScreen} />
+            <Stack.Screen name="DigidawCategories" component={DigidawCategoriesScreen} />
+            <Stack.Screen name="DigidawCategoryDetail" component={DigidawCategoriesDetailScreen} />
+            <Stack.Screen name="DigidawQuestion" component={DigidawQuestionScreen} />
+            <Stack.Screen name="Snackbt" component={SnackbtScreen} />
+            <Stack.Screen name="SnackbtDetail" component={SnackbtDetailScreen} />
+            <Stack.Screen name="SnackbtQuestion" component={SnackbtQuestionScreen} />
+            <Stack.Screen name="Poke" component={PokeScreen} />
+            <Stack.Screen name="PokeDetail" component={PokeDetailScreen} />
+            <Stack.Screen name="PokeQuestion" component={PokeQuestionScreen} />
+            <Stack.Screen name="ImEng" component={ImEngScreen} />
+            <Stack.Screen name="ImEngQuestion" component={ImEngQuestionScreen} />
+            <Stack.Screen name="TryoutDesc" component={TryoutDescScreen} />
+            <Stack.Screen name="TryoutRegistrationFree" component={TryoutRegistrationFreeScreen} />
+            <Stack.Screen name="TryoutRegistrationPaid" component={TryoutRegistrationPaidScreen} />
+            <Stack.Screen name="TryoutDetail" component={TryoutDetailScreen} />
+            <Stack.Screen name="TryoutQuestion" component={TryoutQuestionScreen} />
+            <Stack.Screen
+              name="Analysis"
+              children={() => <PlaceholderScreen title="Analysis" message="Analysis screen coming soon." />}
+            />
+            <Stack.Screen name="Report" component={ReportScreen} />
+            <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+            <Stack.Screen name="Promotion" component={PromotionScreen} />
+            <Stack.Screen name="Notification" component={NotificationScreen} />
+            <Stack.Screen name="Search" component={SearchScreen} />
+            <Stack.Screen
+              name="Wallet"
+              children={() => <PlaceholderScreen title="Wallet" message="Wallet screen coming soon." />}
+            />
+            <Stack.Screen
+              name="Profile"
+              children={() => <PlaceholderScreen title="Profile" message="Profile screen coming soon." />}
+            />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <SafeAreaProvider>
+        <AppContent />
+      </SafeAreaProvider>
+    </AuthProvider>
   );
 }

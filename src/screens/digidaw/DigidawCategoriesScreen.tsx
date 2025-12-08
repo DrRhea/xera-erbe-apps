@@ -20,9 +20,9 @@ import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import {
-	getCategoryCollection,
 	getIconComponent,
 } from '../../data/digidawData';
+import { bankSoalService, type Subject } from '../../services/bankSoalService';
 
 type DigidawCategoriesRoute = RouteProp<RootStackParamList, 'DigidawCategories'>;
 
@@ -41,17 +41,25 @@ const DigidawCategoriesScreen: FC = () => {
 	const layout = useResponsiveLayout();
 
 	const { categoryId, categoryTitle } = route.params;
+	const [subjects, setSubjects] = React.useState<Subject[]>([]);
+
+	React.useEffect(() => {
+		const fetchSubjects = async () => {
+			try {
+				const data = await bankSoalService.getSubjects(categoryId);
+				setSubjects(data);
+			} catch (e) {
+				console.error(e);
+			}
+		};
+		fetchSubjects();
+	}, [categoryId]);
 
 	const handleNotificationPress = useCallback(() => {
 		navigation.navigate('Notification');
 	}, [navigation]);
 
-	const collection = useMemo(
-		() => getCategoryCollection(categoryId, categoryTitle),
-		[categoryId, categoryTitle]
-	);
-
-	const title = `Let's DIGIDAW ${collection.title}`;
+	const title = `Let's DIGIDAW ${categoryTitle}`;
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
@@ -122,8 +130,8 @@ const DigidawCategoriesScreen: FC = () => {
 				>
 					<Text style={styles.sectionTitle}>{title}</Text>
 					<View style={[styles.cardGrid, { columnGap: cardGap, rowGap: cardGap, gap: cardGap }]}>
-						{collection.items.map((item) => {
-							const Icon = getIconComponent(item.iconKey);
+						{subjects.map((item) => {
+							const Icon = getIconComponent((item.iconKey as any) || 'material1');
 							return (
 								<Pressable
 									key={item.id}
@@ -138,14 +146,14 @@ const DigidawCategoriesScreen: FC = () => {
 										},
 									]}
 									accessibilityRole="button"
-									accessibilityLabel={`Buka bank soal ${item.label}`}
+									accessibilityLabel={`Buka bank soal ${item.name}`}
 									onPress={() =>
 										navigation.navigate('DigidawCategoryDetail', {
 											categoryId,
-											categoryTitle: collection.title,
+											categoryTitle: title,
 											subjectId: item.id,
-											subjectTitle: item.label,
-											iconKey: item.iconKey,
+											subjectTitle: item.name,
+											iconKey: (item.iconKey as any) || 'material1',
 										})
 									}
 								>
@@ -159,9 +167,9 @@ const DigidawCategoriesScreen: FC = () => {
 											},
 										]}
 									>
-										<Icon width={iconSize} height={iconSize} />
+										<Icon width={iconSize} height={iconSize} color={colors.primary} />
 									</View>
-									<Text style={styles.cardLabel}>{item.label}</Text>
+									<Text style={styles.cardLabel}>{item.name}</Text>
 								</Pressable>
 							);
 						})}

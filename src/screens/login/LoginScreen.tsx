@@ -5,7 +5,7 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 
 import AuthLayout from './AuthLayout';
 import { colors, fontFamilies } from '../../constants/theme';
-import { authService } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import type { RootStackParamList } from '../../../App';
 
 const buttonGradient = ['#1C637B', '#B0ED9F'] as const;
@@ -14,6 +14,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const LoginScreen: React.FC = () => {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+	const { login } = useAuth();
 
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -51,24 +52,13 @@ const LoginScreen: React.FC = () => {
 		setErrorMessage('');
 
 		try {
-			const result = await authService.login(email, password);
+			await login(email, password);
 			setSubmitting(false);
-
-			Alert.alert('Selamat datang', `Hai ${result.user.name}!`, [
-				{
-					text: 'Mulai Belajar',
-					onPress: () =>
-						navigation.reset({
-							index: 0,
-							routes: [{ name: 'Home' }],
-						}),
-				},
-			]);
 		} catch (error: any) {
 			setSubmitting(false);
 			setErrorMessage(error.response?.data?.message || 'Login failed');
 		}
-	}, [email, isSubmitDisabled, navigation, password]);
+	}, [email, isSubmitDisabled, login, password]);
 
 	return (
 		<AuthLayout>

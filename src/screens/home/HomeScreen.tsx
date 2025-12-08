@@ -34,6 +34,8 @@ import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
 import { colors, fontFamilies, gradients } from '../../constants/theme';
 import PromotionBanner from '../../components/PromotionBanner';
 import type { RootStackParamList } from '../../../App';
+import { useAuth } from '../../contexts/AuthContext';
+import { bankSoalService } from '../../services/bankSoalService';
 
 const leaderboardGradients = gradients.leaderboard;
 
@@ -549,7 +551,7 @@ const AdminCard: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
   </View>
 );
 
-const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
+const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgressData: ProgressCardProps[] }> = ({ layout, user, dynamicProgressData }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const quickActionMinWidth = quickActions.length
     ? Math.max(
@@ -600,7 +602,7 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
             resizeMode="contain"
           />
           <View style={[styles.profileMeta, { marginLeft: layout.profileSpacing }]}>
-            <Text style={[styles.profileGreeting, { fontSize: layout.heroGreetingSize }]}>Hi, Nataa!</Text>
+            <Text style={[styles.profileGreeting, { fontSize: layout.heroGreetingSize }]}>Hi, {user?.name || 'User'}!</Text>
             <View
               style={[
                 styles.profileBadge,
@@ -613,7 +615,7 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
         </View>
         <Text style={[styles.heroHeadline, { fontSize: layout.heroHeadlineFontSize }]}>{"Let's Start Your Academic Era!"}</Text>
         <View style={[styles.progressGrid, { columnGap: layout.progressGap, rowGap: layout.progressGap, gap: layout.progressGap }]}>
-          {progressData.map((item) => (
+          {dynamicProgressData.map((item) => (
             <ProgressCard key={item.title} {...item} />
           ))}
         </View>
@@ -783,30 +785,61 @@ const LiterasikSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
 );
 
 const HomeScreen: FC = () => {
-  const [fontsLoaded, fontError] = useFonts({
-    [fontFamilies.regular]: require('../../../assets/fonts/montserrat/Montserrat-Regular.ttf'),
-    [fontFamilies.medium]: require('../../../assets/fonts/montserrat/Montserrat-Medium.ttf'),
-    [fontFamilies.semiBold]: require('../../../assets/fonts/montserrat/Montserrat-SemiBold.ttf'),
-    [fontFamilies.bold]: require('../../../assets/fonts/montserrat/Montserrat-Bold.ttf'),
-    [fontFamilies.extraBold]: require('../../../assets/fonts/montserrat/Montserrat-ExtraBold.ttf'),
-    [fontFamilies.hero]: require('../../../assets/fonts/playpensans/PlaypenSans-ExtraBold.ttf'),
-  });
+  const { user } = useAuth();
+  const [progress, setProgress] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        const data = await bankSoalService.getMyProgress();
+        setProgress(data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchProgress();
+  }, []);
+
+  const dynamicProgressData: ProgressCardProps[] = React.useMemo(() => {
+      if (!progress) return [
+          {
+            title: 'Progress Mingguan',
+            progress: 0,
+            accentLabel: '0',
+            footerLabel: '/100 soal',
+            routeName: 'Report',
+          },
+          {
+            title: 'Progress Harian',
+            progress: 0,
+            accentLabel: '0',
+            footerLabel: '/20 soal',
+            routeName: 'Report',
+          },
+      ];
+      return [
+          {
+            title: 'Progress Mingguan',
+            progress: progress.weekly.current / progress.weekly.target,
+            accentLabel: `${progress.weekly.current}`,
+            footerLabel: `/${progress.weekly.target} soal`,
+            routeName: 'Report',
+          },
+          {
+            title: 'Progress Harian',
+            progress: progress.daily.current / progress.daily.target,
+            accentLabel: `${progress.daily.current}`,
+            footerLabel: `/${progress.daily.target} soal`,
+            routeName: 'Report',
+          },
+      ];
+  }, [progress]);
 
   const layout = useResponsiveLayout();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded || fontError) {
-      await SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
-
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
-
   return (
-    <SafeAreaView style={styles.safeArea} onLayout={onLayoutRootView}>
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
       <ScrollView
         style={styles.screen}
@@ -819,7 +852,7 @@ const HomeScreen: FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <HomescreenHeader layout={layout} />
+        <HomescreenHeader layout={layout} user={user} dynamicProgressData={dynamicProgressData} />
         <View
           style={[
             styles.sectionSpacing,

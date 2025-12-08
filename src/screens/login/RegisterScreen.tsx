@@ -5,7 +5,7 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 
 import AuthLayout from './AuthLayout';
 import { colors, fontFamilies } from '../../constants/theme';
-import { authService } from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import type { RootStackParamList } from '../../../App';
 
 const buttonGradient = ['#1C637B', '#B0ED9F'] as const;
@@ -14,6 +14,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const RegisterScreen: React.FC = () => {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+	const { register } = useAuth();
 
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
@@ -58,7 +59,7 @@ const RegisterScreen: React.FC = () => {
 		setErrorMessage('');
 
 		try {
-			await authService.register({
+			await register({
 				name,
 				email,
 				password,
@@ -68,18 +69,11 @@ const RegisterScreen: React.FC = () => {
 			setEmail('');
 			setPassword('');
 			setSubmitting(false);
-
-			Alert.alert('Registrasi Berhasil', 'Akun kamu sudah siap. Yuk masuk sekarang!', [
-				{
-					text: 'Masuk',
-					onPress: handleNavigateToLogin,
-				},
-			]);
 		} catch (error: any) {
 			setSubmitting(false);
 			setErrorMessage(error.response?.data?.message || 'Registration failed');
 		}
-	}, [email, handleNavigateToLogin, isSubmitDisabled, name, password]);
+	}, [email, isSubmitDisabled, name, password, register]);
 
 	return (
 		<AuthLayout>
