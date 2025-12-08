@@ -28,6 +28,7 @@ type ActiveTryout = {
 	id: string;
 	title: string;
 	enrollmentStatus?: 'pending' | 'approved' | 'rejected';
+	sessions?: any[];
 };
 
 type UpcomingTryout = {
@@ -37,6 +38,14 @@ type UpcomingTryout = {
 	statusLabel: string;
 	statusVariant: 'free' | 'paid';
 	enrollmentType: 'open' | 'paid' | 'free_with_proof';
+	enrollmentStatus?: 'pending' | 'approved' | 'rejected';
+};
+
+type CompletedTryout = {
+	id: string;
+	title: string;
+	dateLabel: string;
+	score: number;
 	enrollmentStatus?: 'pending' | 'approved' | 'rejected';
 };
 
@@ -56,6 +65,7 @@ const TryoutScreen: FC = () => {
 	const layout = useResponsiveLayout();
 	const [activeTryouts, setActiveTryouts] = useState<ActiveTryout[]>([]);
 	const [upcomingTryouts, setUpcomingTryouts] = useState<UpcomingTryout[]>([]);
+	const [completedTryouts, setCompletedTryouts] = useState<CompletedTryout[]>([]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -66,57 +76,93 @@ const TryoutScreen: FC = () => {
 					
 					const active: ActiveTryout[] = [];
 					const upcoming: UpcomingTryout[] = [];
+					const completed: CompletedTryout[] = [];
+					const now = new Date();
 
 					for (const pkg of packages) {
 						// Fetch enrollment for this package
-						// Note: In a real app, we should have an endpoint to get all my enrollments at once
-						// to avoid N+1. For now, we iterate.
 						let enrollmentStatus: 'pending' | 'approved' | 'rejected' | undefined;
+						let sessions: any[] = [];
 						try {
 							const enrollments = await tryoutService.getMyEnrollments(pkg.id);
 							const myEnrollment = enrollments.find(e => e.userId === user?.id);
 							if (myEnrollment) {
 								enrollmentStatus = myEnrollment.status;
+								sessions = myEnrollment.sessions || [];
 							}
 						} catch (e) {
 							console.log('Error fetching enrollment', e);
 						}
 
-						if (pkg.isActive) {
-							active.push({
-								id: pkg.id,
-								title: pkg.title,
-								enrollmentStatus,
-							});
-						} else {
-							// Format date
-							const date = new Date(pkg.startsAt);
-							const dateLabel = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-							
-							let statusLabel = 'Gratis';
-							let statusVariant: 'free' | 'paid' = 'free';
-							
-							if (pkg.enrollmentType === 'paid') {
-								statusLabel = 'Berbayar';
-								statusVariant = 'paid';
-							} else if (pkg.enrollmentType === 'free_with_proof') {
-								statusLabel = 'Gratis (Syarat)';
-								statusVariant = 'free';
-							}
+						const endsAt = new Date(pkg.endsAt);
+						const isExpired = endsAt < now;
 
-							upcoming.push({
-								id: pkg.id,
-								title: pkg.title,
-								dateLabel,
-								statusLabel,
-								statusVariant,
-								enrollmentType: pkg.enrollmentType,
-								enrollmentStatus,
-							});
+						if (enrollmentStatus === 'approved') {
+							if (isExpired) {
+								// Calculate score (average of sessions for now)
+								let totalScore = 0;
+								let count = 0;
+								sessions.forEach(s => {
+									if (s.score !== undefined) {
+										totalScore += s.score;
+										count++;
+									}
+								});
+								const avgScore = count > 0 ? parseFloat((totalScore / count).toFixed(1)) : 0;
+								
+								const dateLabel = endsAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+								completed.push({
+									id: pkg.id,
+									title: pkg.title,
+									dateLabel,
+									score: avgScore,
+									enrollmentStatus,
+								});
+							} else {
+								active.push({
+									id: pkg.id,
+									title: pkg.title,
+									enrollmentStatus,
+									sessions,
+								});
+							}
+						} else {
+							// Upcoming (Pending or Not Registered)
+							// Only show if not expired? Or show expired as "Missed"?
+							// User said "upcoming tryout is for all tryout that the user can register or has registered but with a pending status"
+							// Usually we don't show expired tryouts in upcoming.
+							if (!isExpired) {
+								// Format date
+								const date = new Date(pkg.startsAt);
+								const dateLabel = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+								
+								let statusLabel = 'Gratis';
+								let statusVariant: 'free' | 'paid' = 'free';
+								
+								if (pkg.enrollmentType === 'paid') {
+									statusLabel = 'Berbayar';
+									statusVariant = 'paid';
+								} else if (pkg.enrollmentType === 'free_with_proof') {
+									statusLabel = 'Gratis (Syarat)';
+									statusVariant = 'free';
+								}
+
+								upcoming.push({
+									id: pkg.id,
+									title: pkg.title,
+									dateLabel,
+									statusLabel,
+									statusVariant,
+									enrollmentType: pkg.enrollmentType,
+									enrollmentStatus,
+								});
+							}
 						}
 					}
 					setActiveTryouts(active);
 					setUpcomingTryouts(upcoming);
+					setCompletedTryouts(completed);
 				} catch (error) {
 					console.error('Failed to fetch tryouts', error);
 				}
@@ -171,36 +217,32 @@ const TryoutScreen: FC = () => {
 
 	const handleActiveCardPress = useCallback(
 		(tryout: ActiveTryout) => {
-			if (tryout.enrollmentStatus === 'approved') {
-				navigation.navigate('TryoutDetail', {
-					tryoutId: tryout.id,
-					title: tryout.title,
-				});
-			} else if (tryout.enrollmentStatus === 'pending') {
-				alert('Pendaftaran sedang diverifikasi admin.');
-			} else {
-				// Not enrolled or rejected, go to description/registration
-				// Since we don't have full details here, we might need to fetch or pass defaults
-				// For active tryouts, we assume they are "open" or we should check enrollmentType
-				// But for now, let's just navigate to TryoutDesc which handles registration logic
-				// We need to pass params expected by TryoutDesc
-				navigation.navigate('TryoutDesc', {
-					tryoutId: tryout.id,
-					title: tryout.title,
-					dateLabel: 'Sekarang',
-					statusLabel: 'Aktif',
-					statusVariant: 'free', // Default, logic should be better
-				});
-			}
+			navigation.navigate('TryoutDetail', {
+				tryoutId: tryout.id,
+				title: tryout.title,
+			});
+		},
+		[navigation]
+	);
+
+	const handleCompletedCardPress = useCallback(
+		(tryout: CompletedTryout) => {
+			navigation.navigate('TryoutDetail', {
+				tryoutId: tryout.id,
+				title: tryout.title,
+				// Pass a param to indicate review mode if needed, 
+				// but TryoutDetail checks completion by itself usually.
+				// However, for "Review" we might want to be explicit.
+				// But TryoutDetailScreen doesn't accept 'mode' yet.
+				// We will rely on TryoutDetailScreen to show "Selesai" and allow review.
+			});
 		},
 		[navigation]
 	);
 
 	const handleUpcomingCardPress = useCallback(
 		(tryout: UpcomingTryout) => {
-			if (tryout.enrollmentStatus === 'approved') {
-				alert('Kamu sudah terdaftar! Tunggu tanggal mainnya ya.');
-			} else if (tryout.enrollmentStatus === 'pending') {
+			if (tryout.enrollmentStatus === 'pending') {
 				alert('Pendaftaran sedang diverifikasi admin.');
 			} else {
 				navigation.navigate('TryoutDesc', {
@@ -249,140 +291,195 @@ const TryoutScreen: FC = () => {
 						style={[styles.searchBar, { marginBottom: clamp(sectionSpacing * 0.35, 12, 20) }]}
 					/>
 
-					<View style={styles.section}>
-						<Text style={styles.sectionTitle}>Try Out Erbe (Aktif)</Text>
-						<View
-							style={[
-								styles.activeGrid,
-								{
-									rowGap: activeCardGap,
-									width: '100%',
-								},
-							]}
-						>
-							{activeTryouts.map((tryout) => (
-								<Pressable
-									key={tryout.id}
-									onPress={() => handleActiveCardPress(tryout)}
-									style={[
-										styles.activeCard,
-										{
-											paddingVertical: activeCardPaddingVertical,
-											paddingHorizontal: activeCardPaddingHorizontal,
-											columnGap: activeCardContentGap,
-											maxWidth: activeCardWidth,
-											alignSelf: 'center',
-										},
-									]}
-									accessibilityRole="button"
-									accessibilityLabel={`Buka ${tryout.title}`}
-								>
-									<View
+					{activeTryouts.length > 0 && (
+						<View style={styles.section}>
+							<Text style={styles.sectionTitle}>Try Out Erbe (Aktif)</Text>
+							<View
+								style={[
+									styles.activeGrid,
+									{
+										rowGap: activeCardGap,
+										width: '100%',
+									},
+								]}
+							>
+								{activeTryouts.map((tryout) => (
+									<Pressable
+										key={tryout.id}
+										onPress={() => handleActiveCardPress(tryout)}
 										style={[
-											styles.activeIconWrapper,
+											styles.activeCard,
 											{
-												width: iconWrapperSize,
-												height: iconWrapperSize,
-												borderRadius: clamp(iconWrapperSize * 0.34, 12, 18),
+												paddingVertical: activeCardPaddingVertical,
+												paddingHorizontal: activeCardPaddingHorizontal,
+												columnGap: activeCardContentGap,
+												maxWidth: activeCardWidth,
+												alignSelf: 'center',
 											},
 										]}
+										accessibilityRole="button"
+										accessibilityLabel={`Buka ${tryout.title}`}
 									>
-										<Image
-											source={tryoutCardImage}
-											style={{ width: iconImageSize, height: iconImageSize }}
-											resizeMode="contain"
-										/>
-									</View>
-									<View style={[styles.activeContent, { marginLeft: activeCardContentGap }]}>
-										<Text style={styles.activeTitle}>{tryout.title}</Text>
 										<View
 											style={[
-												styles.activeActionBadge,
+												styles.activeIconWrapper,
+												{
+													width: iconWrapperSize,
+													height: iconWrapperSize,
+													borderRadius: clamp(iconWrapperSize * 0.34, 12, 18),
+												},
+											]}
+										>
+											<Image
+												source={tryoutCardImage}
+												style={{ width: iconImageSize, height: iconImageSize }}
+												resizeMode="contain"
+											/>
+										</View>
+										<View style={[styles.activeContent, { marginLeft: activeCardContentGap }]}>
+											<Text style={styles.activeTitle}>{tryout.title}</Text>
+											<View
+												style={[
+													styles.activeActionBadge,
+													{
+														paddingHorizontal: actionBadgePaddingHorizontal,
+														paddingVertical: actionBadgePaddingVertical,
+													},
+												]}
+											>
+												<Text style={styles.activeActionLabel}>Kerjakan</Text>
+											</View>
+										</View>
+									</Pressable>
+								))}
+							</View>
+						</View>
+					)}
+
+					{upcomingTryouts.length > 0 && (
+						<View style={styles.section}>
+							<Text style={styles.sectionTitle}>Daftar TO Erbe Selanjutnya</Text>
+							<View style={[styles.upcomingList, { rowGap: upcomingCardGap, gap: upcomingCardGap }]}>
+								{upcomingTryouts.map((tryout) => (
+									<Pressable
+										key={tryout.id}
+										onPress={() => handleUpcomingCardPress(tryout)}
+										style={[styles.upcomingCard, { padding: upcomingCardPadding }]}
+										accessibilityRole="button"
+										accessibilityLabel={`Daftar ${tryout.title}`}
+									>
+										<View style={[styles.upcomingIconWrapper, { width: iconWrapperSize + 6, height: iconWrapperSize + 6 }]}>
+											<Image
+												source={tryoutCardImage}
+												style={{ width: iconImageSize + 8, height: iconImageSize + 8 }}
+												resizeMode="contain"
+											/>
+										</View>
+										<View style={styles.upcomingMeta}>
+											<View
+												style={[
+													styles.statusBadge,
+													tryout.statusVariant === 'free' ? styles.statusBadgeFree : styles.statusBadgePaid,
+													{
+														paddingHorizontal: upcomingBadgePaddingHorizontal,
+														paddingVertical: upcomingBadgePaddingVertical,
+													},
+												]}
+											>
+												<Text
+													style={[
+														styles.statusBadgeText,
+														tryout.statusVariant === 'free' ? styles.statusBadgeTextFree : styles.statusBadgeTextPaid,
+													]}
+												>
+													{tryout.statusLabel}
+												</Text>
+											</View>
+											<Text style={styles.upcomingTitle}>{tryout.title}</Text>
+											<Text style={styles.upcomingDate}>{tryout.dateLabel}</Text>
+										</View>
+										<View
+											style={[
+												styles.upcomingCta,
 												{
 													paddingHorizontal: actionBadgePaddingHorizontal,
 													paddingVertical: actionBadgePaddingVertical,
-													backgroundColor: tryout.enrollmentStatus === 'approved' ? colors.accent : 
-																	 tryout.enrollmentStatus === 'pending' ? '#FFC107' : '#2196F3'
+													backgroundColor: tryout.enrollmentStatus === 'pending' ? '#FFC107' : colors.accent
 												},
 											]}
 										>
-											<Text style={styles.activeActionLabel}>
-												{tryout.enrollmentStatus === 'approved' ? 'Kerjakan' : 
-												 tryout.enrollmentStatus === 'pending' ? 'Menunggu' : 'Daftar'}
+											<Text style={styles.upcomingCtaLabel}>
+												{tryout.enrollmentStatus === 'pending' ? 'Menunggu' : 'Daftar Sekarang'}
 											</Text>
 										</View>
-									</View>
-								</Pressable>
-							))}
+									</Pressable>
+								))}
+							</View>
 						</View>
-					</View>
+					)}
 
-					<View
-						style={[
-							styles.section,
-							{ marginBottom: clamp(layout.sectionSpacing, 28, 48) },
-						]}
-					>
-						<Text style={styles.sectionTitle}>Daftar TO Erbe Selanjutnya</Text>
-						<View style={[styles.upcomingList, { rowGap: upcomingCardGap, gap: upcomingCardGap }]}>
-							{upcomingTryouts.map((tryout) => (
-								<Pressable
-									key={tryout.id}
-									onPress={() => handleUpcomingCardPress(tryout)}
-									style={[styles.upcomingCard, { padding: upcomingCardPadding }]}
-									accessibilityRole="button"
-									accessibilityLabel={`Daftar ${tryout.title}`}
-								>
-									<View style={[styles.upcomingIconWrapper, { width: iconWrapperSize + 6, height: iconWrapperSize + 6 }]}>
-										<Image
-											source={tryoutCardImage}
-											style={{ width: iconImageSize + 8, height: iconImageSize + 8 }}
-											resizeMode="contain"
-										/>
-									</View>
-									<View style={styles.upcomingMeta}>
-										<View
-											style={[
-												styles.statusBadge,
-												tryout.statusVariant === 'free' ? styles.statusBadgeFree : styles.statusBadgePaid,
-												{
-													paddingHorizontal: upcomingBadgePaddingHorizontal,
-													paddingVertical: upcomingBadgePaddingVertical,
-												},
-											]}
-										>
-											<Text
+					{completedTryouts.length > 0 && (
+						<View style={styles.section}>
+							<Text style={styles.sectionTitle}>Try Out yang Sudah Dikerjakan</Text>
+							<View style={[styles.upcomingList, { rowGap: upcomingCardGap, gap: upcomingCardGap }]}>
+								{completedTryouts.map((tryout) => (
+									<Pressable
+										key={tryout.id}
+										onPress={() => handleCompletedCardPress(tryout)}
+										style={[styles.upcomingCard, { padding: upcomingCardPadding }]}
+										accessibilityRole="button"
+										accessibilityLabel={`Lihat Pembahasan ${tryout.title}`}
+									>
+										<View style={[styles.upcomingIconWrapper, { width: iconWrapperSize + 6, height: iconWrapperSize + 6 }]}>
+											<Image
+												source={tryoutCardImage}
+												style={{ width: iconImageSize + 8, height: iconImageSize + 8 }}
+												resizeMode="contain"
+											/>
+										</View>
+										<View style={styles.upcomingMeta}>
+											<View
 												style={[
-													styles.statusBadgeText,
-													tryout.statusVariant === 'free' ? styles.statusBadgeTextFree : styles.statusBadgeTextPaid,
+													styles.statusBadge,
+													styles.statusBadgeFree,
+													{
+														paddingHorizontal: upcomingBadgePaddingHorizontal,
+														paddingVertical: upcomingBadgePaddingVertical,
+													},
 												]}
 											>
-												{tryout.statusLabel}
-											</Text>
+												<Text style={[styles.statusBadgeText, styles.statusBadgeTextFree]}>
+													Selesai
+												</Text>
+											</View>
+											<Text style={styles.upcomingTitle}>{tryout.title}</Text>
+											<Text style={styles.upcomingDate}>{tryout.dateLabel}</Text>
+											<View style={{ marginTop: 8 }}>
+												<View style={[styles.activeActionBadge, { paddingHorizontal: 12, paddingVertical: 6, alignSelf: 'flex-start', backgroundColor: colors.accent }]}>
+													<Text style={[styles.activeActionLabel, { fontSize: 10 }]}>Lihat Pembahasan</Text>
+												</View>
+											</View>
 										</View>
-										<Text style={styles.upcomingTitle}>{tryout.title}</Text>
-										<Text style={styles.upcomingDate}>{tryout.dateLabel}</Text>
-									</View>
-									<View
-										style={[
-											styles.upcomingCta,
-											{
-												paddingHorizontal: actionBadgePaddingHorizontal,
-												paddingVertical: actionBadgePaddingVertical,
-												backgroundColor: tryout.enrollmentStatus === 'approved' ? '#4CAF50' : 
-																 tryout.enrollmentStatus === 'pending' ? '#FFC107' : colors.accent
-											},
-										]}
-									>
-										<Text style={styles.upcomingCtaLabel}>
-											{tryout.enrollmentStatus === 'approved' ? 'Terdaftar' : 
-											 tryout.enrollmentStatus === 'pending' ? 'Menunggu' : 'Daftar Sekarang'}
-										</Text>
-									</View>
-								</Pressable>
-							))}
+										<View style={{ alignItems: 'center', justifyContent: 'center' }}>
+											<View style={{ 
+												width: 60, 
+												height: 60, 
+												borderRadius: 30, 
+												borderWidth: 4, 
+												borderColor: '#4CAF50', 
+												alignItems: 'center', 
+												justifyContent: 'center' 
+											}}>
+												<Text style={{ fontFamily: fontFamilies.bold, fontSize: 14, color: '#4CAF50' }}>
+													{tryout.score}
+												</Text>
+											</View>
+										</View>
+									</Pressable>
+								))}
+							</View>
 						</View>
-					</View>
+					)}
 				</View>
 			</ScrollView>
 			<BottomNavigation

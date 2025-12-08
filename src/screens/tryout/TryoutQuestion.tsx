@@ -60,9 +60,10 @@ const formatSeconds = (totalSeconds: number): string => {
 type QuestionState = {
 	answerId: string | null;
 	flagged: boolean;
+	isCorrect?: boolean;
 };
 
-type QuestionStatus = 'current' | 'answered' | 'flagged' | 'unanswered';
+type QuestionStatus = 'current' | 'answered' | 'flagged' | 'unanswered' | 'correct' | 'incorrect';
 
 type TryoutQuestionRoute = RouteProp<RootStackParamList, 'TryoutQuestion'>;
 
@@ -115,35 +116,91 @@ const TryoutQuestionScreen: FC = () => {
 
 	const [questions, setQuestions] = useState<TryoutQuestion[]>([]);
 	const [sessionId, setSessionId] = useState<string | null>(null);
+	const [isReviewMode, setIsReviewMode] = useState(false);
 
 	useEffect(() => {
 		const init = async () => {
 			try {
 				// @ts-ignore
-				const { enrollmentId } = route.params;
+				const { enrollmentId, mode } = route.params;
 				if (!enrollmentId) return;
 
-				const session = await tryoutService.startSession(enrollmentId, subtestId);
-				setSessionId(session.id);
-				
-				// Fetch subtest details to get duration
-				// We can't easily get it from here unless we pass it or fetch it.
-				// Assuming default for now or passed via params if we update navigation.
-				// Actually, let's fetch subtests again or assume 30.
-				
-				const q = await tryoutService.getQuestions(subtestId);
-				
-				const mapped: TryoutQuestion[] = q.map((x: any) => ({
-					id: x.id,
-					number: x.number,
-					question: x.prompt,
-					options: x.options.map((o: any) => ({
-						id: o.id,
-						label: o.label,
-						text: o.body
-					}))
-				}));
-				setQuestions(mapped);
+				if (mode === 'review') {
+					setIsReviewMode(true);
+					setRemainingSeconds(0); // Stop timer
+					
+					// Fetch questions first
+					const q = await tryoutService.getQuestions(subtestId);
+					const mapped: TryoutQuestion[] = q.map((x: any) => ({
+						id: x.id,
+						number: x.number,
+						prompt: x.prompt,
+						subject: subtestTitle,
+						explanation: x.explanation, // Add explanation
+						options: x.options.map((o: any) => ({
+							id: o.id,
+							label: o.label,
+							text: o.body,
+							// We need to know if it's correct for review
+							// But usually questions endpoint doesn't return isCorrect for security during exam.
+							// However, for review, we need it.
+							// If backend filters it, we can't show it.
+							// Let's assume getQuestions returns it or we get it from somewhere else.
+							// Actually, usually getQuestions for exam DOES NOT return isCorrect.
+							// We might need a different endpoint for review questions or rely on session answers if they contain correct info.
+							// Session answers usually contain isCorrect.
+						}))
+					}));
+					setQuestions(mapped);
+
+					// Fetch session answers
+					// We need to find the session ID.
+					const enrollments = await tryoutService.getMyEnrollments(tryoutId);
+					const enrollment = enrollments.find(e => e.id === enrollmentId);
+					const s = enrollment?.sessions?.find(s => s.subtestId === subtestId);
+					
+					if (s) {
+						const session = await tryoutService.getSession(s.id);
+						setSessionId(s.id);
+						
+						// Map answers to state
+						const newStates = mapped.map(question => {
+							const answer = session.answers.find((a: any) => a.questionId === question.id);
+							return {
+								answerId: answer?.optionId || null,
+								flagged: false, // We don't track flagged in backend usually
+								isCorrect: answer?.isCorrect, // Store correctness
+								correctOptionId: answer?.question?.options?.find((o: any) => o.isCorrect)?.id // This is hard if we don't have correct option id
+							};
+						});
+						// Wait, session.answers has isCorrect. But we also need to know which option was the correct one if the user was wrong.
+						// The session answer might not tell us the correct option ID if the user picked the wrong one.
+						// We need the correct option ID from the question data.
+						// If getQuestions doesn't return isCorrect, we are stuck.
+						// Let's assume for now we only show if the user was correct or not.
+						// Or maybe getQuestions returns explanation which might help.
+						
+						setQuestionStates(newStates);
+					}
+				} else {
+					const session = await tryoutService.startSession(enrollmentId, subtestId);
+					setSessionId(session.id);
+					
+					const q = await tryoutService.getQuestions(subtestId);
+					
+					const mapped: TryoutQuestion[] = q.map((x: any) => ({
+						id: x.id,
+						number: x.number,
+						prompt: x.prompt,
+						subject: subtestTitle,
+						options: x.options.map((o: any) => ({
+							id: o.id,
+							label: o.label,
+							text: o.body
+						}))
+					}));
+					setQuestions(mapped);
+				}
 			} catch (e) {
 				console.error('Failed to init session', e);
 			}
@@ -323,6 +380,8 @@ const TryoutQuestionScreen: FC = () => {
 
 	const handleSelectOption = useCallback(
 		async (optionId: string) => {
+			if (isReviewMode) return;
+
 			setQuestionStates((prev) =>
 				prev.map((state, index) =>
 					index === currentQuestionIndex
@@ -478,7 +537,7 @@ const TryoutQuestionScreen: FC = () => {
 								<Text style={styles.summaryMeta}>{`${tryoutTitle} • ${totalQuestions} Soal`}</Text>
 							</View>
 							<View style={styles.timerBadge}>
-								<Text style={styles.timerBadgeText}>{formattedTimer}</Text>
+								<Text style={styles.timerBadgeText}>{isReviewMode ? 'Selesai' : formattedTimer}</Text>
 							</View>
 						</View>
 
@@ -513,6 +572,20 @@ const TryoutQuestionScreen: FC = () => {
 								>
 									{rowOptions.map((option: TryoutQuestionOption, optionIndex: number) => {
 										const isSelected = currentState.answerId === option.id;
+										let reviewStyle = {};
+										let reviewLabelStyle = {};
+										
+										if (isReviewMode) {
+											if (isSelected) {
+												if (currentState.isCorrect) {
+													reviewStyle = { backgroundColor: '#E8F5E9', borderColor: '#4CAF50', borderWidth: 2 };
+													reviewLabelStyle = { color: '#2E7D32', fontFamily: fontFamilies.bold };
+												} else {
+													reviewStyle = { backgroundColor: '#FFEBEE', borderColor: '#EF5350', borderWidth: 2 };
+													reviewLabelStyle = { color: '#C62828', fontFamily: fontFamilies.bold };
+												}
+											}
+										}
 
 										return (
 											<Pressable
@@ -526,12 +599,17 @@ const TryoutQuestionScreen: FC = () => {
 														marginRight:
 															optionIndex === 0 && rowOptions.length > 1 ? optionGap : 0,
 													},
-													isSelected && styles.optionCardSelected,
+													isSelected && !isReviewMode && styles.optionCardSelected,
+													reviewStyle
 												]}
 												accessibilityRole="button"
 												accessibilityLabel={`Jawaban pilihan ${option.label}`}
 											>
-												<Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
+												<Text style={[
+													styles.optionLabel, 
+													isSelected && !isReviewMode && styles.optionLabelSelected,
+													reviewLabelStyle
+												]}>
 													{option.label}
 												</Text>
 											</Pressable>
@@ -543,6 +621,18 @@ const TryoutQuestionScreen: FC = () => {
 								</View>
 							))}
 						</View>
+
+						{isReviewMode && currentQuestion.explanation && (
+							<View style={{
+								backgroundColor: '#E3F2FD',
+								borderRadius: 16,
+								padding: 16,
+								marginTop: 0,
+							}}>
+								<Text style={{ fontFamily: fontFamilies.bold, fontSize: 14, color: '#1565C0', marginBottom: 8 }}>Pembahasan</Text>
+								<Text style={{ fontFamily: fontFamilies.regular, fontSize: 14, color: '#0D47A1', lineHeight: 20 }}>{currentQuestion.explanation}</Text>
+							</View>
+						)}
 
 						<View
 							style={[

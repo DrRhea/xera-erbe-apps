@@ -146,6 +146,11 @@ export const tryoutService = {
     return response.data;
   },
 
+  async getSession(sessionId: string): Promise<TryoutSession & { answers: any[] }> {
+    const response = await api.get<TryoutSession & { answers: any[] }>(`/tryout/sessions/${sessionId}`);
+    return response.data;
+  },
+
   async getQuestions(subtestId: string): Promise<Question[]> {
     const response = await api.get<Question[]>(`/tryout/subtests/${subtestId}/questions`);
     return response.data;

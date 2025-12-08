@@ -13,6 +13,7 @@ export type TryoutQuestion = {
   prompt: string;
   options: TryoutQuestionOption[];
   image?: ImageSourcePropType;
+  explanation?: string;
 };
 
 type RawQuestionOption = {

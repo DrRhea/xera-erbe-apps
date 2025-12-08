@@ -59,16 +59,18 @@ const TryoutDetailScreen: FC = () => {
   const [loading, setLoading] = useState(true);
   const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
   const [completedSubtests, setCompletedSubtests] = useState<string[]>([]);
+  const [isTryoutCompleted, setIsTryoutCompleted] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       const fetchData = async () => {
         try {
           setLoading(true);
-          const [subtestsData, user, enrollments] = await Promise.all([
+          const [subtestsData, user, enrollments, pkg] = await Promise.all([
             tryoutService.getSubtests(tryoutId),
             authService.getUser(),
-            tryoutService.getMyEnrollments(tryoutId)
+            tryoutService.getMyEnrollments(tryoutId),
+            tryoutService.getPackage(tryoutId)
           ]);
           
           setSubtests(subtestsData);
@@ -82,6 +84,12 @@ const TryoutDetailScreen: FC = () => {
                 .map(s => s.subtestId);
               setCompletedSubtests(completed);
             }
+          }
+
+          const now = new Date();
+          const endsAt = new Date(pkg.endsAt);
+          if (endsAt < now) {
+            setIsTryoutCompleted(true);
           }
         } catch (e) {
           console.error(e);
@@ -99,25 +107,40 @@ const TryoutDetailScreen: FC = () => {
 
   const handleStartSubtest = useCallback(
     (subtest: TryoutSubtest) => {
-      if (completedSubtests.includes(subtest.id)) {
-        return;
-      }
-      
       if (!enrollmentId) {
         alert('Enrollment not found');
         return;
       }
 
+      if (isTryoutCompleted) {
+        // Review mode
+        navigation.navigate('TryoutQuestion', {
+          tryoutId: tryoutId,
+          tryoutTitle: title,
+          subtestId: subtest.id,
+          subtestTitle: subtest.title,
+          enrollmentId: enrollmentId,
+          duration: subtest.durationMinutes,
+          mode: 'review',
+        });
+        return;
+      }
+
+      if (completedSubtests.includes(subtest.id)) {
+        alert('Subtes ini sudah dikerjakan.');
+        return;
+      }
+      
       navigation.navigate('TryoutQuestion', {
         tryoutId: tryoutId,
         tryoutTitle: title,
         subtestId: subtest.id,
         subtestTitle: subtest.title,
-        enrollmentId: enrollmentId, // Pass enrollmentId
+        enrollmentId: enrollmentId,
         duration: subtest.durationMinutes,
       });
     },
-    [completedSubtests, tryoutId, title, navigation, enrollmentId]
+    [completedSubtests, tryoutId, title, navigation, enrollmentId, isTryoutCompleted]
   );
 
   const completedCount = completedSubtests.length;
