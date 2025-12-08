@@ -204,10 +204,10 @@ export const tryoutService = {
     return response.data;
   },
 
-  async recordAnswer(sessionId: string, questionId: string, answerId: string): Promise<void> {
+  async recordAnswer(sessionId: string, questionId: string, optionId: string): Promise<void> {
     await api.post(`/tryout/sessions/${sessionId}/answers`, {
       questionId,
-      answerId,
+      optionId,
       answeredAt: new Date().toISOString(),
     });
   },

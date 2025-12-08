@@ -131,9 +131,9 @@ const TryoutQuestionScreen: FC = () => {
 					
 					// Fetch questions first
 					const q = await tryoutService.getQuestions(subtestId);
-					const mapped: TryoutQuestion[] = q.map((x: any) => ({
+					const mapped: TryoutQuestion[] = q.map((x: any, i: number) => ({
 						id: x.id,
-						number: x.number,
+						number: x.number ?? (i + 1),
 						prompt: x.prompt,
 						subject: subtestTitle,
 						explanation: x.explanation, // Add explanation
@@ -188,9 +188,9 @@ const TryoutQuestionScreen: FC = () => {
 					
 					const q = await tryoutService.getQuestions(subtestId);
 					
-					const mapped: TryoutQuestion[] = q.map((x: any) => ({
+					const mapped: TryoutQuestion[] = q.map((x: any, i: number) => ({
 						id: x.id,
-						number: x.number,
+						number: x.number ?? (i + 1),
 						prompt: x.prompt,
 						subject: subtestTitle,
 						options: x.options.map((o: any) => ({
@@ -230,18 +230,15 @@ const TryoutQuestionScreen: FC = () => {
 			flagged: false,
 		};
 
-			if (!currentQuestion) {
-				return null;
-			}
-
 		const snapPoints = useMemo<(string | number)[]>(() => [210, '70%'], []);
 		const optionRows = useMemo<TryoutQuestionOption[][]>(() => {
+			if (!currentQuestion) return [];
 			const rows: TryoutQuestionOption[][] = [];
 			for (let index = 0; index < currentQuestion.options.length; index += 2) {
 				rows.push(currentQuestion.options.slice(index, index + 2));
 			}
 			return rows;
-		}, [currentQuestion.options]);
+		}, [currentQuestion]);
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
@@ -479,6 +476,14 @@ const TryoutQuestionScreen: FC = () => {
 		),
 		[]
 	);
+
+	if (!currentQuestion) {
+		return (
+			<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+				<Text>Loading...</Text>
+			</View>
+		);
+	}
 
 	const isFirstQuestion = currentQuestionIndex === 0;
 	const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
