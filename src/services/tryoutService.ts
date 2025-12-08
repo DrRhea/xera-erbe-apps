@@ -8,6 +8,8 @@ export type TryoutPackage = {
   isActive: boolean;
   startsAt: string;
   endsAt: string;
+  discussionStartsAt?: string;
+  discussionEndsAt?: string;
   metadata?: any;
 };
 

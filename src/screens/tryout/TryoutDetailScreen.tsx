@@ -83,6 +83,13 @@ const TryoutDetailScreen: FC = () => {
                 .filter(s => s.status === 'completed')
                 .map(s => s.subtestId);
               setCompletedSubtests(completed);
+
+              // Check if all subtests are completed
+              if (subtestsData.length > 0 && completed.length === subtestsData.length) {
+                // Redirect to home if all subtests are completed
+                navigation.navigate('Home');
+                return;
+              }
             }
           }
 
@@ -98,7 +105,7 @@ const TryoutDetailScreen: FC = () => {
         }
       };
       fetchData();
-    }, [tryoutId])
+    }, [tryoutId, navigation])
   );
 
   const handleNotificationPress = useCallback(() => {

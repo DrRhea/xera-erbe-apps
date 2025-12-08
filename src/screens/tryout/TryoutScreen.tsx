@@ -8,6 +8,7 @@ import {
 	StyleSheet,
 	Text,
 	View,
+	Modal,
 } from 'react-native';
 import { useNavigation, useFocusEffect, type NavigationProp } from '@react-navigation/native';
 
@@ -47,6 +48,8 @@ type CompletedTryout = {
 	dateLabel: string;
 	score: number;
 	enrollmentStatus?: 'pending' | 'approved' | 'rejected';
+	discussionStartsAt?: string;
+	discussionEndsAt?: string;
 };
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
@@ -66,6 +69,8 @@ const TryoutScreen: FC = () => {
 	const [activeTryouts, setActiveTryouts] = useState<ActiveTryout[]>([]);
 	const [upcomingTryouts, setUpcomingTryouts] = useState<UpcomingTryout[]>([]);
 	const [completedTryouts, setCompletedTryouts] = useState<CompletedTryout[]>([]);
+	const [discussionModalVisible, setDiscussionModalVisible] = useState(false);
+	const [discussionDate, setDiscussionDate] = useState<string>('');
 
 	useFocusEffect(
 		useCallback(() => {
@@ -97,8 +102,23 @@ const TryoutScreen: FC = () => {
 						const endsAt = new Date(pkg.endsAt);
 						const isExpired = endsAt < now;
 
+						// Check if all subtests are completed
+						// We need to know total subtests for this package.
+						// Ideally getPackages should return subtest count or we fetch it.
+						// For performance, maybe we assume if user has sessions and isExpired it's done?
+						// Or we fetch subtests for each package (might be slow).
+						// Let's try to fetch subtests count if possible or just fetch subtests.
+						let isFullyCompleted = false;
 						if (enrollmentStatus === 'approved') {
-							if (isExpired) {
+							const subtests = await tryoutService.getSubtests(pkg.id);
+							const completedSessions = sessions.filter(s => s.status === 'completed');
+							if (subtests.length > 0 && completedSessions.length === subtests.length) {
+								isFullyCompleted = true;
+							}
+						}
+
+						if (enrollmentStatus === 'approved') {
+							if (isExpired || isFullyCompleted) {
 								// Calculate score (average of sessions for now)
 								let totalScore = 0;
 								let count = 0;
@@ -118,6 +138,8 @@ const TryoutScreen: FC = () => {
 									dateLabel,
 									score: avgScore,
 									enrollmentStatus,
+									discussionStartsAt: pkg.discussionStartsAt,
+									discussionEndsAt: pkg.discussionEndsAt,
 								});
 							} else {
 								active.push({
@@ -215,8 +237,22 @@ const TryoutScreen: FC = () => {
 		[layout.horizontalPadding]
 	);
 
-	const handleActiveCardPress = useCallback(
-		(tryout: ActiveTryout) => {
+	const handleCompletedCardPress = useCallback(
+		(tryout: CompletedTryout) => {
+			const now = new Date();
+			const start = tryout.discussionStartsAt ? new Date(tryout.discussionStartsAt) : null;
+			const end = tryout.discussionEndsAt ? new Date(tryout.discussionEndsAt) : null;
+
+			if (start && now < start) {
+				setDiscussionDate(start.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }));
+				setDiscussionModalVisible(true);
+				return;
+			}
+
+			if (end && now > end) {
+				// Optional: Handle expired discussion
+			}
+
 			navigation.navigate('TryoutDetail', {
 				tryoutId: tryout.id,
 				title: tryout.title,
@@ -225,16 +261,11 @@ const TryoutScreen: FC = () => {
 		[navigation]
 	);
 
-	const handleCompletedCardPress = useCallback(
-		(tryout: CompletedTryout) => {
+	const handleActiveCardPress = useCallback(
+		(tryout: ActiveTryout) => {
 			navigation.navigate('TryoutDetail', {
 				tryoutId: tryout.id,
 				title: tryout.title,
-				// Pass a param to indicate review mode if needed, 
-				// but TryoutDetail checks completion by itself usually.
-				// However, for "Review" we might want to be explicit.
-				// But TryoutDetailScreen doesn't accept 'mode' yet.
-				// We will rely on TryoutDetailScreen to show "Selesai" and allow review.
 			});
 		},
 		[navigation]
@@ -490,6 +521,28 @@ const TryoutScreen: FC = () => {
 				inactiveColor="#617283"
 				style={styles.bottomNav}
 			/>
+
+			<Modal
+				visible={discussionModalVisible}
+				transparent
+				animationType="fade"
+				onRequestClose={() => setDiscussionModalVisible(false)}
+			>
+				<View style={styles.modalBackdrop}>
+					<View style={styles.modalCard}>
+						<Text style={styles.modalTitle}>Pembahasan Belum Tersedia</Text>
+						<Text style={styles.modalMessage}>
+							Pembahasan akan tersedia pada {discussionDate}, tunggu sampai try-outnya selesai yaa!
+						</Text>
+						<Pressable
+							onPress={() => setDiscussionModalVisible(false)}
+							style={styles.modalButton}
+						>
+							<Text style={styles.modalButtonText}>OK</Text>
+						</Pressable>
+					</View>
+				</View>
+			</Modal>
 		</SafeAreaView>
 	);
 };
@@ -562,6 +615,49 @@ const styles = StyleSheet.create({
 		fontSize: 9,
 		color: colors.white,
 		textAlign: 'center',
+	},
+	modalBackdrop: {
+		flex: 1,
+		backgroundColor: 'rgba(0,0,0,0.5)',
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingHorizontal: 32,
+	},
+	modalCard: {
+		width: '100%',
+		backgroundColor: colors.white,
+		borderRadius: 20,
+		padding: 24,
+		alignItems: 'center',
+		elevation: 5,
+	},
+	modalTitle: {
+		fontFamily: fontFamilies.extraBold,
+		fontSize: 18,
+		color: colors.primaryDark,
+		textAlign: 'center',
+		marginBottom: 12,
+	},
+	modalMessage: {
+		fontFamily: fontFamilies.medium,
+		fontSize: 14,
+		color: colors.primaryDark,
+		textAlign: 'center',
+		marginBottom: 24,
+		lineHeight: 20,
+	},
+	modalButton: {
+		backgroundColor: colors.primary,
+		paddingVertical: 12,
+		paddingHorizontal: 32,
+		borderRadius: 12,
+		minWidth: 120,
+		alignItems: 'center',
+	},
+	modalButtonText: {
+		fontFamily: fontFamilies.bold,
+		fontSize: 14,
+		color: colors.white,
 	},
 	upcomingList: {
 		width: '100%',
