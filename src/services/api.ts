@@ -28,6 +28,17 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    console.log('API Error:', error.message);
+    if (error.response) {
+      console.log('Status:', error.response.status);
+      console.log('Data:', error.response.data);
+      console.log('Headers:', error.response.headers);
+    } else if (error.request) {
+      console.log('No response received:', error.request);
+    } else {
+      console.log('Error config:', error.config);
+    }
+
     // Handle 401 Unauthorized (e.g., token expired)
     if (error.response && error.response.status === 401) {
       // Optionally clear storage and redirect to login

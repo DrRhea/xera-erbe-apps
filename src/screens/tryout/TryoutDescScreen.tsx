@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState, useEffect } from 'react';
 import {
 	Alert,
 	Image,
@@ -25,6 +25,7 @@ import {
   tryoutDescriptions,
   createGenericDescription,
 } from '../../data/tryoutDescData';
+import { tryoutService, type TryoutSubtest } from '../../services/tryoutService';
 
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
@@ -49,6 +50,20 @@ const TryoutDescScreen: FC = () => {
 	const handleNotificationPress = useCallback(() => {
 		navigation.navigate('Notification');
 	}, [navigation]);
+
+	const [subtests, setSubtests] = useState<TryoutSubtest[]>([]);
+
+	useEffect(() => {
+		const fetchSubtests = async () => {
+			try {
+				const data = await tryoutService.getSubtests(tryoutId);
+				setSubtests(data);
+			} catch (error) {
+				console.error('Failed to fetch subtests', error);
+			}
+		};
+		fetchSubtests();
+	}, [tryoutId]);
 
 	const description = useMemo(
 		() => tryoutDescriptions[tryoutId] ?? createGenericDescription(title),
@@ -219,7 +234,24 @@ const TryoutDescScreen: FC = () => {
 					<View style={[styles.descriptionCard, { padding: descriptionCardPadding }]}>
 						<Text style={styles.subTitle}>{description.subTitle}</Text>
 						<View style={{ marginTop: descriptionSectionGap, rowGap: descriptionSectionGap, gap: descriptionSectionGap }}>
-							{description.sections.map((section) => (
+							{subtests.length > 0 && (
+								<View style={{ rowGap: subsectionGap, gap: subsectionGap }}>
+									<Text style={styles.sectionTitle}>Materi yang Diujikan</Text>
+									{subtests.map((subtest) => (
+										<View key={subtest.id} style={[styles.bulletRow, { columnGap: bulletGap, gap: bulletGap }]}>
+											<View style={styles.bulletDot} />
+											<Text style={styles.sectionBody}>
+												{subtest.title} {subtest.questionCount ? `${subtest.questionCount} Soal` : ''} ({subtest.durationMinutes} Menit)
+											</Text>
+										</View>
+									))}
+								</View>
+							)}
+							{description.sections.map((section) => {
+								if (subtests.length > 0 && (section.title.includes('Struktur') || section.title.includes('Materi'))) {
+									return null;
+								}
+								return (
 								<View key={section.title} style={{ rowGap: subsectionGap, gap: subsectionGap }}>
 									<Text style={styles.sectionTitle}>{section.title}</Text>
 									{section.description ? <Text style={styles.sectionBody}>{section.description}</Text> : null}
@@ -242,7 +274,7 @@ const TryoutDescScreen: FC = () => {
 										</View>
 									))}
 								</View>
-							))}
+							)})}
 						</View>
 					</View>
 

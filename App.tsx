@@ -128,6 +128,9 @@ export type RootStackParamList = {
     tryoutTitle: string;
     subtestId: string;
     subtestTitle: string;
+    enrollmentId?: string;
+    duration?: number;
+    mode?: 'review';
   };
   Analysis: undefined;
   Report: undefined;

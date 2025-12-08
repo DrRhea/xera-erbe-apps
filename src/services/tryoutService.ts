@@ -1,4 +1,5 @@
-import api from './api';
+import api, { API_URL } from './api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type TryoutPackage = {
   id: string;
@@ -102,9 +103,37 @@ export const tryoutService = {
     packageId: string, 
     files?: { proofShare?: any, proofFollow?: any, proofPayment?: any }
   ): Promise<TryoutEnrollment> {
+    const hasFiles = files?.proofShare || files?.proofFollow || files?.proofPayment;
+    const token = await AsyncStorage.getItem('accessToken');
+
+    if (!hasFiles) {
+      // Send as JSON if no files
+      console.log('Sending enrollment request (JSON)', { packageId });
+      const response = await fetch(`${API_URL}/tryout/packages/${packageId}/enrollments`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Enrollment request failed', response.status, errorText);
+        throw new Error(`Enrollment failed: ${response.status} ${errorText}`);
+      }
+      return response.json();
+    }
+
+    // Send as FormData if files exist
     const formData = new FormData();
+    // Append a dummy field to ensure FormData is never empty (some Android versions dislike empty multipart)
+    formData.append('timestamp', new Date().toISOString());
     
     if (files?.proofShare) {
+      console.log('Appending proofShare', files.proofShare.uri);
       // @ts-ignore
       formData.append('proofShare', {
         uri: files.proofShare.uri,
@@ -113,6 +142,7 @@ export const tryoutService = {
       });
     }
     if (files?.proofFollow) {
+      console.log('Appending proofFollow', files.proofFollow.uri);
       // @ts-ignore
       formData.append('proofFollow', {
         uri: files.proofFollow.uri,
@@ -121,6 +151,7 @@ export const tryoutService = {
       });
     }
     if (files?.proofPayment) {
+      console.log('Appending proofPayment', files.proofPayment.uri);
       // @ts-ignore
       formData.append('proofPayment', {
         uri: files.proofPayment.uri,
@@ -129,16 +160,30 @@ export const tryoutService = {
       });
     }
 
-    const response = await api.post<TryoutEnrollment>(
-      `/tryout/packages/${packageId}/enrollments`,
-      formData,
-      {
+    console.log('Sending enrollment request (FormData)', { packageId });
+    try {
+      const response = await fetch(`${API_URL}/tryout/packages/${packageId}/enrollments`, {
+        method: 'POST',
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          // Do NOT set Content-Type here, let fetch handle it with boundary
         },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Enrollment request failed', response.status, errorText);
+        throw new Error(`Enrollment failed: ${response.status} ${errorText}`);
       }
-    );
-    return response.data;
+
+      const data = await response.json();
+      return data;
+    } catch (error: any) {
+      console.error('Enrollment request failed', error.message);
+      throw error;
+    }
   },
 
   async startSession(enrollmentId: string, subtestId: string): Promise<TryoutSession> {
