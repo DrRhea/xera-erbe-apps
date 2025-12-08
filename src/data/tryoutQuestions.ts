@@ -4,6 +4,7 @@ export type TryoutQuestionOption = {
   id: string;
   label: string;
   text?: string;
+  isCorrect?: boolean;
 };
 
 export type TryoutQuestion = {

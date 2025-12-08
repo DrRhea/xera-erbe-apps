@@ -61,6 +61,7 @@ type QuestionState = {
 	answerId: string | null;
 	flagged: boolean;
 	isCorrect?: boolean;
+	correctOptionId?: string;
 };
 
 type QuestionStatus = 'current' | 'answered' | 'flagged' | 'unanswered' | 'correct' | 'incorrect';
@@ -141,14 +142,7 @@ const TryoutQuestionScreen: FC = () => {
 							id: o.id,
 							label: o.label,
 							text: o.body,
-							// We need to know if it's correct for review
-							// But usually questions endpoint doesn't return isCorrect for security during exam.
-							// However, for review, we need it.
-							// If backend filters it, we can't show it.
-							// Let's assume getQuestions returns it or we get it from somewhere else.
-							// Actually, usually getQuestions for exam DOES NOT return isCorrect.
-							// We might need a different endpoint for review questions or rely on session answers if they contain correct info.
-							// Session answers usually contain isCorrect.
+							isCorrect: o.isCorrect
 						}))
 					}));
 					setQuestions(mapped);
@@ -165,20 +159,18 @@ const TryoutQuestionScreen: FC = () => {
 						
 						// Map answers to state
 						const newStates = mapped.map(question => {
-							const answer = session.answers.find((a: any) => a.questionId === question.id);
+							const answer = session.answers?.find((a: any) => a.questionId === question.id);
+							
+							const correctOption = question.options.find(o => o.isCorrect);
+							const correctId = correctOption?.id;
+
 							return {
 								answerId: answer?.optionId || null,
 								flagged: false, // We don't track flagged in backend usually
 								isCorrect: answer?.isCorrect, // Store correctness
-								correctOptionId: answer?.question?.options?.find((o: any) => o.isCorrect)?.id // This is hard if we don't have correct option id
+								correctOptionId: correctId 
 							};
 						});
-						// Wait, session.answers has isCorrect. But we also need to know which option was the correct one if the user was wrong.
-						// The session answer might not tell us the correct option ID if the user picked the wrong one.
-						// We need the correct option ID from the question data.
-						// If getQuestions doesn't return isCorrect, we are stuck.
-						// Let's assume for now we only show if the user was correct or not.
-						// Or maybe getQuestions returns explanation which might help.
 						
 						setQuestionStates(newStates);
 					}
@@ -508,7 +500,7 @@ const TryoutQuestionScreen: FC = () => {
 							title="Tryout"
 							contentHorizontalPadding={contentHorizontalPadding}
 							onNotificationPress={handleNotificationPress}
-							showBackButton={false}
+							showBackButton={isReviewMode}
 						/>
 					</View>
 
@@ -589,6 +581,9 @@ const TryoutQuestionScreen: FC = () => {
 													reviewStyle = { backgroundColor: '#FFEBEE', borderColor: '#EF5350', borderWidth: 2 };
 													reviewLabelStyle = { color: '#C62828', fontFamily: fontFamilies.bold };
 												}
+											} else if (option.id === currentState.correctOptionId) {
+												reviewStyle = { backgroundColor: '#E8F5E9', borderColor: '#4CAF50', borderWidth: 2 };
+												reviewLabelStyle = { color: '#2E7D32', fontFamily: fontFamilies.bold };
 											}
 										}
 
@@ -658,16 +653,18 @@ const TryoutQuestionScreen: FC = () => {
 								<LeftPointerIcon width={66} height={44} />
 							</Pressable>
 
-							<Pressable
-								onPress={handleToggleFlag}
-								accessibilityRole="button"
-								accessibilityLabel="Tandai ragu-ragu"
-								style={[styles.flagButton, currentState.flagged && styles.flagButtonActive]}
-							>
-								<Text style={[styles.flagButtonText, currentState.flagged && styles.flagButtonTextActive]}>
-									Ragu-Ragu
-								</Text>
-							</Pressable>
+							{!isReviewMode && (
+								<Pressable
+									onPress={handleToggleFlag}
+									accessibilityRole="button"
+									accessibilityLabel="Tandai ragu-ragu"
+									style={[styles.flagButton, currentState.flagged && styles.flagButtonActive]}
+								>
+									<Text style={[styles.flagButtonText, currentState.flagged && styles.flagButtonTextActive]}>
+										Ragu-Ragu
+									</Text>
+								</Pressable>
+							)}
 
 							<Pressable
 								onPress={handleNext}
@@ -720,14 +717,16 @@ const TryoutQuestionScreen: FC = () => {
 							</View>
 						</BottomSheetScrollView>
 
-						<Pressable
-							onPress={handleSubmitPress}
-							style={styles.submitButton}
-							accessibilityRole="button"
-							accessibilityLabel="Kirim dan selesaikan tryout"
-						>
-							<Text style={styles.submitButtonText}>Kirim dan Selesaikan TO</Text>
-						</Pressable>
+						{!isReviewMode && (
+							<Pressable
+								onPress={handleSubmitPress}
+								style={styles.submitButton}
+								accessibilityRole="button"
+								accessibilityLabel="Kirim dan selesaikan tryout"
+							>
+								<Text style={styles.submitButtonText}>Kirim dan Selesaikan TO</Text>
+							</Pressable>
+						)}
 					</BottomSheetView>
 				</BottomSheet>
 

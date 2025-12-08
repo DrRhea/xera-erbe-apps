@@ -109,8 +109,9 @@ const TryoutScreen: FC = () => {
 						// Or we fetch subtests for each package (might be slow).
 						// Let's try to fetch subtests count if possible or just fetch subtests.
 						let isFullyCompleted = false;
+						let subtests: any[] = [];
 						if (enrollmentStatus === 'approved') {
-							const subtests = await tryoutService.getSubtests(pkg.id);
+							subtests = await tryoutService.getSubtests(pkg.id);
 							const completedSessions = sessions.filter(s => s.status === 'completed');
 							if (subtests.length > 0 && completedSessions.length === subtests.length) {
 								isFullyCompleted = true;
@@ -119,16 +120,42 @@ const TryoutScreen: FC = () => {
 
 						if (enrollmentStatus === 'approved') {
 							if (isExpired || isFullyCompleted) {
-								// Calculate score (average of sessions for now)
+								// Calculate score (average of sessions)
 								let totalScore = 0;
-								let count = 0;
+								let validSessionsCount = 0;
+								
+								// We need to know the total number of subtests to calculate the average correctly
+								// If we don't have it, we might calculate average based on completed sessions only?
+								// Usually average is Total Score / Total Subtests.
+								// We fetched subtests above if enrollmentStatus === 'approved'.
+								let subtestCount = 0;
+								if (subtests.length > 0) {
+									subtestCount = subtests.length;
+								} else {
+									// Fallback if we didn't fetch subtests (e.g. expired but not fully completed logic path?)
+									// But we only enter here if isExpired or isFullyCompleted.
+									// If isFullyCompleted, we fetched subtests.
+									// If isExpired, we might not have fetched subtests.
+									// Let's fetch subtests if we haven't.
+									try {
+										const s = await tryoutService.getSubtests(pkg.id);
+										subtestCount = s.length;
+									} catch (e) {
+										console.log('Failed to fetch subtests for score calc', e);
+									}
+								}
+
 								sessions.forEach(s => {
-									if (s.score !== undefined) {
-										totalScore += s.score;
-										count++;
+									if (s.score !== undefined && s.score !== null) {
+										const val = Number(s.score);
+										if (!isNaN(val)) {
+											totalScore += val;
+											validSessionsCount++;
+										}
 									}
 								});
-								const avgScore = count > 0 ? parseFloat((totalScore / count).toFixed(1)) : 0;
+								
+								const finalScore = subtestCount > 0 ? totalScore / subtestCount : 0;
 								
 								const dateLabel = endsAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -136,7 +163,7 @@ const TryoutScreen: FC = () => {
 									id: pkg.id,
 									title: pkg.title,
 									dateLabel,
-									score: avgScore,
+									score: finalScore,
 									enrollmentStatus,
 									discussionStartsAt: pkg.discussionStartsAt,
 									discussionEndsAt: pkg.discussionEndsAt,
@@ -256,6 +283,7 @@ const TryoutScreen: FC = () => {
 			navigation.navigate('TryoutDetail', {
 				tryoutId: tryout.id,
 				title: tryout.title,
+				isReview: true,
 			});
 		},
 		[navigation]

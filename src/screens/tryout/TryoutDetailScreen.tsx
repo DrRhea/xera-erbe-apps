@@ -53,12 +53,13 @@ const TryoutDetailScreen: FC = () => {
   const navigation = useNavigation<TryoutDetailNavigationProp>();
   const layout = useResponsiveLayout();
 
-  const { tryoutId, title } = route.params;
+  const { tryoutId, title, isReview } = route.params;
 
   const [subtests, setSubtests] = useState<TryoutSubtest[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrollmentId, setEnrollmentId] = useState<string | null>(null);
   const [completedSubtests, setCompletedSubtests] = useState<string[]>([]);
+  const [sessions, setSessions] = useState<any[]>([]);
   const [isTryoutCompleted, setIsTryoutCompleted] = useState(false);
 
   useFocusEffect(
@@ -79,14 +80,15 @@ const TryoutDetailScreen: FC = () => {
           if (myEnrollment) {
             setEnrollmentId(myEnrollment.id);
             if (myEnrollment.sessions) {
+              setSessions(myEnrollment.sessions);
               const completed = myEnrollment.sessions
                 .filter(s => s.status === 'completed')
                 .map(s => s.subtestId);
               setCompletedSubtests(completed);
 
               // Check if all subtests are completed
-              if (subtestsData.length > 0 && completed.length === subtestsData.length) {
-                // Redirect to home if all subtests are completed
+              if (!isReview && subtestsData.length > 0 && completed.length === subtestsData.length) {
+                // Redirect to home if all subtests are completed AND NOT in review mode
                 navigation.navigate('Home');
                 return;
               }
@@ -105,7 +107,7 @@ const TryoutDetailScreen: FC = () => {
         }
       };
       fetchData();
-    }, [tryoutId, navigation])
+    }, [tryoutId, navigation, isReview])
   );
 
   const handleNotificationPress = useCallback(() => {
@@ -119,7 +121,7 @@ const TryoutDetailScreen: FC = () => {
         return;
       }
 
-      if (isTryoutCompleted) {
+      if (isTryoutCompleted || isReview) {
         // Review mode
         navigation.navigate('TryoutQuestion', {
           tryoutId: tryoutId,
@@ -303,6 +305,10 @@ const TryoutDetailScreen: FC = () => {
               subtests.map((subtest) => {
                 const isCompleted = completedSubtests.includes(subtest.id);
                 const durationMinutes = subtest.durationMinutes ?? DEFAULT_SUBTEST_DURATION_MINUTES;
+                
+                const session = sessions.find(s => s.subtestId === subtest.id);
+                const scoreVal = session?.score ? Number(session.score) : 0;
+                const scoreDisplay = !isNaN(scoreVal) ? scoreVal : 0;
 
                 return (
                   <Pressable
@@ -314,12 +320,12 @@ const TryoutDetailScreen: FC = () => {
                         columnGap: subtestGap,
                         gap: subtestGap,
                       },
-                      isCompleted && styles.subtestCardCompleted,
+                      isCompleted && !isReview && styles.subtestCardCompleted,
                     ]}
                     onPress={() => handleStartSubtest(subtest)}
-                    disabled={isCompleted}
+                    disabled={isCompleted && !isReview}
                     accessibilityRole="button"
-                    accessibilityState={{ disabled: isCompleted }}
+                    accessibilityState={{ disabled: isCompleted && !isReview }}
                     accessibilityLabel={
                       isCompleted
                         ? `${subtest.title} sudah selesai`
@@ -345,11 +351,6 @@ const TryoutDetailScreen: FC = () => {
                     <View style={styles.subtestContent}>
                       <View style={styles.subtestHeaderRow}>
                         <Text style={styles.subtestTitle}>{subtest.title}</Text>
-                        {isCompleted ? (
-                          <View style={styles.subtestStatusBadge}>
-                            <Text style={styles.subtestStatusText}>Selesai</Text>
-                          </View>
-                        ) : null}
                       </View>
                       <View style={[styles.subtestMeta, { columnGap: metaGap, gap: metaGap }]}>
                         <ClockIcon width={16} height={16} />
@@ -359,6 +360,25 @@ const TryoutDetailScreen: FC = () => {
                         ) : null}
                       </View>
                     </View>
+                    
+                    {isCompleted && (
+                        <View style={{
+                            width: 50,
+                            height: 50,
+                            borderRadius: 25,
+                            borderWidth: 4,
+                            borderColor: '#00C853',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginLeft: 8
+                        }}>
+                            <Text style={{
+                                fontFamily: fontFamilies.bold,
+                                fontSize: 14,
+                                color: '#00C853'
+                            }}>{scoreDisplay}</Text>
+                        </View>
+                    )}
                   </Pressable>
                 );
               })

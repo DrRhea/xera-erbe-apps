@@ -122,6 +122,7 @@ export type RootStackParamList = {
   TryoutDetail: {
     tryoutId: string;
     title: string;
+    isReview?: boolean;
   };
   TryoutQuestion: {
     tryoutId: string;
