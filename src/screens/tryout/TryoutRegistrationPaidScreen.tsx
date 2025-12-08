@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, { FC, useCallback, useMemo, useState, useEffect } from 'react';
 import {
 	Alert,
 	Image,
@@ -27,7 +27,8 @@ import ChevronIcon from '../../../assets/icons/vector.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { tryoutService } from '../../services/tryoutService';
+import { useAuth } from '../../contexts/AuthContext';
+import { tryoutService, type TryoutSubtest } from '../../services/tryoutService';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
 
@@ -51,12 +52,11 @@ type IdentityFieldConfig = {
 	placeholder: string;
 	keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
 	autoCapitalize?: 'none' | 'sentences' | 'words';
-	showDropdown?: boolean;
 };
 
 const identityFields: IdentityFieldConfig[] = [
 	{ key: 'fullName', placeholder: 'Nama Lengkap', autoCapitalize: 'words' },
-	{ key: 'school', placeholder: 'Asal Sekolah', autoCapitalize: 'words', showDropdown: true },
+	{ key: 'school', placeholder: 'Asal Sekolah', autoCapitalize: 'words' },
 	{ key: 'phone', placeholder: 'Nomor HP/Whatsapp', keyboardType: 'phone-pad' },
 	{ key: 'socialMedia', placeholder: 'Sosial Media', autoCapitalize: 'none' },
 ];
@@ -69,6 +69,7 @@ const TryoutRegistrationPaidScreen: FC = () => {
 	} = useRoute<TryoutRegistrationPaidRouteProp>();
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
+	const { user, updateProfile } = useAuth();
 
 	const handleNotificationPress = useCallback(() => {
 		navigation.navigate('Notification');
@@ -81,6 +82,30 @@ const TryoutRegistrationPaidScreen: FC = () => {
 		socialMedia: '',
 	});
 	const [proofPayment, setProofPayment] = useState<any>(null);
+	const [subtests, setSubtests] = useState<TryoutSubtest[]>([]);
+
+	useEffect(() => {
+		if (user) {
+			setIdentityState({
+				fullName: user.name || '',
+				school: user.school || '',
+				phone: user.phoneNumber || '',
+				socialMedia: user.metadata?.socialMedia || '',
+			});
+		}
+	}, [user]);
+
+	useEffect(() => {
+		const fetchSubtests = async () => {
+			try {
+				const data = await tryoutService.getSubtests(tryoutId);
+				setSubtests(data);
+			} catch (error) {
+				console.error('Failed to fetch subtests', error);
+			}
+		};
+		fetchSubtests();
+	}, [tryoutId]);
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
@@ -165,6 +190,23 @@ const TryoutRegistrationPaidScreen: FC = () => {
 		}
 		
 		try {
+			// Update user profile if needed
+			if (user) {
+				const updates: any = {};
+				if (identityState.fullName !== user.name) updates.name = identityState.fullName;
+				if (identityState.school !== user.school) updates.school = identityState.school;
+				if (identityState.phone !== user.phoneNumber) updates.phoneNumber = identityState.phone;
+				
+				const currentSocial = user.metadata?.socialMedia || '';
+				if (identityState.socialMedia !== currentSocial) {
+					updates.metadata = { ...user.metadata, socialMedia: identityState.socialMedia };
+				}
+				
+				if (Object.keys(updates).length > 0) {
+					await updateProfile(updates);
+				}
+			}
+
 			await tryoutService.requestEnrollment(tryoutId, {
 				proofPayment
 			});
@@ -175,7 +217,7 @@ const TryoutRegistrationPaidScreen: FC = () => {
 			Alert.alert('Error', 'Gagal mendaftar tryout.');
 			console.error(error);
 		}
-	}, [proofPayment, tryoutId, navigation]);
+	}, [proofPayment, tryoutId, navigation, user, identityState, updateProfile]);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
@@ -252,6 +294,17 @@ const TryoutRegistrationPaidScreen: FC = () => {
 							</View>
 						</View>
 
+						{subtests.length > 0 && (
+							<View style={{ rowGap: 8, gap: 8 }}>
+								<Text style={styles.sectionHeading}>Subtes Simulasi</Text>
+								{subtests.map((subtest) => (
+									<Text key={subtest.id} style={styles.subtestText}>
+										• {subtest.title} {subtest.questionCount ? `${subtest.questionCount} Soal` : ''} ({subtest.durationMinutes} Menit)
+									</Text>
+								))}
+							</View>
+						)}
+
 						<View style={{ rowGap: inputSpacing, gap: inputSpacing }}>
 							<Text style={styles.sectionHeading}>Identitas Diri</Text>
 							{identityFields.map((field) => (
@@ -266,16 +319,6 @@ const TryoutRegistrationPaidScreen: FC = () => {
 										autoCapitalize={field.autoCapitalize ?? 'sentences'}
 										returnKeyType="next"
 									/>
-									{field.showDropdown ? (
-										<Pressable
-											style={styles.inputTrailingIcon}
-											accessibilityRole="button"
-											accessibilityLabel="Pilih asal sekolah"
-											onPress={() => Alert.alert('Asal Sekolah', 'Integrasikan daftar sekolah di tahap berikutnya.')}
-										>
-											<ChevronIcon width={10} height={6} style={styles.dropdownIcon} />
-										</Pressable>
-									) : null}
 								</View>
 							))}
 						</View>
@@ -400,6 +443,12 @@ const styles = StyleSheet.create({
 		fontFamily: fontFamilies.semiBold,
 		fontSize: 11,
 		color: colors.white,
+	},
+	subtestText: {
+		fontFamily: fontFamilies.medium,
+		fontSize: 13,
+		color: colors.textSecondary,
+		marginLeft: 8,
 	},
 	sectionHeading: {
 		fontFamily: fontFamilies.bold,

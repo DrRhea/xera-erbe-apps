@@ -16,6 +16,7 @@ export type TryoutSubtest = {
   durationMinutes: number;
   questionSetId: string;
   orderIndex: number;
+  questionCount?: number;
 };
 
 export type TryoutEnrollment = {
@@ -91,7 +92,9 @@ export const tryoutService = {
   },
 
   async getSubtests(packageId: string): Promise<TryoutSubtest[]> {
-    const response = await api.get<TryoutSubtest[]>(`/tryout/packages/${packageId}/subtests`);
+    const response = await api.get<TryoutSubtest[]>(`/tryout/packages/${packageId}/subtests`, {
+      params: { withCounts: true },
+    });
     return response.data;
   },
 

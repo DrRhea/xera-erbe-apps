@@ -19,6 +19,7 @@ export type RegisterData = {
   grade?: string;
   school?: string;
   phoneNumber?: string;
+  metadata?: Record<string, any>;
 };
 
 export const authService = {

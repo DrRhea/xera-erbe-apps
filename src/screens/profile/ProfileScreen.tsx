@@ -100,6 +100,12 @@ const ProfileScreen = () => {
                 <Text style={styles.infoLabel}>Jenjang</Text>
                 <Text style={styles.infoValue}>{user?.grade || '-'}</Text>
               </View>
+              <View style={styles.divider} />
+
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Sosial Media</Text>
+                <Text style={styles.infoValue}>{user?.metadata?.socialMedia || '-'}</Text>
+              </View>
             </View>
           </View>
 

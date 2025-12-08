@@ -33,6 +33,7 @@ const EditProfileScreen = () => {
     phoneNumber: user?.phoneNumber || '',
     school: user?.school || '',
     grade: user?.grade || '',
+    socialMedia: user?.metadata?.socialMedia || '',
   });
 
   const handleChange = (key: string, value: string) => {
@@ -42,7 +43,31 @@ const EditProfileScreen = () => {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      await updateProfile(formData);
+      const payload = {
+        ...formData,
+        metadata: {
+          ...user?.metadata,
+          socialMedia: formData.socialMedia,
+        },
+      };
+      // Remove flat socialMedia from payload if it causes issues with backend DTO validation, 
+      // but since UpdateUserDto is Partial<RegisterData> and RegisterData doesn't have socialMedia, 
+      // we should probably sanitize it or just pass the constructed object.
+      // The authService.updateProfile takes Partial<RegisterData>.
+      // Let's construct the exact object expected.
+      const updateData = {
+        name: formData.name,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        school: formData.school,
+        grade: formData.grade,
+        metadata: {
+          ...user?.metadata,
+          socialMedia: formData.socialMedia,
+        },
+      };
+
+      await updateProfile(updateData);
       Alert.alert('Success', 'Profile updated successfully');
       navigation.goBack();
     } catch (error) {
@@ -140,6 +165,17 @@ const EditProfileScreen = () => {
                 value={formData.grade}
                 onChangeText={(text) => handleChange('grade', text)}
                 placeholder="Kelas"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Sosial Media</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.socialMedia}
+                onChangeText={(text) => handleChange('socialMedia', text)}
+                placeholder="Instagram / Twitter / TikTok"
+                autoCapitalize="none"
               />
             </View>
           </View>

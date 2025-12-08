@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, { FC, useCallback, useMemo, useState, useEffect } from 'react';
 import {
 	Alert,
 	Image,
@@ -27,7 +27,8 @@ import ChevronIcon from '../../../assets/icons/vector.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { tryoutService } from '../../services/tryoutService';
+import { useAuth } from '../../contexts/AuthContext';
+import { tryoutService, type TryoutSubtest } from '../../services/tryoutService';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
 
@@ -51,12 +52,11 @@ type IdentityFieldConfig = {
 	placeholder: string;
 	keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
 	autoCapitalize?: 'none' | 'sentences' | 'words';
-	showDropdown?: boolean;
 };
 
 const identityFields: IdentityFieldConfig[] = [
 	{ key: 'fullName', placeholder: 'Nama Lengkap', autoCapitalize: 'words' },
-	{ key: 'school', placeholder: 'Asal Sekolah', autoCapitalize: 'words', showDropdown: true },
+	{ key: 'school', placeholder: 'Asal Sekolah', autoCapitalize: 'words' },
 	{ key: 'phone', placeholder: 'Nomor HP/Whatsapp', keyboardType: 'phone-pad' },
 	{ key: 'socialMedia', placeholder: 'Sosial Media', autoCapitalize: 'none' },
 ];
@@ -74,6 +74,7 @@ const TryoutRegistrationFreeScreen: FC = () => {
 	} = useRoute<TryoutRegistrationRouteProp>();
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
+	const { user, updateProfile } = useAuth();
 
 	const handleNotificationPress = useCallback(() => {
 		navigation.navigate('Notification');
@@ -87,6 +88,35 @@ const TryoutRegistrationFreeScreen: FC = () => {
 	});
 	const [proofShare, setProofShare] = useState<any>(null);
 	const [proofFollow, setProofFollow] = useState<any>(null);
+	const [subtests, setSubtests] = useState<TryoutSubtest[]>([]);
+	const [isProofRequired, setIsProofRequired] = useState(true);
+
+	useEffect(() => {
+		if (user) {
+			setIdentityState({
+				fullName: user.name || '',
+				school: user.school || '',
+				phone: user.phoneNumber || '',
+				socialMedia: user.metadata?.socialMedia || '',
+			});
+		}
+	}, [user]);
+
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				const [subtestsData, packageData] = await Promise.all([
+					tryoutService.getSubtests(tryoutId),
+					tryoutService.getPackage(tryoutId)
+				]);
+				setSubtests(subtestsData);
+				setIsProofRequired(packageData.enrollmentType !== 'open');
+			} catch (error) {
+				console.error('Failed to fetch data', error);
+			}
+		};
+		fetchData();
+	}, [tryoutId]);
 
 	const contentHorizontalPadding = useMemo(
 		() => clamp(layout.horizontalPadding, 20, 28),
@@ -178,24 +208,48 @@ const TryoutRegistrationFreeScreen: FC = () => {
 	}, []);
 
 	const handleSubmit = useCallback(async () => {
-		if (!proofShare || !proofFollow) {
+		if (isProofRequired && (!proofShare || !proofFollow)) {
 			Alert.alert('Error', 'Mohon lengkapi bukti pendukung.');
 			return;
 		}
 		
 		try {
+			// Update user profile if needed
+			if (user) {
+				const updates: any = {};
+				if (identityState.fullName !== user.name) updates.name = identityState.fullName;
+				if (identityState.school !== user.school) updates.school = identityState.school;
+				if (identityState.phone !== user.phoneNumber) updates.phoneNumber = identityState.phone;
+				
+				const currentSocial = user.metadata?.socialMedia || '';
+				if (identityState.socialMedia !== currentSocial) {
+					updates.metadata = { ...user.metadata, socialMedia: identityState.socialMedia };
+				}
+				
+				if (Object.keys(updates).length > 0) {
+					await updateProfile(updates);
+				}
+			}
+
 			await tryoutService.requestEnrollment(tryoutId, {
 				proofShare,
 				proofFollow
 			});
-			Alert.alert('Sukses', 'Pendaftaran berhasil dikirim. Menunggu verifikasi admin.', [
-				{ text: 'OK', onPress: () => navigation.navigate('Tryout') }
-			]);
+			
+			if (isProofRequired) {
+				Alert.alert('Sukses', 'Pendaftaran berhasil dikirim. Menunggu verifikasi admin.', [
+					{ text: 'OK', onPress: () => navigation.navigate('Tryout') }
+				]);
+			} else {
+				Alert.alert('Sukses', 'Pendaftaran berhasil! Anda dapat langsung mengerjakan tryout.', [
+					{ text: 'Mulai', onPress: () => navigation.navigate('Tryout') }
+				]);
+			}
 		} catch (error) {
 			Alert.alert('Error', 'Gagal mendaftar tryout.');
 			console.error(error);
 		}
-	}, [proofShare, proofFollow, tryoutId, navigation]);
+	}, [proofShare, proofFollow, tryoutId, navigation, isProofRequired, user, identityState, updateProfile]);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
@@ -268,13 +322,25 @@ const TryoutRegistrationFreeScreen: FC = () => {
 									<Text style={styles.heroDate}>{dateLabel}</Text>
 								</View>
 								<Text style={styles.heroSubtitle}>ID Tryout: {tryoutId.toUpperCase()}</Text>
+								<Text style={styles.heroPrice}>Gratis</Text>
 							</View>
 						</View>
+
+						{subtests.length > 0 && (
+							<View style={{ rowGap: 8, gap: 8 }}>
+								<Text style={styles.sectionHeading}>Subtes Simulasi</Text>
+								{subtests.map((subtest) => (
+									<Text key={subtest.id} style={styles.subtestText}>
+										• {subtest.title} {subtest.questionCount ? `${subtest.questionCount} Soal` : ''} ({subtest.durationMinutes} Menit)
+									</Text>
+								))}
+							</View>
+						)}
 
 						<View style={{ rowGap: inputSpacing, gap: inputSpacing }}>
 							<Text style={styles.sectionHeading}>Identitas Diri</Text>
 							{identityFields.map((field) => (
-								<View key={field.key} style={[styles.inputWrapper, { height: inputHeight }]}>
+								<View key={field.key} style={[styles.inputWrapper, { height: inputHeight }]}> 
 									<TextInput
 										value={identityState[field.key]}
 										onChangeText={(value) => handleInputChange(field.key, value)}
@@ -285,61 +351,53 @@ const TryoutRegistrationFreeScreen: FC = () => {
 										autoCapitalize={field.autoCapitalize ?? 'sentences'}
 										returnKeyType="next"
 									/>
-									{field.showDropdown ? (
-										<Pressable
-											style={styles.inputTrailingIcon}
-											accessibilityRole="button"
-											accessibilityLabel="Pilih asal sekolah"
-											onPress={() => Alert.alert('Asal Sekolah', 'Integrasikan daftar sekolah di tahap berikutnya.')}
-										>
-											<ChevronIcon width={10} height={6} style={styles.dropdownIcon} />
-										</Pressable>
-									) : null}
 								</View>
 							))}
 						</View>
 
-						<View style={{ rowGap: inputSpacing, gap: inputSpacing }}>
-							<Text style={styles.sectionHeading}>Bukti Pendukung</Text>
-							<View
-								style={[
-									styles.uploadRow,
-									{
-										columnGap: uploadGap,
-										rowGap: uploadGap,
-										gap: uploadGap,
-									},
-								]}
-							>
-								{uploadRequirements.map((requirement) => {
-									const file = requirement.key === 'poster' ? proofShare : proofFollow;
-									return (
-										<Pressable
-											key={requirement.key}
-											onPress={() => handleUploadPress(requirement.key)}
-											style={[
-												styles.uploadCard,
-												{
-													minHeight: uploadCardHeight,
-													minWidth: uploadCardMinWidth,
-													paddingHorizontal: clamp(inputPaddingHorizontal, 18, 24),
-												},
-											]}
-											accessibilityRole="button"
-											accessibilityLabel={`Unggah ${requirement.title}`}
-										>
-											<Text style={styles.uploadTitle}>{requirement.title}</Text>
-											<View style={[styles.uploadIconWrapper, { width: uploadIconSize, height: uploadIconSize }]}>
-												<UploadIcon width={uploadIconSize} height={uploadIconSize} />
-											</View>
-											<Text style={[styles.uploadHelper, { fontSize: uploadHelperFontSize }]}>
-												{file ? file.name : requirement.helper}
-											</Text>
-										</Pressable>
-									);
-								})}
+						{isProofRequired && (
+							<View style={{ rowGap: inputSpacing, gap: inputSpacing }}>
+								<Text style={styles.sectionHeading}>Bukti Pendukung</Text>
+								<View
+									style={[
+										styles.uploadRow,
+										{
+											columnGap: uploadGap,
+											rowGap: uploadGap,
+											gap: uploadGap,
+										},
+									]}
+								>
+									{uploadRequirements.map((requirement) => {
+										const file = requirement.key === 'poster' ? proofShare : proofFollow;
+										return (
+											<Pressable
+												key={requirement.key}
+												onPress={() => handleUploadPress(requirement.key)}
+												style={[
+													styles.uploadCard,
+													{
+														minHeight: uploadCardHeight,
+														minWidth: uploadCardMinWidth,
+														paddingHorizontal: clamp(inputPaddingHorizontal, 18, 24),
+													},
+												]}
+												accessibilityRole="button"
+												accessibilityLabel={`Unggah ${requirement.title}`}
+											>
+												<Text style={styles.uploadTitle}>{requirement.title}</Text>
+												<View style={[styles.uploadIconWrapper, { width: uploadIconSize, height: uploadIconSize }]}>
+													<UploadIcon width={uploadIconSize} height={uploadIconSize} />
+												</View>
+												<Text style={[styles.uploadHelper, { fontSize: uploadHelperFontSize }]}>
+													{file ? file.name : requirement.helper}
+												</Text>
+											</Pressable>
+										);
+									})}
+								</View>
 							</View>
-						</View>
+						)}
 
 						<Pressable
 							onPress={handleSubmit}
@@ -347,7 +405,7 @@ const TryoutRegistrationFreeScreen: FC = () => {
 							accessibilityRole="button"
 							accessibilityLabel="Kirim pendaftaran tryout"
 						>
-							<Text style={styles.ctaLabel}>Kirim</Text>
+							<Text style={styles.ctaLabel}>{isProofRequired ? 'Kirim' : 'Daftar Sekarang'}</Text>
 						</Pressable>
 					</View>
 				</ScrollView>
@@ -431,6 +489,17 @@ const styles = StyleSheet.create({
 		fontFamily: fontFamilies.medium,
 		fontSize: 11,
 		color: 'rgba(255,255,255,0.85)',
+	},
+	heroPrice: {
+		fontFamily: fontFamilies.semiBold,
+		fontSize: 11,
+		color: colors.white,
+	},
+	subtestText: {
+		fontFamily: fontFamilies.medium,
+		fontSize: 13,
+		color: colors.textSecondary,
+		marginLeft: 8,
 	},
 	sectionHeading: {
 		fontFamily: fontFamilies.bold,
