@@ -37,6 +37,7 @@ import type { RootStackParamList } from '../../../App';
 import { useAuth } from '../../contexts/AuthContext';
 import { bankSoalService } from '../../services/bankSoalService';
 import { API_URL } from '../../services/api';
+import { AVATARS } from '../../constants/avatars';
 
 const leaderboardGradients = gradients.leaderboard;
 
@@ -96,7 +97,7 @@ type LeaderboardEntry = {
   grade: string;
   score: number;
   rank: number;
-  avatar: ImageSourcePropType;
+  avatar: ImageSourcePropType | string;
   Badge: FC<SvgProps>;
   scoreColor: string;
 };
@@ -354,6 +355,15 @@ const QuickActionCard: FC<QuickActionCardProps> = ({
   </Pressable>
 );
 
+const resolveAvatar = (avatar: ImageSourcePropType | string) => {
+  if (typeof avatar === 'string') {
+    if (AVATARS[avatar]) return AVATARS[avatar];
+    if (avatar.startsWith('http')) return { uri: avatar };
+    return { uri: `${API_URL}${avatar.startsWith('/') ? '' : '/'}${avatar}` };
+  }
+  return avatar;
+};
+
 const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
@@ -364,7 +374,7 @@ const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
     >
       <View style={styles.leaderboardMedal}>
         <Badge width={68} height={75} />
-        <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <Image source={resolveAvatar(avatar)} style={styles.leaderboardAvatar} resizeMode="contain" />
         <View style={styles.leaderboardRankBadgeFirst}>
           <Text style={styles.leaderboardRankText}>1</Text>
         </View>
@@ -388,7 +398,7 @@ const SecondPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, B
     >
       <View style={styles.leaderboardMedal}>
         <Badge width={68} height={75} />
-        <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <Image source={resolveAvatar(avatar)} style={styles.leaderboardAvatar} resizeMode="contain" />
         <View style={styles.leaderboardRankBadgeSecond}>
           <Text style={styles.leaderboardRankText}>2</Text>
         </View>
@@ -412,7 +422,7 @@ const ThirdPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
     >
       <View style={styles.leaderboardMedal}>
         <Badge width={68} height={75} />
-        <Image source={avatar} style={styles.leaderboardAvatar} resizeMode="contain" />
+        <Image source={resolveAvatar(avatar)} style={styles.leaderboardAvatar} resizeMode="contain" />
         <View style={styles.leaderboardRankBadgeThird}>
           <Text style={styles.leaderboardRankText}>3</Text>
         </View>
@@ -573,9 +583,11 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgres
     [navigation]
   );
 
-  const avatarSource = user?.avatar 
-    ? { uri: user.avatar.startsWith('http') ? user.avatar : `${API_URL}${user.avatar.startsWith('/') ? '' : '/'}${user.avatar}` } 
-    : HeroAvatar;
+  const avatarSource = user?.avatarPath && AVATARS[user.avatarPath]
+    ? AVATARS[user.avatarPath]
+    : user?.avatarPath
+      ? { uri: user.avatarPath.startsWith('http') ? user.avatarPath : `${API_URL}${user.avatarPath.startsWith('/') ? '' : '/'}${user.avatarPath}` }
+      : HeroAvatar;
 
   return (
     <View style={[styles.heroWrapper, { width: layout.contentWidth, alignSelf: 'center' }]}>
@@ -596,13 +608,13 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgres
           <Pressable style={styles.searchBarWrapper} onPress={() => navigation.navigate('Search')}>
             <SearchBar placeholder="Mau belajar apa nih?" />
           </Pressable>
+          <Pressable style={styles.notificationButton} onPress={() => navigation.navigate('Notification')}>
+            <NotificationIcon style={styles.notificationIcon} />
+          </Pressable>
+        </View>
         <View style={[styles.profileRow, { marginTop: profileMarginTop }]}>
           <Image
             source={avatarSource}
-            style={[styles.profileAvatar, { width: layout.heroAvatarSize, height: layout.heroAvatarSize, borderRadius: layout.heroAvatarSize / 2 }]}
-            resizeMode="cover"
-          />
-          <View style={[styles.profileMeta, { marginLeft: layout.profileSpacing, flex: 1 }]}>
             style={[styles.profileAvatar, { width: layout.heroAvatarSize, height: layout.heroAvatarSize, borderRadius: layout.heroAvatarSize / 2 }]}
             resizeMode="cover"
           />

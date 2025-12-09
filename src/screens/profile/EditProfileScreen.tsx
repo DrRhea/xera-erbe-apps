@@ -16,7 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fontFamilies, gradients, spacing, radii } from '../../constants/theme';
 import { useAuth } from '../../contexts/AuthContext';
 import BackArrowIcon from '../../../assets/icons/backarrow.svg';
-import AvatarPlaceholder from '../../../assets/images/Ava2.png'; // Default avatar
+import { AVATARS, AVATAR_KEYS } from '../../constants/avatars';
+import { API_URL } from '../../services/api';
 
 const EditProfileScreen = () => {
   const navigation = useNavigation();
@@ -25,42 +26,32 @@ const EditProfileScreen = () => {
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    // username: user?.username || '', // Backend doesn't seem to have username, maybe use email or add it?
-    // For now I'll skip username or map it to something else if needed. 
-    // The design shows username, but the backend User entity has name and email.
-    // I'll assume 'name' is the display name.
     email: user?.email || '',
     phoneNumber: user?.phoneNumber || '',
     school: user?.school || '',
     grade: user?.grade || '',
     socialMedia: user?.metadata?.socialMedia || '',
+    avatarPath: user?.avatarPath || '',
   });
 
   const handleChange = (key: string, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleAvatarSelect = (key: string) => {
+    setFormData((prev) => ({ ...prev, avatarPath: key }));
+  };
+
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      const payload = {
-        ...formData,
-        metadata: {
-          ...user?.metadata,
-          socialMedia: formData.socialMedia,
-        },
-      };
-      // Remove flat socialMedia from payload if it causes issues with backend DTO validation, 
-      // but since UpdateUserDto is Partial<RegisterData> and RegisterData doesn't have socialMedia, 
-      // we should probably sanitize it or just pass the constructed object.
-      // The authService.updateProfile takes Partial<RegisterData>.
-      // Let's construct the exact object expected.
       const updateData = {
         name: formData.name,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         school: formData.school,
         grade: formData.grade,
+        avatarPath: formData.avatarPath,
         metadata: {
           ...user?.metadata,
           socialMedia: formData.socialMedia,
@@ -77,6 +68,12 @@ const EditProfileScreen = () => {
       setIsLoading(false);
     }
   };
+
+  const currentAvatarSource = formData.avatarPath && AVATARS[formData.avatarPath]
+    ? AVATARS[formData.avatarPath]
+    : formData.avatarPath
+      ? { uri: formData.avatarPath.startsWith('http') ? formData.avatarPath : `${API_URL}${formData.avatarPath.startsWith('/') ? '' : '/'}${formData.avatarPath}` }
+      : AVATARS['Ava1.png'];
 
   return (
     <View style={styles.container}>
@@ -99,8 +96,23 @@ const EditProfileScreen = () => {
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatarWrapper}>
-              <Image source={AvatarPlaceholder} style={styles.avatar} />
+              <Image source={currentAvatarSource} style={styles.avatar} />
             </View>
+            <Text style={styles.changeAvatarText}>Pilih Avatar</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.avatarSelectorContent} style={styles.avatarSelector}>
+              {AVATAR_KEYS.map((key) => (
+                <Pressable 
+                  key={key} 
+                  onPress={() => handleAvatarSelect(key)} 
+                  style={[
+                    styles.avatarOption, 
+                    formData.avatarPath === key && styles.avatarOptionSelected
+                  ]}
+                >
+                  <Image source={AVATARS[key]} style={styles.avatarOptionImage} />
+                </Pressable>
+              ))}
+            </ScrollView>
           </View>
 
           <View style={styles.form}>
@@ -199,6 +211,36 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  avatarSelector: {
+    marginTop: 16,
+    maxHeight: 80,
+  },
+  avatarSelectorContent: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  avatarOption: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    padding: 2,
+  },
+  avatarOptionSelected: {
+    borderColor: colors.primary,
+  },
+  avatarOptionImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30,
+  },
+  changeAvatarText: {
+    marginTop: 12,
+    fontSize: 14,
+    fontFamily: fontFamilies.semiBold,
+    color: colors.text,
   },
   header: {
     flexDirection: 'row',

@@ -9,6 +9,8 @@ export type LoginResponse = {
     name: string;
     email: string;
     role: string;
+    avatarPath?: string;
+    badgeLabel?: string;
   };
 };
 
