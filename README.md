@@ -58,12 +58,20 @@ eas build -p android --profile preview --local
 ### Option 2: Native Build (Windows Friendly)
 You can generate the native Android project and build it using Gradle directly on Windows. This does **not** require WSL, but requires the Android SDK and Java to be installed on Windows.
 
-1. **Generate Native Code (Prebuild)**
+**CRITICAL: Windows Path Length Limitation**
+Windows has a maximum path length limit (260 characters) that often causes build failures with C++ and React Native files.
+**You MUST move or clone your project to a short path (e.g., `C:\app\xera-erbe-apps`) before building.**
+
+1. **Move Project to Short Path**
+   Copy your project folder to `C:\app\xera-erbe-apps` or similar.
+
+2. **Generate Native Code (Prebuild)**
+   Run this in the new folder:
    ```bash
    npx expo prebuild
    ```
 
-2. **Build APK using Gradle**
+3. **Build APK using Gradle**
    ```bash
    cd android
    ./gradlew assembleRelease
@@ -71,7 +79,7 @@ You can generate the native Android project and build it using Gradle directly o
    The APK will be located at: `android/app/build/outputs/apk/release/app-release.apk`
 
 **Requirements for Native Build:**
-1.  **Java**: JDK 17 or 21 installed on Windows.
+1.  **Java**: JDK 17 installed on Windows. (Note: Gradle may try to auto-download a toolchain. If it fails, install JDK 17 manually via `winget install Microsoft.OpenJDK.17` and set `org.gradle.java.installations.auto-download=false` in `android/gradle.properties`).
 2.  **Android SDK**: Installed via Android Studio on Windows.
 3.  **Environment Variables**: `ANDROID_HOME` and `JAVA_HOME` must be set in Windows.
 
