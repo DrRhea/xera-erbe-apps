@@ -58,3 +58,6 @@ specifications.md
 .claude/
 .kilocode/
 .github/copilot-instructions.md
+
+# env files
+.env
