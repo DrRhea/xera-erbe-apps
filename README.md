@@ -44,6 +44,37 @@ eas build -p android --profile preview
 > 2. Login to Expo: `eas login`
 > 3. Configure project (if first time): `eas build:configure`
 
+## Faster Builds (Local)
+
+If you find the cloud build queue too slow, you have two options for local builds:
+
+### Option 1: EAS Local (Requires WSL on Windows)
+This runs the EAS build pipeline on your machine.
+```bash
+# Run inside WSL terminal
+eas build -p android --profile preview --local
+```
+
+### Option 2: Native Build (Windows Friendly)
+You can generate the native Android project and build it using Gradle directly on Windows. This does **not** require WSL, but requires the Android SDK and Java to be installed on Windows.
+
+1. **Generate Native Code (Prebuild)**
+   ```bash
+   npx expo prebuild
+   ```
+
+2. **Build APK using Gradle**
+   ```bash
+   cd android
+   ./gradlew assembleRelease
+   ```
+   The APK will be located at: `android/app/build/outputs/apk/release/app-release.apk`
+
+**Requirements for Native Build:**
+1.  **Java**: JDK 17 or 21 installed on Windows.
+2.  **Android SDK**: Installed via Android Studio on Windows.
+3.  **Environment Variables**: `ANDROID_HOME` and `JAVA_HOME` must be set in Windows.
+
 ## Configuration & Permissions
 
 ### Environment Variables
