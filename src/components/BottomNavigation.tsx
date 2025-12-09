@@ -1,6 +1,7 @@
 import React, { FC, useCallback } from 'react';
 import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { SvgProps } from 'react-native-svg';
 
 import { colors as themeColors, fontFamilies } from '../constants/theme';
@@ -32,6 +33,7 @@ const BottomNavigation: FC<BottomNavigationProps> = ({
   backgroundColor = themeColors.surface,
 }) => {
   const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
+  const insets = useSafeAreaInsets();
 
   const handlePress = useCallback(
     (item: BottomNavigationItem) => {
@@ -50,7 +52,7 @@ const BottomNavigation: FC<BottomNavigationProps> = ({
   );
 
   return (
-    <View style={[styles.container, { backgroundColor }, style]}>
+    <View style={[styles.container, { backgroundColor, height: 63 + insets.bottom, paddingBottom: insets.bottom }, style]}>
       {items.map((item) => {
         const { key, label, Icon } = item;
         const isActive = key === activeKey;

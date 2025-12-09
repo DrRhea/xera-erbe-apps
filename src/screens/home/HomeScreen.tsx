@@ -36,6 +36,7 @@ import PromotionBanner from '../../components/PromotionBanner';
 import type { RootStackParamList } from '../../../App';
 import { useAuth } from '../../contexts/AuthContext';
 import { bankSoalService } from '../../services/bankSoalService';
+import { API_URL } from '../../services/api';
 
 const leaderboardGradients = gradients.leaderboard;
 
@@ -572,6 +573,10 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgres
     [navigation]
   );
 
+  const avatarSource = user?.avatar 
+    ? { uri: user.avatar.startsWith('http') ? user.avatar : `${API_URL}${user.avatar.startsWith('/') ? '' : '/'}${user.avatar}` } 
+    : HeroAvatar;
+
   return (
     <View style={[styles.heroWrapper, { width: layout.contentWidth, alignSelf: 'center' }]}>
       <LinearGradient
@@ -591,25 +596,33 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgres
           <Pressable style={styles.searchBarWrapper} onPress={() => navigation.navigate('Search')}>
             <SearchBar placeholder="Mau belajar apa nih?" />
           </Pressable>
-          <Pressable style={styles.notificationButton} onPress={() => navigation.navigate('Notification')}>
-            <NotificationIcon style={styles.notificationIcon} />
-          </Pressable>
-        </View>
         <View style={[styles.profileRow, { marginTop: profileMarginTop }]}>
           <Image
-            source={HeroAvatar}
-            style={[styles.profileAvatar, { width: layout.heroAvatarSize, height: layout.heroAvatarSize }]}
-            resizeMode="contain"
+            source={avatarSource}
+            style={[styles.profileAvatar, { width: layout.heroAvatarSize, height: layout.heroAvatarSize, borderRadius: layout.heroAvatarSize / 2 }]}
+            resizeMode="cover"
           />
-          <View style={[styles.profileMeta, { marginLeft: layout.profileSpacing }]}>
-            <Text style={[styles.profileGreeting, { fontSize: layout.heroGreetingSize }]}>Hi, {user?.name || 'User'}!</Text>
+          <View style={[styles.profileMeta, { marginLeft: layout.profileSpacing, flex: 1 }]}>
+            style={[styles.profileAvatar, { width: layout.heroAvatarSize, height: layout.heroAvatarSize, borderRadius: layout.heroAvatarSize / 2 }]}
+            resizeMode="cover"
+          />
+          <View style={[styles.profileMeta, { marginLeft: layout.profileSpacing, flex: 1 }]}>
+            <Text 
+              style={[styles.profileGreeting, { fontSize: layout.heroGreetingSize }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              Hi, {user?.name || 'User'}!
+            </Text>
             <View
               style={[
                 styles.profileBadge,
-                { paddingVertical: layout.heroBadgePaddingVertical, paddingHorizontal: layout.heroBadgePaddingHorizontal },
+                { paddingVertical: layout.heroBadgePaddingVertical, paddingHorizontal: layout.heroBadgePaddingHorizontal, alignSelf: 'flex-start' },
               ]}
             >
-              <Text style={[styles.profileBadgeText, { fontSize: layout.heroBadgeFontSize }]}>RBD0925015 - Idaman UI</Text>
+              <Text style={[styles.profileBadgeText, { fontSize: layout.heroBadgeFontSize }]}>
+                {user?.badge_label || 'Idaman UI'}
+              </Text>
             </View>
           </View>
         </View>

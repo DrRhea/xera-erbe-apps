@@ -58,6 +58,10 @@ const ProfileScreen = () => {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profil Saya</Text>
+          use brand logo
+
+          use logo here from C:\app\xera-erbe-apps\assets\images\logoutuhputih.png
+          
           <Text style={styles.headerBrand}>erbe</Text> 
           {/* Note: The brand logo in image is an icon + text. Using text for now. */}
         </View>
