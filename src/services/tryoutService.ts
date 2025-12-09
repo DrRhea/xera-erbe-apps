@@ -131,8 +131,6 @@ export const tryoutService = {
 
     // Send as FormData if files exist
     const formData = new FormData();
-    // Append a dummy field to ensure FormData is never empty (some Android versions dislike empty multipart)
-    formData.append('timestamp', new Date().toISOString());
     
     if (files?.proofShare) {
       console.log('Appending proofShare', files.proofShare.uri);
