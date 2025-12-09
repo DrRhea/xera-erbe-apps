@@ -376,7 +376,7 @@ const TryoutDetailScreen: FC = () => {
                                 fontFamily: fontFamilies.bold,
                                 fontSize: 14,
                                 color: '#00C853'
-                            }}>{scoreDisplay}</Text>
+                            }}>{scoreDisplay.toFixed(1)}</Text>
                         </View>
                     )}
                   </Pressable>

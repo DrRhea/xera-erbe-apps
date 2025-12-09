@@ -49,8 +49,10 @@ export type Question = {
   id: string;
   number: number;
   prompt: string;
+  promptImagePath?: string;
   hint?: string;
   explanation?: string;
+  explanationImagePath?: string;
   options: QuestionOption[];
 };
 

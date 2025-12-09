@@ -530,7 +530,7 @@ const TryoutScreen: FC = () => {
 												justifyContent: 'center' 
 											}}>
 												<Text style={{ fontFamily: fontFamilies.bold, fontSize: 14, color: '#4CAF50' }}>
-													{tryout.score}
+													{tryout.score.toFixed(1)}
 												</Text>
 											</View>
 										</View>

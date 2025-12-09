@@ -40,6 +40,7 @@ import {
 } from '../../data/tryoutQuestions';
 import { markTryoutSubtestCompleted } from '../../data/tryoutProgress';
 import { tryoutService } from '../../services/tryoutService';
+import { API_URL } from '../../services/api';
 import LeftPointerIcon from '../../../assets/icons/leftpointer.svg';
 import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
 
@@ -135,9 +136,11 @@ const TryoutQuestionScreen: FC = () => {
 					const mapped: TryoutQuestion[] = q.map((x: any, i: number) => ({
 						id: x.id,
 						number: x.number ?? (i + 1),
-						prompt: x.prompt,
+						prompt: x.prompt || '',
 						subject: subtestTitle,
-						explanation: x.explanation, // Add explanation
+						explanation: x.explanation,
+						image: x.promptImagePath ? { uri: `${API_URL}/${x.promptImagePath}` } : undefined,
+						explanationImage: x.explanationImagePath ? { uri: `${API_URL}/${x.explanationImagePath}` } : undefined,
 						options: x.options.map((o: any) => ({
 							id: o.id,
 							label: o.label,
@@ -183,8 +186,9 @@ const TryoutQuestionScreen: FC = () => {
 					const mapped: TryoutQuestion[] = q.map((x: any, i: number) => ({
 						id: x.id,
 						number: x.number ?? (i + 1),
-						prompt: x.prompt,
+						prompt: x.prompt || '',
 						subject: subtestTitle,
+						image: x.promptImagePath ? { uri: `${API_URL}/${x.promptImagePath}` } : undefined,
 						options: x.options.map((o: any) => ({
 							id: o.id,
 							label: o.label,
@@ -546,7 +550,9 @@ const TryoutQuestionScreen: FC = () => {
 						</View>
 
 						<View style={styles.questionContainer}>
-							<Text style={styles.questionPrompt}>{currentQuestion.prompt}</Text>
+							{currentQuestion.prompt ? (
+								<Text style={styles.questionPrompt}>{currentQuestion.prompt}</Text>
+							) : null}
 							{currentQuestion.image ? (
 								<Image
 									source={currentQuestion.image}
@@ -622,7 +628,7 @@ const TryoutQuestionScreen: FC = () => {
 							))}
 						</View>
 
-						{isReviewMode && currentQuestion.explanation && (
+						{isReviewMode && (currentQuestion.explanation || currentQuestion.explanationImage) && (
 							<View style={{
 								backgroundColor: '#E3F2FD',
 								borderRadius: 16,
@@ -630,7 +636,16 @@ const TryoutQuestionScreen: FC = () => {
 								marginTop: 0,
 							}}>
 								<Text style={{ fontFamily: fontFamilies.bold, fontSize: 14, color: '#1565C0', marginBottom: 8 }}>Pembahasan</Text>
-								<Text style={{ fontFamily: fontFamilies.regular, fontSize: 14, color: '#0D47A1', lineHeight: 20 }}>{currentQuestion.explanation}</Text>
+								{currentQuestion.explanation ? (
+									<Text style={{ fontFamily: fontFamilies.regular, fontSize: 14, color: '#0D47A1', lineHeight: 20, marginBottom: currentQuestion.explanationImage ? 12 : 0 }}>{currentQuestion.explanation}</Text>
+								) : null}
+								{currentQuestion.explanationImage ? (
+									<Image
+										source={currentQuestion.explanationImage}
+										style={{ width: '100%', aspectRatio: 16/9, borderRadius: 8 }}
+										resizeMode="contain"
+									/>
+								) : null}
 							</View>
 						)}
 
