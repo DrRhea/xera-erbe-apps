@@ -33,13 +33,24 @@ Once the server is running, press `a` in the terminal to open the app on the con
 To generate an APK file (for testing on a device without the development server), use the following command. This uses the `preview` profile defined in `eas.json`.
 
 ```bash
-# Build an APK for Android
+# Build an APK for Android (Connects to Production API: https://api.erbeinc.com)
 eas build -p android --profile preview
 ```
 
-> **Note**: You need to have `eas-cli` installed (`npm install -g eas-cli`) and be logged in to your Expo account (`eas login`).
+> **Note**: The `preview` and `production` profiles in `eas.json` are configured to set `EXPO_PUBLIC_API_URL` to `https://api.erbeinc.com`. This means the built APK will talk to the real backend.
+
+> **Prerequisites**:
+> 1. Install EAS CLI: `npm install -g eas-cli`
+> 2. Login to Expo: `eas login`
+> 3. Configure project (if first time): `eas build:configure`
 
 ## Configuration & Permissions
+
+### Environment Variables
+
+The app uses `EXPO_PUBLIC_API_URL` to determine which backend to connect to.
+- **Development**: Defaults to `http://10.0.2.2:3001` (Android Emulator localhost) if not set. You can create a `.env` file to override this.
+- **Production/Preview Builds**: Configured in `eas.json` to use `https://api.erbeinc.com`.
 
 ### Android Permissions
 

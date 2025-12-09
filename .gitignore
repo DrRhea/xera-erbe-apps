@@ -60,4 +60,4 @@ specifications.md
 .github/copilot-instructions.md
 
 # env files
-.env
+*.env
