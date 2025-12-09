@@ -30,7 +30,7 @@
       "usesCleartextTraffic": true
     },
     "web": {
-      "favicon": "./assets/logosimbolijo.png"
+      "favicon": "./assets/images/logosimbolijo.png"
     },
     "plugins": [
       "expo-font"
