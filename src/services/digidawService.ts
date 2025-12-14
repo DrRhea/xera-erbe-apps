@@ -48,6 +48,11 @@ export interface QuestionSet {
 export interface DigidawSession {
   attemptId: string;
   questions: Question[];
+  answers: {
+    questionId: string;
+    optionId: string;
+    isCorrect: boolean;
+  }[];
 }
 
 export interface Category {

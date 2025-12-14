@@ -93,8 +93,18 @@ const DigidawQuestionScreen: FC = () => {
           };
         });
         setQuestions(mappedQuestions);
-        setQuestionStates(mappedQuestions.map(() => ({ selectedOptionId: null, isEvaluated: false })));
-        setCurrentIndex(0);
+        
+        const initialStates = mappedQuestions.map((q) => {
+            const answer = session.answers?.find(a => a.questionId === q.id);
+            return {
+                selectedOptionId: answer ? answer.optionId : null,
+                isEvaluated: !!answer
+            };
+        });
+        setQuestionStates(initialStates);
+
+        const firstUnansweredIndex = initialStates.findIndex(s => !s.isEvaluated);
+        setCurrentIndex(firstUnansweredIndex !== -1 ? firstUnansweredIndex : 0);
       } catch (error) {
         console.error('Failed to fetch questions:', error);
       } finally {
@@ -160,53 +170,40 @@ const DigidawQuestionScreen: FC = () => {
   );
 
   const handleSelectOption = useCallback(
-    (optionId: string) => {
-      if (isEvaluated) {
+    async (optionId: string) => {
+      if (isEvaluated || !attemptId || !currentQuestion) {
         return;
       }
+      
       updateQuestionState((state, index) => {
         if (index !== currentIndex) {
           return state;
         }
-        const isSameOption = state.selectedOptionId === optionId;
         return {
-          selectedOptionId: isSameOption ? state.selectedOptionId : optionId,
-          isEvaluated: false,
+          selectedOptionId: optionId,
+          isEvaluated: true,
         };
       });
+
+      try {
+        await digidawService.recordAnswer(attemptId, currentQuestion.id, optionId);
+      } catch (error) {
+        console.error('Failed to record answer:', error);
+      }
     },
-    [currentIndex, isEvaluated, updateQuestionState]
+    [currentIndex, isEvaluated, attemptId, currentQuestion, updateQuestionState]
   );
-
-  const handleEvaluate = useCallback(async () => {
-    if (!currentState?.selectedOptionId || !currentQuestion || !attemptId) {
-      return;
-    }
-    
-    try {
-      await digidawService.recordAnswer(attemptId, currentQuestion.id, currentState.selectedOptionId);
-    } catch (error) {
-      console.error('Failed to record answer:', error);
-      // Optionally show error to user, but we proceed with UI update for now
-    }
-
-    updateQuestionState((state, index) =>
-      index === currentIndex
-        ? {
-            ...state,
-            isEvaluated: true,
-          }
-        : state
-    );
-  }, [currentIndex, currentState?.selectedOptionId, currentQuestion, attemptId, updateQuestionState]);
 
   const handlePrevious = useCallback(() => {
     setCurrentIndex((prev) => clamp(prev - 1, 0, questions.length - 1));
   }, [questions.length]);
 
   const handleNext = useCallback(() => {
+    if (!isEvaluated) {
+        return;
+    }
     setCurrentIndex((prev) => clamp(prev + 1, 0, questions.length - 1));
-  }, [questions.length]);
+  }, [questions.length, isEvaluated]);
 
   const toggleHint = useCallback(() => setHintVisible((prev) => !prev), []);
 
@@ -411,27 +408,14 @@ const DigidawQuestionScreen: FC = () => {
 
             <Pressable
               onPress={handleNext}
-              disabled={isLastQuestion}
+              disabled={isLastQuestion || !isEvaluated}
               accessibilityRole="button"
               accessibilityLabel="Soal berikutnya"
-              style={[styles.navButton, isLastQuestion && styles.navButtonDisabled]}
+              style={[styles.navButton, (isLastQuestion || !isEvaluated) && styles.navButtonDisabled]}
             >
               <RightPointerIcon width={66} height={44} />
             </Pressable>
           </View>
-
-          <Pressable
-            onPress={handleEvaluate}
-            disabled={!hasSelection || isEvaluated}
-            accessibilityRole="button"
-            accessibilityLabel="Periksa jawaban"
-            style={[
-              styles.submitButton,
-              (!hasSelection || isEvaluated) && styles.submitButtonDisabled,
-            ]}
-          >
-            <Text style={styles.submitButtonText}>Periksa Jawaban</Text>
-          </Pressable>
 
           <View style={styles.poweredWrapper}>
             <Text style={styles.poweredLabel}>Powered by</Text>

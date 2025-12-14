@@ -102,7 +102,7 @@ const DigidawScreen: FC = () => {
 				showsVerticalScrollIndicator={false}
 			>
 				<View style={[styles.headerWrapper, { width: contentWidth }]}>
-					<AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} showBackButton={false} onNotificationPress={handleNotificationPress} />
+					<AppHeader title="DIGIDAW" contentHorizontalPadding={contentHorizontalPadding} showBackButton={true} onNotificationPress={handleNotificationPress} />
 				</View>
 				<View
 					style={[

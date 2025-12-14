@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "ErbeTryout",
+    "name": "Erbe Tryout",
     "slug": "app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/appicon.svg",
+    "icon": "./assets/images/appicon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/icons/splashicon.svg",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,7 +19,7 @@
       "package": "com.erbetryout.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/appicon.svg",
+        "foregroundImage": "./assets/images/appicon.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
