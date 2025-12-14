@@ -36,6 +36,7 @@ import PromotionBanner from '../../components/PromotionBanner';
 import type { RootStackParamList } from '../../../App';
 import { useAuth } from '../../contexts/AuthContext';
 import { bankSoalService } from '../../services/bankSoalService';
+import { literasikService, type Article } from '../../services/literasikService';
 import { API_URL } from '../../services/api';
 import { AVATARS } from '../../constants/avatars';
 
@@ -161,22 +162,13 @@ const scale = (size: number, width: number) => (width / guidelineBaseWidth) * si
 
 const moderateScale = (size: number, width: number, factor = 0.5) => size + (scale(size, width) - size) * factor;
 
-const literasikCards = [
-  {
-    title: '5 Cara Upgrade Skill\nTanpa Stuck Lama-Lama',
-    description:
-      'Pernah ga sih kamu coba konsisten belajar tapi ngerasa kemampuan kamu stuck di situ-situ aja? Kadang penyebabnya...',
-    tag: 'Tips Belajar',
-    image: LiterasikImage,
-  },
-  {
-    title: '5 Cara Upgrade Skill\nTanpa Stuck Lama-Lama',
-    description:
-      'Pernah ga sih kamu coba konsisten belajar tapi ngerasa kemampuan kamu stuck di situ-situ aja? Kadang penyebabnya...',
-    tag: 'Tips Belajar',
-    image: LiterasikImage,
-  },
-];
+type LiterasikCardProps = {
+  title: string;
+  description: string;
+  tag: string;
+  image: ImageSourcePropType | { uri: string };
+  layout: ResponsiveLayout;
+};
 
 export const useResponsiveLayout = () => {
   const { width } = useWindowDimensions();
@@ -491,10 +483,6 @@ const LifeCard: FC<LifeCardProps> = ({
   );
 };
 
-type LiterasikCardProps = (typeof literasikCards)[number] & {
-  layout: ResponsiveLayout;
-};
-
 const LiterasikCard: FC<LiterasikCardProps> = ({ title, description, tag, image, layout }) => {
   const badgePaddingHorizontal = clamp(moderateScale(12, layout.screenWidth, 0.4), 10, 16);
   const badgePaddingVertical = clamp(moderateScale(4, layout.screenWidth, 0.4), 3, 6);
@@ -514,12 +502,12 @@ const LiterasikCard: FC<LiterasikCardProps> = ({ title, description, tag, image,
         <Text style={[styles.literasikBadgeText, { fontSize: badgeFontSize }]}>{tag}</Text>
       </View>
       <Image
-        source={image}
+        source={typeof image === 'string' ? { uri: image } : image}
         style={[styles.literasikImage, { width: layout.literasikImageSize, height: layout.literasikImageSize }]}
-        resizeMode="contain"
+        resizeMode="cover"
       />
-      <Text style={[styles.literasikTitle, { fontSize: titleFontSize }]}>{title}</Text>
-      <Text style={[styles.literasikDescription, { fontSize: descriptionFontSize }]}>{description}</Text>
+      <Text style={[styles.literasikTitle, { fontSize: titleFontSize }]} numberOfLines={2}>{title}</Text>
+      <Text style={[styles.literasikDescription, { fontSize: descriptionFontSize }]} numberOfLines={3}>{description}</Text>
       <View style={[styles.literasikFooter, { gap: layout.literasikFooterGap }]}>
         <ArrowIcon width={13} height={13} />
         <Text style={[styles.literasikLink, { fontSize: linkFontSize }]}>Lanjutkan Baca</Text>
@@ -791,7 +779,7 @@ const LifeAtErbeSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
   );
 };
 
-const LiterasikSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
+const LiterasikSection: FC<{ layout: ResponsiveLayout; articles: Article[] }> = ({ layout, articles }) => (
   <View
     style={[
       styles.literasikRow,
@@ -803,8 +791,15 @@ const LiterasikSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
       },
     ]}
   >
-    {literasikCards.map((card, index) => (
-      <LiterasikCard key={`${card.title}-${index}`} {...card} layout={layout} />
+    {articles.map((article, index) => (
+      <LiterasikCard
+        key={`${article.id}-${index}`}
+        title={article.title}
+        description={article.excerpt || ''}
+        tag={article.category || 'Umum'}
+        image={article.coverPath ? { uri: article.coverPath } : LiterasikImage}
+        layout={layout}
+      />
     ))}
   </View>
 );
@@ -812,17 +807,22 @@ const LiterasikSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
 const HomeScreen: FC = () => {
   const { user } = useAuth();
   const [progress, setProgress] = React.useState<any>(null);
+  const [articles, setArticles] = React.useState<Article[]>([]);
 
   React.useEffect(() => {
-    const fetchProgress = async () => {
+    const fetchData = async () => {
       try {
-        const data = await bankSoalService.getMyProgress();
-        setProgress(data);
+        const [progressData, articlesData] = await Promise.all([
+          bankSoalService.getMyProgress(),
+          literasikService.getArticles({ limit: 2, published: true }),
+        ]);
+        setProgress(progressData);
+        setArticles(articlesData.data);
       } catch (e) {
         console.error(e);
       }
     };
-    fetchProgress();
+    fetchData();
   }, []);
 
   const dynamicProgressData: ProgressCardProps[] = React.useMemo(() => {
@@ -950,7 +950,7 @@ const HomeScreen: FC = () => {
             cta="Cek Lainnya"
             onPress={() => navigation.navigate('Literasik')}
           />
-          <LiterasikSection layout={layout} />
+          <LiterasikSection layout={layout} articles={articles} />
         </View>
         <View
           style={[

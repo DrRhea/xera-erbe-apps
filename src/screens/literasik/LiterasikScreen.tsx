@@ -18,7 +18,7 @@ import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies, radii, spacing } from '../../constants/theme';
-import { literasikArticles, type LiterasikArticle } from '../../data/literasikContent';
+import { literasikService, type Article } from '../../services/literasikService';
 import type { RootStackParamList } from '../../../App';
 
 const navItems: BottomNavigationItem[] = [
@@ -38,11 +38,28 @@ const CARD_SHADOW = {
 
 const LiterasikScreen: React.FC = () => {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+	const [articles, setArticles] = React.useState<Article[]>([]);
 
-	const renderArticle = useCallback(({ item }: ListRenderItemInfo<LiterasikArticle>) => (
+	React.useEffect(() => {
+		const fetchArticles = async () => {
+			try {
+				const result = await literasikService.getArticles({ published: true });
+				setArticles(result.data);
+			} catch (e) {
+				console.error(e);
+			}
+		};
+		fetchArticles();
+	}, []);
+
+	const renderArticle = useCallback(({ item }: ListRenderItemInfo<Article>) => (
 		<View style={styles.card}>
 			<View style={styles.imageWrapper}>
-				<Image source={item.image} style={styles.cardImage} resizeMode="cover" />
+				<Image 
+					source={item.coverPath ? { uri: item.coverPath } : require('../../../assets/images/other2.png')} 
+					style={styles.cardImage} 
+					resizeMode="cover" 
+				/>
 			</View>
 			<View style={styles.cardBody}>
 				<Text style={styles.cardTitle}>{item.title}</Text>
@@ -59,7 +76,7 @@ const LiterasikScreen: React.FC = () => {
 			<View style={styles.container}>
 				<AppHeader title="Literasik" onBackPress={() => navigation.goBack()} />
 				<FlatList
-					data={literasikArticles}
+					data={articles}
 					renderItem={renderArticle}
 					keyExtractor={(article) => article.id}
 					contentContainerStyle={styles.listContent}
