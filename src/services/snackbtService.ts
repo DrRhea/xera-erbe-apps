@@ -16,17 +16,28 @@ export interface QuestionOption {
   id: string;
   label: string;
   body: string;
+  isCorrect: boolean;
 }
 
 export interface Question {
   id: string;
   prompt: string;
+  hint: string;
+  explanation: string;
+  promptImagePath?: string;
+  hintImagePath?: string;
+  explanationImagePath?: string;
   options: QuestionOption[];
 }
 
 export interface SnackbtSession {
   attemptId: string;
   questions: Question[];
+  answers: {
+    questionId: string;
+    optionId: string;
+    isCorrect: boolean;
+  }[];
 }
 
 export const snackbtService = {

@@ -23,6 +23,8 @@ import LeftPointerIcon from '../../../assets/icons/leftpointer.svg';
 import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
 import HintIcon from '../../../assets/icons/hint.svg';
 
+import { API_URL } from '../../services/api';
+
 const moduleBadge = require('../../../assets/images/digidaw.png');
 const poweredByLogo = require('../../../assets/images/logoutuhijo.png');
 
@@ -51,6 +53,9 @@ export type DigidawQuestion = {
   correctOptionId: string;
   hint?: string;
   explanation?: string;
+  promptImagePath?: string;
+  hintImagePath?: string;
+  explanationImagePath?: string;
 };
 
 const DigidawQuestionScreen: FC = () => {
@@ -90,6 +95,9 @@ const DigidawQuestionScreen: FC = () => {
             correctOptionId: correctOption ? correctOption.id : '',
             hint: q.hint,
             explanation: q.explanation,
+            promptImagePath: q.promptImagePath,
+            hintImagePath: q.hintImagePath,
+            explanationImagePath: q.explanationImagePath,
           };
         });
         setQuestions(mappedQuestions);
@@ -307,6 +315,13 @@ const DigidawQuestionScreen: FC = () => {
           </View>
 
           <View style={styles.questionBody}>
+            {currentQuestion.promptImagePath && (
+              <Image
+                source={{ uri: `${API_URL}/${currentQuestion.promptImagePath}` }}
+                style={styles.questionImage}
+                resizeMode="contain"
+              />
+            )}
             <Text style={styles.questionPrompt}>{currentQuestion.prompt}</Text>
           </View>
 
@@ -373,6 +388,13 @@ const DigidawQuestionScreen: FC = () => {
                   },
                 ]}
               >
+                {currentQuestion.explanationImagePath && (
+                  <Image
+                    source={{ uri: `${API_URL}/${currentQuestion.explanationImagePath}` }}
+                    style={styles.explanationImage}
+                    resizeMode="contain"
+                  />
+                )}
                 <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
               </View>
             </View>
@@ -429,6 +451,13 @@ const DigidawQuestionScreen: FC = () => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>DIGIDAW HINT</Text>
             <View style={styles.modalBody}>
+              {currentQuestion.hintImagePath && (
+                <Image
+                  source={{ uri: `${API_URL}/${currentQuestion.hintImagePath}` }}
+                  style={styles.hintImage}
+                  resizeMode="contain"
+                />
+              )}
               <Text style={styles.modalHintText}>{currentQuestion.hint}</Text>
             </View>
             <Pressable
@@ -532,6 +561,13 @@ const styles = StyleSheet.create({
     color: colors.primaryDark,
     lineHeight: 20,
   },
+  questionImage: {
+    width: '100%',
+    height: 200,
+    marginBottom: 12,
+    backgroundColor: colors.white,
+    borderRadius: 12,
+  },
   optionsGrid: {
     width: '100%',
     flexDirection: 'column',
@@ -591,6 +627,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.primaryDark,
     lineHeight: 20,
+  },
+  explanationImage: {
+    width: '100%',
+    height: 150,
+    marginBottom: 12,
+    backgroundColor: colors.white,
+    borderRadius: 12,
   },
   controlsRow: {
     width: '100%',
@@ -682,6 +725,13 @@ const styles = StyleSheet.create({
     color: colors.primaryDark,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  hintImage: {
+    width: '100%',
+    height: 150,
+    marginBottom: 12,
+    backgroundColor: colors.white,
+    borderRadius: 12,
   },
   modalButton: {
     paddingHorizontal: 28,

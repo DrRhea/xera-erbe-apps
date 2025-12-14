@@ -642,7 +642,7 @@ const TryoutQuestionScreen: FC = () => {
 								{currentQuestion.explanationImage ? (
 									<Image
 										source={currentQuestion.explanationImage}
-										style={{ width: '100%', aspectRatio: 16/9, borderRadius: 8 }}
+										style={{ width: '100%', height: 150, borderRadius: 8, backgroundColor: colors.white }}
 										resizeMode="contain"
 									/>
 								) : null}
@@ -892,7 +892,10 @@ const styles = StyleSheet.create({
 	},
 	questionImage: {
 		width: '100%',
-		aspectRatio: 16 / 9,
+		height: 200,
+		marginBottom: 12,
+		backgroundColor: colors.white,
+		borderRadius: 12,
 	},
 	optionsGrid: {
 		width: '100%',

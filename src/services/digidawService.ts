@@ -34,6 +34,9 @@ export interface Question {
   prompt: string;
   hint: string;
   explanation: string;
+  promptImagePath?: string;
+  hintImagePath?: string;
+  explanationImagePath?: string;
   options: QuestionOption[];
 }
 
