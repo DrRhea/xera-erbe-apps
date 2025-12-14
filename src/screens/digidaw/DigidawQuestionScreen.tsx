@@ -17,7 +17,7 @@ import AppHeader from '../../components/AppHeader';
 import { colors, fontFamilies } from '../../constants/theme';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import type { RootStackParamList } from '../../../App';
-import { bankSoalService } from '../../services/bankSoalService';
+import { digidawService } from '../../services/digidawService';
 
 import LeftPointerIcon from '../../../assets/icons/leftpointer.svg';
 import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
@@ -68,12 +68,14 @@ const DigidawQuestionScreen: FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [questionStates, setQuestionStates] = useState<QuestionState[]>([]);
   const [isHintVisible, setHintVisible] = useState(false);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const session = await bankSoalService.startModuleSession(moduleId);
+        const session = await digidawService.startSession(moduleId);
+        setAttemptId(session.attemptId);
         const mappedQuestions: DigidawQuestion[] = session.questions.map((q, index) => {
           const correctOption = q.options.find((o) => o.isCorrect);
           return {
@@ -86,8 +88,8 @@ const DigidawQuestionScreen: FC = () => {
               text: o.body,
             })),
             correctOptionId: correctOption ? correctOption.id : '',
-            hint: '',
-            explanation: '',
+            hint: q.hint,
+            explanation: q.explanation,
           };
         });
         setQuestions(mappedQuestions);
@@ -176,10 +178,18 @@ const DigidawQuestionScreen: FC = () => {
     [currentIndex, isEvaluated, updateQuestionState]
   );
 
-  const handleEvaluate = useCallback(() => {
-    if (!currentState?.selectedOptionId) {
+  const handleEvaluate = useCallback(async () => {
+    if (!currentState?.selectedOptionId || !currentQuestion || !attemptId) {
       return;
     }
+    
+    try {
+      await digidawService.recordAnswer(attemptId, currentQuestion.id, currentState.selectedOptionId);
+    } catch (error) {
+      console.error('Failed to record answer:', error);
+      // Optionally show error to user, but we proceed with UI update for now
+    }
+
     updateQuestionState((state, index) =>
       index === currentIndex
         ? {
@@ -188,7 +198,7 @@ const DigidawQuestionScreen: FC = () => {
           }
         : state
     );
-  }, [currentIndex, currentState?.selectedOptionId, updateQuestionState]);
+  }, [currentIndex, currentState?.selectedOptionId, currentQuestion, attemptId, updateQuestionState]);
 
   const handlePrevious = useCallback(() => {
     setCurrentIndex((prev) => clamp(prev - 1, 0, questions.length - 1));

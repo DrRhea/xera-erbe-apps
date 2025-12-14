@@ -22,6 +22,7 @@ import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import { getIconComponent } from '../../data/digidawData';
 import { bankSoalService, Module } from '../../services/bankSoalService';
+import { digidawService } from '../../services/digidawService';
 
 type DetailRoute = RouteProp<RootStackParamList, 'DigidawCategoryDetail'>;
 
@@ -50,8 +51,15 @@ const DigidawCategoriesDetailScreen: FC = () => {
 	useEffect(() => {
 		const fetchModules = async () => {
 			try {
-				const data = await bankSoalService.getModules(subjectId);
-				setModules(data);
+				const allModules = await digidawService.getAllModules();
+				const filteredModules = allModules
+					.filter(mod => mod.subjectId === subjectId)
+					.map(mod => ({
+						id: mod.moduleId,
+						title: mod.name,
+						summary: mod.questionSets.length > 0 ? `${mod.questionSets[0].questionCount} Questions` : 'No questions',
+					}));
+				setModules(filteredModules);
 			} catch (error) {
 				console.error('Failed to fetch modules:', error);
 			}

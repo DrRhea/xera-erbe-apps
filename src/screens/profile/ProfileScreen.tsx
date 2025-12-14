@@ -14,6 +14,8 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, fontFamilies, gradients, spacing, radii } from '../../constants/theme';
 import { useAuth } from '../../contexts/AuthContext';
 import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
+import { AVATARS } from '../../constants/avatars';
+import { API_URL } from '../../services/api';
 
 // Icons
 import HomeIcon from '../../../assets/icons/home-2.svg';
@@ -52,16 +54,18 @@ const ProfileScreen = () => {
     console.log('Contact Us clicked');
   };
 
+  const avatarSource = user?.avatarPath && AVATARS[user.avatarPath]
+    ? AVATARS[user.avatarPath]
+    : user?.avatarPath
+      ? { uri: user.avatarPath.startsWith('http') ? user.avatarPath : `${API_URL}${user.avatarPath.startsWith('/') ? '' : '/'}${user.avatarPath}` }
+      : AvatarPlaceholder;
+
   return (
     <View style={styles.container}>
       <LinearGradient colors={gradients.header} style={styles.headerBackground} />
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profil Saya</Text>
-          use brand logo
-
-          use logo here from C:\app\xera-erbe-apps\assets\images\logoutuhputih.png
-          
           <Text style={styles.headerBrand}>erbe</Text> 
           {/* Note: The brand logo in image is an icon + text. Using text for now. */}
         </View>
@@ -70,7 +74,7 @@ const ProfileScreen = () => {
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatarWrapper}>
-                <Image source={AvatarPlaceholder} style={styles.avatar} />
+                <Image source={avatarSource} style={styles.avatar} />
               </View>
             </View>
             
@@ -78,7 +82,7 @@ const ProfileScreen = () => {
             <Text style={styles.userHandle}>@{user?.email?.split('@')[0] || 'username'}</Text>
             
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>RBD0925015 - Idaman UI</Text>
+              <Text style={styles.badgeText}>{user?.badgeLabel || 'Idaman UI'}</Text>
             </View>
 
             <View style={styles.infoSection}>
