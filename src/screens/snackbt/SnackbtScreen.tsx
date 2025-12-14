@@ -83,7 +83,6 @@ const SnackbtScreen: FC = () => {
         <View style={[sharedStyles.headerWrapper, { width: layout.contentWidth }]}>
           <AppHeader
             title="SnackBT"
-            subtitle="Latihan soal singkat"
             onNotificationPress={handleNotificationPress}
           />
         </View>
@@ -156,13 +155,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardTitle: {
-    fontFamily: fontFamilies.montserrat.bold,
+    fontFamily: fontFamilies.bold,
     fontSize: 16,
     color: colors.textPrimary,
     marginBottom: 4,
   },
   cardSummary: {
-    fontFamily: fontFamilies.playpenSans.regular,
+    fontFamily: fontFamilies.regular,
     fontSize: 14,
     color: colors.textSecondary,
     marginBottom: 8,
@@ -172,7 +171,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statsText: {
-    fontFamily: fontFamilies.montserrat.medium,
+    fontFamily: fontFamilies.medium,
     fontSize: 12,
     color: colors.primary,
   },

@@ -75,7 +75,7 @@ const SnackbtDetailScreen: FC = () => {
         <View style={[sharedStyles.headerWrapper, { width: layout.contentWidth }]}>
           <AppHeader
             title={moduleTitle}
-            showBack
+            showBackButton
             onBackPress={handleBack}
           />
         </View>
@@ -144,14 +144,14 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   title: {
-    fontFamily: fontFamilies.montserrat.bold,
+    fontFamily: fontFamilies.bold,
     fontSize: 20,
     color: colors.textPrimary,
     marginBottom: 12,
     textAlign: 'center',
   },
   summary: {
-    fontFamily: fontFamilies.playpenSans.regular,
+    fontFamily: fontFamilies.regular,
     fontSize: 16,
     color: colors.textSecondary,
     marginBottom: 24,
@@ -168,12 +168,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    fontFamily: fontFamilies.montserrat.bold,
+    fontFamily: fontFamilies.bold,
     fontSize: 24,
     color: colors.primary,
   },
   statLabel: {
-    fontFamily: fontFamilies.montserrat.medium,
+    fontFamily: fontFamilies.medium,
     fontSize: 14,
     color: colors.textSecondary,
   },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   startButtonText: {
-    fontFamily: fontFamilies.montserrat.bold,
+    fontFamily: fontFamilies.bold,
     fontSize: 16,
     color: colors.white,
   },

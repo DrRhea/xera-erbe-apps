@@ -50,7 +50,30 @@ export interface DigidawSession {
   questions: Question[];
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  code: string | null;
+}
+
+export interface Subject {
+  id: string;
+  name: string;
+  code: string | null;
+  iconKey: string | null;
+}
+
 export const digidawService = {
+  async getCategories(): Promise<Category[]> {
+    const response = await api.get<Category[]>('/catalog/categories');
+    return response.data;
+  },
+
+  async getSubjects(categoryId: string): Promise<Subject[]> {
+    const response = await api.get<Subject[]>(`/catalog/categories/${categoryId}/subjects`);
+    return response.data;
+  },
+
   async getAllModules(): Promise<DigidawModule[]> {
     const response = await api.get<DigidawModule[]>('/digidaw');
     return response.data;

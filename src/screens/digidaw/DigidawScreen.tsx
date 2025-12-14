@@ -21,8 +21,7 @@ import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import { getCategoryIcon, type LearningCategory } from '../../data/learningCategories';
-import { bankSoalService, type Category } from '../../services/bankSoalService';
-import { digidawService } from '../../services/digidawService';
+import { digidawService, type Category } from '../../services/digidawService';
 
 const navItems: BottomNavigationItem[] = [
 	{ key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -42,22 +41,8 @@ const DigidawScreen: FC = () => {
 	React.useEffect(() => {
 		const fetchCategories = async () => {
 			try {
-				const modules = await digidawService.getAllModules();
-				const uniqueCategories = new Map<string, Category>();
-				
-				modules.forEach(mod => {
-					if (mod.categoryId && mod.category) {
-						if (!uniqueCategories.has(mod.categoryId)) {
-							uniqueCategories.set(mod.categoryId, {
-								id: mod.categoryId,
-								name: mod.category,
-								code: mod.category.toLowerCase().replace(/\s+/g, '-'),
-							});
-						}
-					}
-				});
-				
-				setCategories(Array.from(uniqueCategories.values()));
+				const data = await digidawService.getCategories();
+				setCategories(data);
 			} catch (e) {
 				console.error(e);
 			}

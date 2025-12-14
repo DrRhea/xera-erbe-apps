@@ -94,8 +94,15 @@ export type RootStackParamList = {
     moduleTitle: string;
   };
   Snackbt: undefined;
-  SnackbtDetail: ExamRouteParams;
-  SnackbtQuestion: ExamQuestionRouteParams;
+  SnackbtDetail: {
+    moduleId: string;
+    moduleTitle: string;
+  };
+  SnackbtQuestion: {
+    moduleId: string;
+    moduleTitle: string;
+    session: any;
+  };
   Poke: undefined;
   PokeDetail: ExamRouteParams;
   PokeQuestion: ExamQuestionRouteParams;

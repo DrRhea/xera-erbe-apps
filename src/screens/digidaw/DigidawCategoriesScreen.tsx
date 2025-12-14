@@ -22,8 +22,7 @@ import { useResponsiveLayout } from '../home/HomeScreen';
 import {
 	getIconComponent,
 } from '../../data/digidawData';
-import { bankSoalService, type Subject } from '../../services/bankSoalService';
-import { digidawService } from '../../services/digidawService';
+import { digidawService, type Subject } from '../../services/digidawService';
 
 type DigidawCategoriesRoute = RouteProp<RootStackParamList, 'DigidawCategories'>;
 
@@ -47,22 +46,8 @@ const DigidawCategoriesScreen: FC = () => {
 	React.useEffect(() => {
 		const fetchSubjects = async () => {
 			try {
-				const modules = await digidawService.getAllModules();
-				const uniqueSubjects = new Map<string, Subject>();
-
-				modules.forEach(mod => {
-					if (mod.categoryId === categoryId && mod.subjectId && mod.subjectName) {
-						if (!uniqueSubjects.has(mod.subjectId)) {
-							uniqueSubjects.set(mod.subjectId, {
-								id: mod.subjectId,
-								name: mod.subjectName,
-								code: mod.subjectName.toLowerCase().replace(/\s+/g, '-'),
-							});
-						}
-					}
-				});
-
-				setSubjects(Array.from(uniqueSubjects.values()));
+				const data = await digidawService.getSubjects(categoryId);
+				setSubjects(data);
 			} catch (e) {
 				console.error(e);
 			}

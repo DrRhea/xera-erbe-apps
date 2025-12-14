@@ -115,7 +115,7 @@ const SnackbtQuestionScreen: FC = () => {
       <View style={[sharedStyles.headerWrapper, { width: layout.contentWidth }]}>
         <AppHeader
           title={moduleTitle}
-          showBack
+          showBackButton
           onBackPress={() => navigation.goBack()}
           onNotificationPress={handleNotificationPress}
         />
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   progressText: {
-    fontFamily: fontFamilies.montserrat.medium,
+    fontFamily: fontFamilies.medium,
     fontSize: 14,
     color: colors.textSecondary,
   },
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   questionText: {
-    fontFamily: fontFamilies.playpenSans.medium,
+    fontFamily: fontFamilies.medium,
     fontSize: 16,
     color: colors.textPrimary,
     lineHeight: 24,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   optionLabel: {
-    fontFamily: fontFamilies.montserrat.bold,
+    fontFamily: fontFamilies.bold,
     fontSize: 14,
     color: colors.textPrimary,
   },
@@ -265,13 +265,13 @@ const styles = StyleSheet.create({
   },
   optionText: {
     flex: 1,
-    fontFamily: fontFamilies.playpenSans.regular,
+    fontFamily: fontFamilies.regular,
     fontSize: 14,
     color: colors.textPrimary,
   },
   optionTextSelected: {
     color: colors.primary,
-    fontFamily: fontFamilies.playpenSans.medium,
+    fontFamily: fontFamilies.medium,
   },
   navigationContainer: {
     flexDirection: 'row',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   navButtonText: {
-    fontFamily: fontFamilies.montserrat.bold,
+    fontFamily: fontFamilies.bold,
     fontSize: 14,
     color: colors.primary,
   },

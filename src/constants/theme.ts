@@ -15,6 +15,7 @@ export const colors = {
 	greenLight: '#00BFAC',
 	navInactive: '#617283',
 	white: '#FFFFFF',
+	border: '#E0E0E0',
 } as const;
 
 export const fontFamilies = {
