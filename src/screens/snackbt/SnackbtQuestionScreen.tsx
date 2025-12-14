@@ -66,6 +66,9 @@ const SnackbtQuestionScreen: FC = () => {
     }
   }, [session]);
 
+  const currentQuestion = questions[currentIndex];
+  const currentState = questionStates[currentIndex];
+
   const handleNotificationPress = useCallback(() => {
     navigation.navigate('Notification');
   }, [navigation]);
@@ -80,8 +83,7 @@ const SnackbtQuestionScreen: FC = () => {
   const handleOptionSelect = useCallback(async (optionId: string) => {
     if (!attemptId) return;
     
-    const currentQuestion = questions[currentIndex];
-    const currentState = questionStates[currentIndex];
+    if (!currentQuestion || !currentState) return;
 
     if (currentState.isEvaluated) return;
 
@@ -100,10 +102,9 @@ const SnackbtQuestionScreen: FC = () => {
     } catch (e) {
       console.error('Failed to record answer', e);
     }
-  }, [attemptId, questions, currentIndex, questionStates, updateQuestionState]);
+  }, [attemptId, currentQuestion, currentState, currentIndex, updateQuestionState]);
 
   const handleNext = useCallback(() => {
-    const currentState = questionStates[currentIndex];
     if (!currentState?.isEvaluated) return;
 
     if (currentIndex < questions.length - 1) {
@@ -111,7 +112,7 @@ const SnackbtQuestionScreen: FC = () => {
     } else {
       navigation.goBack(); // Or navigate to a result screen
     }
-  }, [currentIndex, questions.length, navigation, questionStates]);
+  }, [currentIndex, questions.length, navigation, currentState]);
 
   const toggleHint = useCallback(() => setHintVisible((prev) => !prev), []);
 
@@ -148,9 +149,6 @@ const SnackbtQuestionScreen: FC = () => {
       </SafeAreaView>
     );
   }
-
-  const currentQuestion = questions[currentIndex];
-  const currentState = questionStates[currentIndex];
 
   const contentHorizontalPadding = useMemo(
     () => clamp(layout.horizontalPadding, 20, 28),

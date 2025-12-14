@@ -16,6 +16,7 @@ export const colors = {
 	navInactive: '#617283',
 	white: '#FFFFFF',
 	border: '#E0E0E0',
+	error: '#FF4D4D',
 } as const;
 
 export const fontFamilies = {

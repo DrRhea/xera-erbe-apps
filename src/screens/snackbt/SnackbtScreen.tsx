@@ -22,6 +22,8 @@ import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import { snackbtService, type SnackbtModule } from '../../services/snackbtService';
 
+const snackbtIcon = require('../../../assets/images/snackbt.png');
+
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
   { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
@@ -98,18 +100,9 @@ const SnackbtScreen: FC = () => {
                 ]}
                 onPress={() => handleModulePress(module)}
               >
+                <Image source={snackbtIcon} style={styles.cardIcon} resizeMode="contain" />
                 <View style={styles.cardContent}>
                   <Text style={styles.cardTitle}>{module.title}</Text>
-                  {module.summary && (
-                    <Text style={styles.cardSummary} numberOfLines={2}>
-                      {module.summary}
-                    </Text>
-                  )}
-                  <View style={styles.statsContainer}>
-                    <Text style={styles.statsText}>
-                      {module.metadata.totalQuestions || 0} Soal
-                    </Text>
-                  </View>
                 </View>
               </Pressable>
             ))}
@@ -144,21 +137,32 @@ const sharedStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardIcon: {
+    width: 60,
+    height: 60,
   },
   cardContent: {
     flex: 1,
   },
   cardTitle: {
     fontFamily: fontFamilies.bold,
-    fontSize: 16,
-    color: colors.textPrimary,
-    marginBottom: 4,
+    fontSize: 14,
+    color: '#004D40', // Dark teal color from screenshot
+    lineHeight: 20,
   },
   cardSummary: {
     fontFamily: fontFamilies.regular,
