@@ -30,6 +30,7 @@ import {
   getModuleQuestions,
   type DigidawQuestionOption,
 } from '../../data/digidawData';
+import { QuestionViewer } from '../../components/QuestionViewer';
 
 const poweredByLogo = require('../../../assets/images/logoutuhijo.png');
 
@@ -476,50 +477,6 @@ export const createExamQuestionScreen = ({
     const currentState = questionStates[currentIndex];
     const isEvaluated = currentState?.isEvaluated ?? false;
 
-    const contentHorizontalPadding = useMemo(
-      () => clamp(layout.horizontalPadding, 20, 28),
-      [layout.horizontalPadding]
-    );
-    const sectionSpacing = useMemo(
-      () => clamp(layout.sectionSpacing * 0.65, 18, 28),
-      [layout.sectionSpacing]
-    );
-    const summaryPadding = useMemo(
-      () => clamp(layout.horizontalPadding * 0.9, 18, 26),
-      [layout.horizontalPadding]
-    );
-    const optionGap = useMemo(
-      () => clamp(layout.horizontalPadding * 0.55, 12, 18),
-      [layout.horizontalPadding]
-    );
-    const optionPaddingVertical = useMemo(
-      () => clamp(layout.horizontalPadding * 0.85, 16, 24),
-      [layout.horizontalPadding]
-    );
-    const optionPaddingHorizontal = useMemo(
-      () => clamp(layout.horizontalPadding * 0.8, 16, 24),
-      [layout.horizontalPadding]
-    );
-    const controlsGap = useMemo(
-      () => clamp(layout.horizontalPadding * 0.45, 12, 18),
-      [layout.horizontalPadding]
-    );
-    const explanationPadding = useMemo(
-      () => clamp(layout.horizontalPadding * 0.7, 16, 24),
-      [layout.horizontalPadding]
-    );
-
-    const optionRows = useMemo(() => {
-      const rows: DigidawQuestionOption[][] = [];
-      if (!currentQuestion) {
-        return rows;
-      }
-      for (let index = 0; index < currentQuestion.options.length; index += 2) {
-        rows.push(currentQuestion.options.slice(index, index + 2));
-      }
-      return rows;
-    }, [currentQuestion]);
-
     const updateQuestionState = useCallback(
       (updater: (state: { selectedOptionId: string | null; isEvaluated: boolean }, index: number) => {
         selectedOptionId: string | null;
@@ -592,232 +549,48 @@ export const createExamQuestionScreen = ({
       [currentQuestion, currentState]
     );
 
-    const isFirstQuestion = currentIndex === 0;
-    const isLastQuestion = currentIndex === questions.length - 1;
-    const hasSelection = Boolean(currentState?.selectedOptionId);
-    const showExplanation = Boolean(currentState?.isEvaluated);
+    const viewerQuestion = useMemo(() => {
+      if (!currentQuestion) return undefined;
+      return {
+        id: currentQuestion.id,
+        number: currentQuestion.number,
+        prompt: currentQuestion.prompt,
+        options: currentQuestion.options.map((opt) => ({
+          id: opt.id,
+          label: opt.label,
+          text: opt.text || '',
+        })),
+        correctOptionId: currentQuestion.correctOptionId,
+        hint: currentQuestion.hint,
+        explanation: currentQuestion.explanation,
+      };
+    }, [currentQuestion]);
 
-    if (!currentQuestion) {
+    if (!viewerQuestion) {
       return null;
     }
 
     return (
       <SafeAreaView style={sharedStyles.safeArea}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-        <ScrollView
-          style={sharedStyles.scrollView}
-          contentContainerStyle={[
-            sharedStyles.scrollContent,
-            {
-              paddingBottom: clamp(layout.sectionSpacing * 4, 160, 220),
-              alignItems: 'center',
-            },
-          ]}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={[sharedStyles.headerWrapper, { width: layout.contentWidth }]}>
-            <AppHeader title={definition.headerTitle} contentHorizontalPadding={contentHorizontalPadding} />
-          </View>
-
-          <View
-            style={[
-              sharedStyles.contentWrapper,
-              {
-                width: layout.contentWidth,
-                paddingHorizontal: contentHorizontalPadding,
-                marginTop: sectionSpacing,
-                rowGap: sectionSpacing,
-                gap: sectionSpacing,
-              },
-            ]}
-          >
-            <View
-              style={[
-                styles.summaryCard,
-                {
-                  paddingHorizontal: summaryPadding,
-                  paddingVertical: clamp(summaryPadding * 0.7, 14, 22),
-                  columnGap: summaryPadding * 0.4,
-                  gap: summaryPadding * 0.4,
-                  backgroundColor: palette.summaryBackground,
-                },
-              ]}
-            >
-              <View style={styles.summaryIconWrapper}>
-                <Image source={definition.badgeImage} style={styles.summaryIcon} resizeMode="contain" />
-              </View>
-              <View style={styles.summaryCopy}>
-                <Text style={styles.summaryLabel}>{examTitle}</Text>
-                <Text style={styles.summaryTitle}>{moduleTitle}</Text>
-              </View>
-              <View style={[styles.questionIndicator, { backgroundColor: palette.questionIndicatorBackground }]}>
-                <Text style={styles.questionIndicatorText}>{`Soal ${currentQuestion.number}/${questions.length}`}</Text>
-              </View>
-            </View>
-
-            <View style={styles.questionHeader}>
-              <Text style={styles.questionTitle}>{`Soal No. ${currentQuestion.number}`}</Text>
-            </View>
-
-            <View
-              style={[
-                styles.questionBody,
-                {
-                  backgroundColor: palette.questionBodyBackground,
-                },
-              ]}
-            >
-              <Text style={styles.questionPrompt}>{currentQuestion.prompt}</Text>
-            </View>
-
-            <View style={styles.optionsGrid}>
-              {optionRows.map((rowOptions, rowIndex) => (
-                <View
-                  key={`row-${rowIndex}`}
-                  style={[
-                    styles.optionRow,
-                    {
-                      marginBottom: rowIndex === optionRows.length - 1 ? 0 : optionGap,
-                    },
-                  ]}
-                >
-                  {rowOptions.map((option, optionIndex) => {
-                    const variant = optionVariant(option.id);
-                    const isLastInRow = optionIndex === rowOptions.length - 1;
-                    const backgroundColor =
-                      variant === 'selected'
-                        ? palette.optionSelectedBackground
-                        : variant === 'correct'
-                        ? palette.optionCorrectBackground
-                        : variant === 'incorrect'
-                        ? palette.optionIncorrectBackground
-                        : colors.white;
-                    const labelColor =
-                      variant === 'default'
-                        ? palette.optionLabelDefault
-                        : palette.optionLabelOnEmphasis;
-
-                    return (
-                      <Pressable
-                        key={option.id}
-                        style={[
-                          styles.optionCard,
-                          {
-                            paddingVertical: optionPaddingVertical,
-                            paddingHorizontal: optionPaddingHorizontal,
-                            marginRight: isLastInRow ? 0 : optionGap,
-                            backgroundColor,
-                          },
-                        ]}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Jawaban pilihan ${option.label}`}
-                        onPress={() => handleSelectOption(option.id)}
-                        disabled={isEvaluated}
-                      >
-                        <Text style={[styles.optionLabel, { color: labelColor }]}>{option.label}</Text>
-                      </Pressable>
-                    );
-                  })}
-                  {rowOptions.length === 1 ? <View style={styles.optionSpacer} /> : null}
-                </View>
-              ))}
-            </View>
-
-            {showExplanation ? (
-              <View style={styles.explanationSection}>
-                <Text style={styles.explanationTitle}>Pembahasan</Text>
-                <View
-                  style={[
-                    styles.explanationBody,
-                    {
-                      paddingHorizontal: explanationPadding,
-                      paddingVertical: clamp(explanationPadding * 0.8, 14, 22),
-                      backgroundColor: palette.explanationBackground,
-                    },
-                  ]}
-                >
-                  <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
-                </View>
-              </View>
-            ) : null}
-
-            <View
-              style={[
-                styles.controlsRow,
-                {
-                  columnGap: controlsGap,
-                  gap: controlsGap,
-                },
-              ]}
-            >
-              <Pressable
-                onPress={handlePrevious}
-                disabled={isFirstQuestion}
-                accessibilityRole="button"
-                accessibilityLabel="Soal sebelumnya"
-                style={[styles.navButton, isFirstQuestion && styles.navButtonDisabled]}
-              >
-                <LeftPointerIcon width={66} height={44} />
-              </Pressable>
-
-              <Pressable
-                onPress={toggleHint}
-                accessibilityRole="button"
-                accessibilityLabel="Lihat hint"
-                style={[styles.hintButton, { backgroundColor: palette.hintButtonBackground }]}
-              >
-                <HintIcon width={30} height={30} />
-              </Pressable>
-
-              <Pressable
-                onPress={handleNext}
-                disabled={isLastQuestion}
-                accessibilityRole="button"
-                accessibilityLabel="Soal berikutnya"
-                style={[styles.navButton, isLastQuestion && styles.navButtonDisabled]}
-              >
-                <RightPointerIcon width={66} height={44} />
-              </Pressable>
-            </View>
-
-            <Pressable
-              onPress={handleEvaluate}
-              disabled={!hasSelection || isEvaluated}
-              accessibilityRole="button"
-              accessibilityLabel="Periksa jawaban"
-              style={[
-                styles.submitButton,
-                (!hasSelection || isEvaluated) && styles.submitButtonDisabled,
-              ]}
-            >
-              <Text style={styles.submitButtonText}>Periksa Jawaban</Text>
-            </Pressable>
-
-            <View style={styles.poweredWrapper}>
-              <Text style={styles.poweredLabel}>Powered by</Text>
-              <Image source={poweredByLogo} style={styles.poweredLogo} resizeMode="contain" />
-            </View>
-          </View>
-        </ScrollView>
-
-        <Modal visible={isHintVisible} transparent animationType="fade" onRequestClose={toggleHint}>
-          <View style={styles.modalBackdrop}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{`${definition.headerTitle} Hint`}</Text>
-              <View style={styles.modalBody}>
-                <Text style={styles.modalHintText}>{currentQuestion.hint}</Text>
-              </View>
-              <Pressable
-                onPress={toggleHint}
-                accessibilityRole="button"
-                accessibilityLabel="Tutup hint"
-                style={styles.modalButton}
-              >
-                <Text style={styles.modalButtonLabel}>Mengerti</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
+        <QuestionViewer
+          question={viewerQuestion}
+          totalQuestions={questions.length}
+          currentIndex={currentIndex}
+          subjectTitle={examTitle}
+          moduleTitle={moduleTitle}
+          moduleIcon={definition.badgeImage}
+          selectedOptionId={currentState?.selectedOptionId ?? null}
+          isEvaluated={isEvaluated}
+          onSelectOption={handleSelectOption}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onToggleHint={toggleHint}
+          isHintVisible={isHintVisible}
+          palette={palette}
+          layout={layout}
+          optionVariant={optionVariant}
+        />
       </SafeAreaView>
     );
   };

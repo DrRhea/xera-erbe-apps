@@ -99,9 +99,17 @@ export type RootStackParamList = {
   };
   Poke: undefined;
   PokeDetail: ExamRouteParams;
-  PokeQuestion: ExamQuestionRouteParams;
+  PokeQuestion: {
+    moduleId: string;
+    moduleTitle: string;
+    session: any;
+  };
   ImEng: undefined;
-  ImEngQuestion: ExamQuestionRouteParams;
+  ImEngQuestion: {
+    moduleId: string;
+    moduleTitle: string;
+    session: any;
+  };
   TryoutDesc: {
     tryoutId: string;
     title: string;
