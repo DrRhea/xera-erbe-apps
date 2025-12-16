@@ -37,6 +37,7 @@ const SnackbtScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const layout = useResponsiveLayout();
   const [modules, setModules] = useState<SnackbtModule[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchModules = async () => {
@@ -54,12 +55,23 @@ const SnackbtScreen: FC = () => {
     navigation.navigate('Notification');
   }, [navigation]);
 
-  const handleModulePress = useCallback((module: SnackbtModule) => {
-    navigation.navigate('SnackbtDetail', {
-      moduleId: module.id,
-      moduleTitle: module.title,
-    });
-  }, [navigation]);
+  const handleModulePress = useCallback(async (module: SnackbtModule) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      const session = await snackbtService.startSession(module.id);
+      navigation.navigate('SnackbtQuestion', {
+        moduleId: module.id,
+        moduleTitle: module.title,
+        session,
+      });
+    } catch (e) {
+      console.error('Failed to start session', e);
+      // Ideally show an alert here
+    } finally {
+      setIsLoading(false);
+    }
+  }, [navigation, isLoading]);
 
   const contentHorizontalPadding = useMemo(
     () => clamp(layout.horizontalPadding, 20, 28),

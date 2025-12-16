@@ -8,7 +8,6 @@ const useRootNavigation = () => useNavigation<NavigationProp<RootStackParamList>
 export default createExamCatalogScreen({
 	examId: 'poke',
 	routes: {
-		modulesRouteName: 'PokeDetail',
 		questionRouteName: 'PokeQuestion',
 	},
 	useNavigationHook: useRootNavigation,
