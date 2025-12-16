@@ -24,6 +24,8 @@ import LeftPointerIcon from '../../../assets/icons/leftpointer.svg';
 import RightPointerIcon from '../../../assets/icons/rightpointer.svg';
 import HintIcon from '../../../assets/icons/hint.svg';
 
+const poweredByLogo = require('../../../assets/images/logoutuhijo.png');
+
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 type SnackbtQuestionRoute = RouteProp<RootStackParamList, 'SnackbtQuestion'>;
@@ -34,6 +36,19 @@ type QuestionState = {
 };
 
 type OptionVariant = 'default' | 'selected' | 'correct' | 'incorrect';
+
+const defaultPalette = {
+  summaryBackground: colors.primary,
+  questionIndicatorBackground: colors.accent,
+  questionBodyBackground: '#B8E5DE',
+  explanationBackground: '#B8E5DE',
+  optionSelectedBackground: colors.primary,
+  optionCorrectBackground: colors.greenLight,
+  optionIncorrectBackground: '#EF0F0F',
+  optionLabelDefault: colors.primary,
+  optionLabelOnEmphasis: colors.white,
+  hintButtonBackground: '#318DB6',
+};
 
 const SnackbtQuestionScreen: FC = () => {
   const route = useRoute<SnackbtQuestionRoute>();
@@ -46,6 +61,15 @@ const SnackbtQuestionScreen: FC = () => {
   const [questionStates, setQuestionStates] = useState<QuestionState[]>([]);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [isHintVisible, setHintVisible] = useState(false);
+
+  // SnackBT specific palette
+  const palette = {
+    ...defaultPalette,
+    summaryBackground: '#015876', // SnackBT Primary
+    questionBodyBackground: '#E0F7FA', // Light Cyan
+    explanationBackground: '#E0F7FA',
+    hintButtonBackground: '#E0F7FA',
+  };
 
   useEffect(() => {
     if (session) {
@@ -154,110 +178,240 @@ const SnackbtQuestionScreen: FC = () => {
     () => clamp(layout.horizontalPadding, 20, 28),
     [layout.horizontalPadding]
   );
+  const sectionSpacing = useMemo(
+    () => clamp(layout.sectionSpacing * 0.65, 18, 28),
+    [layout.sectionSpacing]
+  );
+  const summaryPadding = useMemo(
+    () => clamp(layout.horizontalPadding * 0.9, 18, 26),
+    [layout.horizontalPadding]
+  );
+  const optionGap = useMemo(
+    () => clamp(layout.horizontalPadding * 0.55, 12, 18),
+    [layout.horizontalPadding]
+  );
+  const optionPaddingVertical = useMemo(
+    () => clamp(layout.horizontalPadding * 0.85, 16, 24),
+    [layout.horizontalPadding]
+  );
+  const optionPaddingHorizontal = useMemo(
+    () => clamp(layout.horizontalPadding * 0.8, 16, 24),
+    [layout.horizontalPadding]
+  );
+  const controlsGap = useMemo(
+    () => clamp(layout.horizontalPadding * 0.45, 12, 18),
+    [layout.horizontalPadding]
+  );
+  const explanationPadding = useMemo(
+    () => clamp(layout.horizontalPadding * 0.7, 16, 24),
+    [layout.horizontalPadding]
+  );
+
+  const isFirstQuestion = currentIndex === 0;
+  const isLastQuestion = currentIndex === questions.length - 1;
+  const showExplanation = Boolean(currentState?.isEvaluated);
 
   return (
     <SafeAreaView style={sharedStyles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
-      <View style={[sharedStyles.headerWrapper, { width: layout.contentWidth }]}>
-        <AppHeader
-          title={moduleTitle}
-          showBackButton
-          onBackPress={() => navigation.goBack()}
-          onNotificationPress={handleNotificationPress}
-        />
-      </View>
-
       <ScrollView
         style={sharedStyles.scrollView}
-        contentContainerStyle={[sharedStyles.scrollContent, { paddingHorizontal: contentHorizontalPadding }]}
+        contentContainerStyle={[
+          sharedStyles.scrollContent,
+          {
+            paddingBottom: clamp(layout.sectionSpacing * 4, 160, 220),
+            alignItems: 'center',
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>
-            Soal {currentIndex + 1} dari {questions.length}
-          </Text>
+        <View style={[sharedStyles.headerWrapper, { width: layout.contentWidth }]}>
+          <AppHeader
+            title={moduleTitle}
+            showBackButton
+            onBackPress={() => navigation.goBack()}
+            onNotificationPress={handleNotificationPress}
+            contentHorizontalPadding={contentHorizontalPadding}
+          />
         </View>
 
-        <View style={styles.questionContainer}>
-          {currentQuestion.promptImagePath && (
-            <Image
-              source={{ uri: `${API_URL}/${currentQuestion.promptImagePath}` }}
-              style={styles.questionImage}
-              resizeMode="contain"
-            />
-          )}
-          <Text style={styles.questionText}>{currentQuestion.prompt}</Text>
-        </View>
+        <View
+          style={[
+            sharedStyles.contentWrapper,
+            {
+              width: layout.contentWidth,
+              paddingHorizontal: contentHorizontalPadding,
+              marginTop: sectionSpacing,
+              rowGap: sectionSpacing,
+              gap: sectionSpacing,
+            },
+          ]}
+        >
+          {/* Summary Card */}
+          <View
+            style={[
+              styles.summaryCard,
+              {
+                paddingHorizontal: summaryPadding,
+                paddingVertical: clamp(summaryPadding * 0.7, 14, 22),
+                columnGap: summaryPadding * 0.4,
+                gap: summaryPadding * 0.4,
+                backgroundColor: palette.summaryBackground,
+              },
+            ]}
+          >
+            <View style={styles.summaryCopy}>
+              <Text style={styles.summaryLabel}>SnackBT</Text>
+              <Text style={styles.summaryTitle}>{moduleTitle}</Text>
+            </View>
+            <View style={[styles.questionIndicator, { backgroundColor: palette.questionIndicatorBackground }]}>
+              <Text style={styles.questionIndicatorText}>{`Soal ${currentIndex + 1}/${questions.length}`}</Text>
+            </View>
+          </View>
 
-        <View style={styles.optionsContainer}>
-          {currentQuestion.options.map((option: any) => {
-            const variant = optionVariant(option.id);
-            
-            return (
-              <Pressable
-                key={option.id}
-                style={[
-                  styles.optionButton,
-                  variant === 'selected' && styles.optionButtonSelected,
-                  variant === 'correct' && styles.optionButtonCorrect,
-                  variant === 'incorrect' && styles.optionButtonIncorrect,
-                ]}
-                onPress={() => handleOptionSelect(option.id)}
-                disabled={currentState.isEvaluated}
-              >
-                <View style={[
-                  styles.optionLabelContainer,
-                  variant === 'selected' && styles.optionLabelContainerSelected,
-                  variant === 'correct' && styles.optionLabelContainerCorrect,
-                  variant === 'incorrect' && styles.optionLabelContainerIncorrect,
-                ]} />
-                <Text style={[
-                  styles.optionText,
-                  variant === 'selected' && styles.optionTextSelected,
-                  variant === 'correct' && styles.optionTextCorrect,
-                  variant === 'incorrect' && styles.optionTextIncorrect,
-                ]}>{option.body}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+          <View style={styles.questionHeader}>
+            <Text style={styles.questionTitle}>{`Soal No. ${currentIndex + 1}`}</Text>
+          </View>
 
-        {currentState.isEvaluated && (
-          <View style={styles.explanationContainer}>
-            <Text style={styles.explanationTitle}>Pembahasan</Text>
-            {currentQuestion.explanationImagePath && (
+          {/* Question Body */}
+          <View
+            style={[
+              styles.questionBody,
+              {
+                backgroundColor: palette.questionBodyBackground,
+              },
+            ]}
+          >
+            {currentQuestion.promptImagePath && (
               <Image
-                source={{ uri: `${API_URL}/${currentQuestion.explanationImagePath}` }}
-                style={styles.explanationImage}
+                source={{ uri: `${API_URL}/${currentQuestion.promptImagePath}` }}
+                style={styles.questionImage}
                 resizeMode="contain"
               />
             )}
-            <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
+            <Text style={styles.questionPrompt}>{currentQuestion.prompt}</Text>
           </View>
-        )}
 
-        <View style={styles.navigationContainer}>
-          <Pressable
-            style={[styles.navButton, currentIndex === 0 && styles.navButtonDisabled]}
-            onPress={handlePrev}
-            disabled={currentIndex === 0}
-          >
-            <LeftPointerIcon width={24} height={24} color={currentIndex === 0 ? colors.textSecondary : colors.primary} />
-          </Pressable>
+          {/* Options */}
+          <View style={styles.optionsGrid}>
+            {currentQuestion.options.map((option: any, index: number) => {
+              const variant = optionVariant(option.id);
+              const backgroundColor =
+                variant === 'selected'
+                  ? palette.optionSelectedBackground
+                  : variant === 'correct'
+                  ? palette.optionCorrectBackground
+                  : variant === 'incorrect'
+                  ? palette.optionIncorrectBackground
+                  : colors.white;
+              
+              const labelColor =
+                variant === 'default'
+                  ? palette.optionLabelDefault
+                  : palette.optionLabelOnEmphasis;
+              
+              const textColor = 
+                variant === 'default'
+                  ? colors.textPrimary
+                  : colors.white;
 
-          <Pressable
-            onPress={toggleHint}
-            style={styles.hintButton}
-          >
-            <HintIcon width={24} height={24} />
-          </Pressable>
+              // Generate A, B, C, D labels
+              const optionLabel = String.fromCharCode(65 + index);
 
-          <Pressable
-            style={[styles.navButton, !currentState.isEvaluated && styles.navButtonDisabled]}
-            onPress={handleNext}
-            disabled={!currentState.isEvaluated}
+              return (
+                <Pressable
+                  key={option.id}
+                  style={[
+                    styles.optionCard,
+                    {
+                      paddingVertical: optionPaddingVertical,
+                      paddingHorizontal: optionPaddingHorizontal,
+                      marginBottom: index === currentQuestion.options.length - 1 ? 0 : optionGap,
+                      backgroundColor,
+                      flexDirection: 'row',
+                      justifyContent: 'flex-start',
+                      gap: 12,
+                    },
+                  ]}
+                  onPress={() => handleOptionSelect(option.id)}
+                  disabled={currentState.isEvaluated}
+                >
+                  <View style={[
+                    styles.optionLabelContainer,
+                    { backgroundColor: variant === 'default' ? colors.background : 'rgba(255,255,255,0.2)' }
+                  ]}>
+                    <Text style={[styles.optionLabelText, { color: labelColor }]}>{optionLabel}</Text>
+                  </View>
+                  <Text style={[styles.optionText, { color: textColor }]}>{option.body}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Explanation */}
+          {showExplanation && (
+            <View style={styles.explanationSection}>
+              <Text style={styles.explanationTitle}>Pembahasan</Text>
+              <View
+                style={[
+                  styles.explanationBody,
+                  {
+                    paddingHorizontal: explanationPadding,
+                    paddingVertical: clamp(explanationPadding * 0.8, 14, 22),
+                    backgroundColor: palette.explanationBackground,
+                  },
+                ]}
+              >
+                {currentQuestion.explanationImagePath && (
+                  <Image
+                    source={{ uri: `${API_URL}/${currentQuestion.explanationImagePath}` }}
+                    style={styles.explanationImage}
+                    resizeMode="contain"
+                  />
+                )}
+                <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Navigation Controls */}
+          <View
+            style={[
+              styles.controlsRow,
+              {
+                columnGap: controlsGap,
+                gap: controlsGap,
+              },
+            ]}
           >
-            <RightPointerIcon width={24} height={24} color={!currentState.isEvaluated ? colors.textSecondary : colors.primary} />
-          </Pressable>
+            <Pressable
+              onPress={handlePrev}
+              disabled={isFirstQuestion}
+              style={[styles.navButton, isFirstQuestion && styles.navButtonDisabled]}
+            >
+              <LeftPointerIcon width={66} height={44} />
+            </Pressable>
+
+            <Pressable
+              onPress={toggleHint}
+              style={[styles.hintButton, { backgroundColor: palette.hintButtonBackground }]}
+            >
+              <HintIcon width={30} height={30} />
+            </Pressable>
+
+            <Pressable
+              onPress={handleNext}
+              disabled={!currentState.isEvaluated}
+              style={[styles.navButton, !currentState.isEvaluated && styles.navButtonDisabled]}
+            >
+              <RightPointerIcon width={66} height={44} />
+            </Pressable>
+          </View>
+
+          <View style={styles.poweredWrapper}>
+            <Text style={styles.poweredLabel}>Powered by</Text>
+            <Image source={poweredByLogo} style={styles.poweredLogo} resizeMode="contain" />
+          </View>
         </View>
       </ScrollView>
 
@@ -297,78 +451,61 @@ const sharedStyles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    width: '100%',
   },
   headerWrapper: {
     alignSelf: 'center',
-    marginBottom: 20,
+  },
+  contentWrapper: {
+    alignSelf: 'center',
   },
 });
 
 const styles = StyleSheet.create({
-  progressContainer: {
-    marginBottom: 16,
-  },
-  progressText: {
-    fontFamily: fontFamilies.medium,
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  questionContainer: {
-    marginBottom: 24,
-  },
-  questionText: {
-    fontFamily: fontFamilies.medium,
-    fontSize: 16,
-    color: colors.textPrimary,
-    lineHeight: 24,
-  },
-  optionsContainer: {
-    gap: 12,
-    marginBottom: 32,
-  },
-  optionButton: {
+  summaryCard: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 12,
+    borderRadius: 20,
   },
-  optionButtonSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary + '10', // 10% opacity
+  summaryCopy: {
+    flex: 1,
+    rowGap: 4,
   },
-  optionLabelContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  optionLabelContainerSelected: {
-    backgroundColor: colors.primary,
-  },
-  optionLabel: {
-    fontFamily: fontFamilies.bold,
-    fontSize: 14,
-    color: colors.textPrimary,
-  },
-  optionLabelSelected: {
+  summaryLabel: {
+    fontFamily: fontFamilies.medium,
+    fontSize: 12,
     color: colors.white,
   },
-  optionText: {
-    flex: 1,
-    fontFamily: fontFamilies.regular,
-    fontSize: 14,
-    color: colors.textPrimary,
+  summaryTitle: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 16,
+    color: colors.white,
   },
-  optionTextSelected: {
-    color: colors.primary,
-    fontFamily: fontFamilies.medium,
+  questionIndicator: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  questionIndicatorText: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 12,
+    color: colors.white,
+  },
+  questionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  questionTitle: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 15,
+    color: colors.sectionTitle,
+  },
+  questionBody: {
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
   },
   questionImage: {
     width: '100%',
@@ -377,18 +514,54 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: 12,
   },
-  explanationContainer: {
-    marginTop: 24,
-    padding: 16,
-    backgroundColor: '#E0F7FA',
-    borderRadius: 12,
-    marginBottom: 24,
+  questionPrompt: {
+    fontFamily: fontFamilies.semiBold,
+    fontSize: 13,
+    color: colors.primaryDark,
+    lineHeight: 20,
+  },
+  optionsGrid: {
+    width: '100%',
+    flexDirection: 'column',
+  },
+  optionCard: {
+    width: '100%',
+    borderRadius: 20,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  optionLabelContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  optionLabelText: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 14,
+  },
+  optionText: {
+    flex: 1,
+    fontFamily: fontFamilies.medium,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  explanationSection: {
+    width: '100%',
+    rowGap: 10,
   },
   explanationTitle: {
     fontFamily: fontFamilies.bold,
     fontSize: 14,
-    color: colors.textPrimary,
-    marginBottom: 8,
+    color: colors.sectionTitle,
+  },
+  explanationBody: {
+    borderRadius: 20,
   },
   explanationImage: {
     width: '100%',
@@ -398,18 +571,96 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   explanationText: {
-    fontFamily: fontFamilies.regular,
-    fontSize: 14,
-    color: colors.textPrimary,
+    fontFamily: fontFamilies.medium,
+    fontSize: 13,
+    color: colors.primaryDark,
     lineHeight: 20,
+  },
+  controlsRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navButton: {
+    width: 66,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navButtonDisabled: {
+    opacity: 0.4,
   },
   hintButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#E0F7FA',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  poweredWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 20,
+  },
+  poweredLabel: {
+    fontFamily: fontFamilies.semiBold,
+    fontSize: 13,
+    color: colors.sectionTitle,
+  },
+  poweredLogo: {
+    width: 60,
+    height: 16,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: colors.white,
+    borderRadius: 24,
+    paddingHorizontal: 28,
+    paddingVertical: 24,
+    alignItems: 'center',
+    gap: 18,
+  },
+  modalTitle: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 18,
+    color: colors.primaryDark,
+  },
+  modalBody: {
+    width: '100%',
+  },
+  modalHintText: {
+    fontFamily: fontFamilies.medium,
+    fontSize: 14,
+    color: colors.primaryDark,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  modalButton: {
+    paddingHorizontal: 28,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: colors.accent,
+  },
+  modalButtonLabel: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 14,
+    color: colors.white,
   },
   hintImage: {
     width: '100%',
@@ -417,91 +668,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     backgroundColor: colors.white,
     borderRadius: 12,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    width: '100%',
-    backgroundColor: colors.white,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontFamily: fontFamilies.bold,
-    fontSize: 18,
-    color: colors.primary,
-    marginBottom: 16,
-  },
-  modalBody: {
-    width: '100%',
-    marginBottom: 24,
-  },
-  modalHintText: {
-    fontFamily: fontFamilies.regular,
-    fontSize: 16,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  modalButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-  },
-  modalButtonLabel: {
-    fontFamily: fontFamilies.bold,
-    fontSize: 16,
-    color: colors.white,
-  },
-  optionButtonCorrect: {
-    borderColor: colors.success,
-    backgroundColor: colors.success + '10',
-  },
-  optionButtonIncorrect: {
-    borderColor: colors.error,
-    backgroundColor: colors.error + '10',
-  },
-  optionLabelContainerCorrect: {
-    backgroundColor: colors.success,
-  },
-  optionLabelContainerIncorrect: {
-    backgroundColor: colors.error,
-  },
-  optionTextCorrect: {
-    color: colors.success,
-  },
-  optionTextIncorrect: {
-    color: colors.error,
-  },
-  navigationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  navButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-  },
-  navButtonDisabled: {
-    opacity: 0.5,
-  },
-  navButtonText: {
-    fontFamily: fontFamilies.bold,
-    fontSize: 14,
-    color: colors.primary,
-  },
-  navButtonTextDisabled: {
-    color: colors.textSecondary,
   },
 });
 

@@ -86,10 +86,19 @@ const SnackbtScreen: FC = () => {
           <AppHeader
             title="SnackBT"
             onNotificationPress={handleNotificationPress}
+            contentHorizontalPadding={contentHorizontalPadding}
           />
         </View>
 
-        <View style={[sharedStyles.contentContainer, { width: layout.contentWidth, gap: sectionSpacing }]}>
+        <View style={[
+          sharedStyles.contentContainer, 
+          { 
+            width: layout.contentWidth, 
+            gap: sectionSpacing,
+            paddingHorizontal: contentHorizontalPadding,
+            marginTop: sectionSpacing,
+          }
+        ]}>
           <View style={{ gap: cardGap }}>
             {modules.map((module) => (
               <Pressable

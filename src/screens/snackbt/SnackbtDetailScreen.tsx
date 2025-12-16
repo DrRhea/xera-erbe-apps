@@ -17,6 +17,8 @@ import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import { snackbtService, type SnackbtModule } from '../../services/snackbtService';
 
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
 const SnackbtDetailScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'SnackbtDetail'>>();
@@ -24,7 +26,7 @@ const SnackbtDetailScreen: FC = () => {
   const { moduleId, moduleTitle } = route.params;
   const [module, setModule] = useState<SnackbtModule | null>(null);
   const [loading, setLoading] = useState(false);
-
+  
   useEffect(() => {
     const fetchModule = async () => {
       try {
@@ -57,6 +59,15 @@ const SnackbtDetailScreen: FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const contentHorizontalPadding = React.useMemo(
+    () => clamp(layout.horizontalPadding, 20, 28),
+    [layout.horizontalPadding]
+  );
+  const sectionSpacing = React.useMemo(
+    () => clamp(layout.sectionSpacing * 0.6, 18, 26),
+    [layout.sectionSpacing]
+  );
+
   if (!module) {
     return (
       <SafeAreaView style={sharedStyles.safeArea}>
@@ -77,10 +88,18 @@ const SnackbtDetailScreen: FC = () => {
             title={moduleTitle}
             showBackButton
             onBackPress={handleBack}
+            contentHorizontalPadding={contentHorizontalPadding}
           />
         </View>
 
-        <View style={[sharedStyles.contentContainer, { width: layout.contentWidth }]}>
+        <View style={[
+          sharedStyles.contentContainer, 
+          { 
+            width: layout.contentWidth,
+            paddingHorizontal: contentHorizontalPadding,
+            marginTop: sectionSpacing,
+          }
+        ]}>
           <View style={styles.card}>
             <Text style={styles.title}>{module.title}</Text>
             {module.summary && (
