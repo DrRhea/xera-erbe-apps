@@ -1,17 +1,26 @@
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import { View, Text, StyleSheet, Linking, TouchableOpacity, SafeAreaView, Platform } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { RootStackParamList } from '../../../App';
 import AppHeader from '../../components/AppHeader';
 import { colors, fontFamilies } from '../../constants/theme';
+import { useResponsiveLayout } from '../home/HomeScreen';
 
 type MateriViewerRoute = RouteProp<RootStackParamList, 'MateriViewer'>;
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const MateriViewerScreen: FC = () => {
   const route = useRoute<MateriViewerRoute>();
   const navigation = useNavigation();
-  const { module } = route.params;
+  const { module, subjectTitle, categoryTitle } = route.params;
+  const layout = useResponsiveLayout();
+
+  const contentHorizontalPadding = useMemo(
+    () => clamp(layout.horizontalPadding, 20, 28),
+    [layout.horizontalPadding],
+  );
 
   const handleOpenLink = () => {
     if (module.link) {
@@ -84,8 +93,17 @@ const MateriViewerScreen: FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <AppHeader title="Materi Viewer" />
-      {renderContent()}
+      <View style={[styles.headerWrapper, { width: layout.contentWidth }]}>
+        <AppHeader title="Materi" contentHorizontalPadding={contentHorizontalPadding} />
+      </View>
+      <View style={[styles.contentContainer, { paddingHorizontal: contentHorizontalPadding }]}>
+        <Text style={styles.breadcrumb}>
+          Rangkuman Materi {subjectTitle} {categoryTitle} {module.title}
+        </Text>
+        <View style={styles.viewerContainer}>
+          {renderContent()}
+        </View>
+      </View>
     </SafeAreaView>
   );
 };
@@ -94,6 +112,32 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  headerWrapper: {
+    alignSelf: 'center',
+  },
+  contentContainer: {
+    flex: 1,
+    width: '100%',
+    alignSelf: 'center',
+    paddingBottom: 20,
+  },
+  breadcrumb: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 16,
+    color: colors.primary,
+    marginVertical: 16,
+  },
+  viewerContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   webview: {
     flex: 1,

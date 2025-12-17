@@ -74,6 +74,8 @@ export type RootStackParamList = {
   };
   MateriViewer: {
     module: MateriModule;
+    subjectTitle: string;
+    categoryTitle: string;
   };
   Tryout: undefined;
   Digidaw: undefined;

@@ -139,7 +139,11 @@ const MateriDetailScreen: FC = () => {
                   ]}
                   accessibilityRole="button"
                   accessibilityLabel={`Buka materi ${module.title}`}
-                  onPress={() => navigation.navigate('MateriViewer', { module })}
+                  onPress={() => navigation.navigate('MateriViewer', { 
+                    module,
+                    subjectTitle,
+                    categoryTitle
+                  })}
                 >
                   <View
                     style={[
