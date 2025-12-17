@@ -6,6 +6,7 @@ export type TryoutPackage = {
   title: string;
   enrollmentType: 'open' | 'paid' | 'free_with_proof';
   isActive: boolean;
+  price?: number;
   startsAt: string;
   endsAt: string;
   discussionStartsAt?: string;

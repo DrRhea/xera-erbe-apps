@@ -65,7 +65,7 @@ const paymentUploadHelper = 'Upload di sini';
 
 const TryoutRegistrationPaidScreen: FC = () => {
 	const {
-		params: { tryoutId, title, dateLabel, priceLabel },
+		params: { tryoutId, title, dateLabel, priceLabel, promotion, discountedPrice },
 	} = useRoute<TryoutRegistrationPaidRouteProp>();
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
@@ -290,7 +290,36 @@ const TryoutRegistrationPaidScreen: FC = () => {
 									<Text style={styles.heroDate}>{dateLabel}</Text>
 								</View>
 								<Text style={styles.heroSubtitle}>ID Tryout: {tryoutId.toUpperCase()}</Text>
-								<Text style={styles.heroPrice}>Biaya: {priceLabel}</Text>
+								{promotion && discountedPrice !== undefined ? (
+									<View>
+										<Text
+											style={[
+												styles.heroPrice,
+												{ textDecorationLine: 'line-through', fontSize: 12, opacity: 0.7 },
+											]}
+										>
+											Biaya: {priceLabel}
+										</Text>
+										<Text style={[styles.heroPrice, { color: colors.accent }]}>
+											Bayar: Rp {discountedPrice.toLocaleString('id-ID')}
+										</Text>
+										<View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+											<TagIcon width={14} height={14} color={colors.accent} />
+											<Text
+												style={{
+													marginLeft: 4,
+													fontSize: 12,
+													color: colors.accent,
+													fontFamily: fontFamilies.bold,
+												}}
+											>
+												Hemat dengan {promotion.code}
+											</Text>
+										</View>
+									</View>
+								) : (
+									<Text style={styles.heroPrice}>Biaya: {priceLabel}</Text>
+								)}
 							</View>
 						</View>
 

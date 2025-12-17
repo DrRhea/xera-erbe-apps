@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { fontFamilies } from './src/constants/theme';
+import { type Promotion } from './src/services/promotionService';
 import HomeScreen from './src/screens/home/HomeScreen';
 import TryoutScreen from './src/screens/tryout/TryoutScreen';
 import TryoutDetailScreen from './src/screens/tryout/TryoutDetailScreen';
@@ -127,6 +128,8 @@ export type RootStackParamList = {
     title: string;
     dateLabel: string;
     priceLabel: string;
+    promotion?: Promotion;
+    discountedPrice?: number;
   };
   TryoutDetail: {
     tryoutId: string;

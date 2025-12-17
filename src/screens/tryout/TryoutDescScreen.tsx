@@ -26,6 +26,7 @@ import {
   createGenericDescription,
 } from '../../data/tryoutDescData';
 import { tryoutService, type TryoutSubtest } from '../../services/tryoutService';
+import { promotionService, type Promotion } from '../../services/promotionService';
 
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
@@ -52,17 +53,47 @@ const TryoutDescScreen: FC = () => {
 	}, [navigation]);
 
 	const [subtests, setSubtests] = useState<TryoutSubtest[]>([]);
+	const [bestPromotion, setBestPromotion] = useState<Promotion | null>(null);
+	const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
 
 	useEffect(() => {
-		const fetchSubtests = async () => {
+		const fetchData = async () => {
 			try {
-				const data = await tryoutService.getSubtests(tryoutId);
-				setSubtests(data);
+				const [subtestsData, pkg, promotions] = await Promise.all([
+					tryoutService.getSubtests(tryoutId),
+					tryoutService.getPackage(tryoutId),
+					promotionService.getPromotions(true),
+				]);
+				setSubtests(subtestsData);
+
+				if (pkg.price) {
+					// Find best promotion
+					const applicablePromotions = promotions.filter((p) =>
+						p.packageLinks?.some((link) => link.packageId === tryoutId),
+					);
+
+					let bestPromo: Promotion | null = null;
+					let bestPrice = pkg.price;
+
+					for (const promo of applicablePromotions) {
+						const discount = promotionService.calculateDiscount(pkg.price, promo);
+						const finalPrice = pkg.price - discount;
+						if (finalPrice < bestPrice) {
+							bestPrice = finalPrice;
+							bestPromo = promo;
+						}
+					}
+
+					if (bestPromo) {
+						setBestPromotion(bestPromo);
+						setDiscountedPrice(bestPrice);
+					}
+				}
 			} catch (error) {
-				console.error('Failed to fetch subtests', error);
+				console.error('Failed to fetch data', error);
 			}
 		};
-		fetchSubtests();
+		fetchData();
 	}, [tryoutId]);
 
 	const description = useMemo(
@@ -146,8 +177,10 @@ const TryoutDescScreen: FC = () => {
 			title,
 			dateLabel,
 			priceLabel: statusLabel,
+			promotion: bestPromotion ?? undefined,
+			discountedPrice: discountedPrice ?? undefined,
 		});
-	}, [dateLabel, navigation, statusLabel, statusVariant, title, tryoutId]);
+	}, [dateLabel, navigation, statusLabel, statusVariant, title, tryoutId, bestPromotion, discountedPrice]);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>
