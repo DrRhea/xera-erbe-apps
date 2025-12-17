@@ -20,7 +20,8 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { getCategoryIcon, getLearningCategories, type LearningCategory } from '../../data/learningCategories';
+import { getCategoryIcon } from '../../data/learningCategories';
+import { getCategories, type Category } from '../../services/materiService';
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -34,8 +35,20 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 const MateriScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const layout = useResponsiveLayout();
-  const categories = useMemo<LearningCategory[]>(() => getLearningCategories(), []);
+  const [categories, setCategories] = React.useState<Category[]>([]);
   const categoryIcon = useMemo(() => getCategoryIcon(), []);
+
+  React.useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories();
+        setCategories(data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleNotificationPress = useCallback(() => {
     navigation.navigate('Notification');
@@ -124,11 +137,11 @@ const MateriScreen: FC = () => {
                 onPress={() =>
                   navigation.navigate('MateriCategory', {
                     categoryId: category.id,
-                    categoryTitle: category.title,
+                    categoryTitle: category.name,
                   })
                 }
                 accessibilityRole="button"
-                accessibilityLabel={`Buka materi ${category.title}`}
+                accessibilityLabel={`Buka materi ${category.name}`}
               >
                 <View
                   style={[
@@ -146,7 +159,7 @@ const MateriScreen: FC = () => {
                     resizeMode="contain"
                   />
                 </View>
-                <Text style={styles.cardLabel}>{category.title}</Text>
+                <Text style={styles.cardLabel}>{category.name}</Text>
               </Pressable>
             ))}
           </View>

@@ -19,7 +19,8 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { getCategoryCollection, getIconComponent } from '../../data/digidawData';
+import { getIconComponent } from '../../data/digidawData';
+import { getSubjects, type Subject } from '../../services/materiService';
 import type { MateriIconKey } from '../../data/materiContent';
 
 type MateriCategoryRoute = RouteProp<RootStackParamList, 'MateriCategory'>;
@@ -44,10 +45,19 @@ const MateriCategoriesScreen: FC = () => {
 		navigation.navigate('Notification');
 	}, [navigation]);
 
-	const collection = useMemo(
-		() => getCategoryCollection(categoryId, categoryTitle),
-		[categoryId, categoryTitle],
-	);
+	const [subjects, setSubjects] = React.useState<Subject[]>([]);
+
+	React.useEffect(() => {
+		const fetchSubjects = async () => {
+			try {
+				const data = await getSubjects(categoryId);
+				setSubjects(data);
+			} catch (e) {
+				console.error(e);
+			}
+		};
+		fetchSubjects();
+	}, [categoryId]);
 
 		const contentHorizontalPadding = useMemo(
 			() => clamp(layout.horizontalPadding, 20, 28),
@@ -94,13 +104,13 @@ const MateriCategoriesScreen: FC = () => {
 				(subjectId: string, subjectTitle: string, iconKey: string) => {
 					navigation.navigate('MateriDetail', {
 					categoryId,
-					categoryTitle: collection.title,
+					categoryTitle: categoryTitle,
 					subjectId,
 					subjectTitle,
 						iconKey: iconKey as MateriIconKey,
 				});
 			},
-				[categoryId, collection.title, navigation],
+				[categoryId, categoryTitle, navigation],
 		);
 
 	return (
@@ -134,8 +144,8 @@ const MateriCategoriesScreen: FC = () => {
 				>
 					<Text style={styles.sectionTitle}>Rangkuman Materi</Text>
 					<View style={[styles.cardGrid, { columnGap: cardGap, rowGap: cardGap, gap: cardGap }]}>
-						{collection.items.map((item) => {
-							const Icon = getIconComponent(item.iconKey);
+						{subjects.map((item) => {
+							const Icon = getIconComponent((item.iconKey as any) || 'material1');
 
 							return (
 								<Pressable
@@ -152,9 +162,9 @@ const MateriCategoriesScreen: FC = () => {
 										},
 										pressed ? styles.subjectCardPressed : null,
 									]}
-									  onPress={() => handleSubjectPress(item.id, item.label, item.iconKey)}
+									  onPress={() => handleSubjectPress(item.id, item.name, (item.iconKey as any) || 'material1')}
 									accessibilityRole="button"
-									accessibilityLabel={`Buka rangkuman ${item.label}`}
+									accessibilityLabel={`Buka rangkuman ${item.name}`}
 								>
 									<View
 										style={[
@@ -173,7 +183,7 @@ const MateriCategoriesScreen: FC = () => {
 											stroke={colors.accent}
 										/>
 									</View>
-									<Text style={styles.subjectLabel}>{item.label}</Text>
+									<Text style={styles.subjectLabel}>{item.name}</Text>
 								</Pressable>
 							);
 						})}
