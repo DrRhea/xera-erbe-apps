@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState, useEffect } from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute, type NavigationProp, type RouteProp } from '@react-navigation/native';
 
@@ -20,7 +21,8 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { getMateriModules, getMateriIconComponent } from '../../data/materiContent';
+import { getMateriIconComponent, type MateriModule } from '../../data/materiContent';
+import { getMateriModules } from '../../services/materiService';
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -45,7 +47,23 @@ const MateriDetailScreen: FC = () => {
   }, [navigation]);
 
   const Icon = useMemo(() => getMateriIconComponent(iconKey), [iconKey]);
-  const modules = useMemo(() => getMateriModules(subjectId, subjectTitle), [subjectId, subjectTitle]);
+  
+  const [modules, setModules] = useState<MateriModule[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        const data = await getMateriModules(subjectId);
+        setModules(data);
+      } catch (error) {
+        console.error('Failed to fetch modules', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchModules();
+  }, [subjectId]);
 
   const contentHorizontalPadding = useMemo(
     () => clamp(layout.horizontalPadding, 20, 28),
@@ -104,43 +122,47 @@ const MateriDetailScreen: FC = () => {
           <Text style={styles.sectionBreadcrumb}>{`${categoryTitle} ・ ${subjectTitle}`}</Text>
           <SearchBar placeholder="Mau belajar apa nih?" />
           <Text style={styles.sectionHeading}>{subjectTitle}</Text>
-          <View style={[styles.moduleList, { rowGap: cardGap, gap: cardGap }]}>
-            {modules.map((module) => (
-              <Pressable
-                key={module.id}
-                style={[
-                  styles.moduleCard,
-                  {
-                    paddingHorizontal: cardPadding,
-                    paddingVertical: clamp(cardPadding * 0.7, 14, 20),
-                    borderRadius: clamp(cardPadding * 0.9, 16, 22),
-                  },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={`Buka materi ${module.title}`}
-                onPress={() => undefined}
-              >
-                <View
+          {isLoading ? (
+            <ActivityIndicator size="large" color={colors.primary} />
+          ) : (
+            <View style={[styles.moduleList, { rowGap: cardGap, gap: cardGap }]}>
+              {modules.map((module) => (
+                <Pressable
+                  key={module.id}
                   style={[
-                    styles.iconWrapper,
+                    styles.moduleCard,
                     {
-                      width: iconWrapperSize,
-                      height: iconWrapperSize,
-                      borderRadius: iconWrapperSize * 0.4,
+                      paddingHorizontal: cardPadding,
+                      paddingVertical: clamp(cardPadding * 0.7, 14, 20),
+                      borderRadius: clamp(cardPadding * 0.9, 16, 22),
                     },
                   ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Buka materi ${module.title}`}
+                  onPress={() => navigation.navigate('MateriViewer', { module })}
                 >
-                  <Icon width={iconSize} height={iconSize} fill={colors.accent} stroke={colors.accent} />
-                </View>
-                <View style={styles.moduleInfo}>
-                  <Text numberOfLines={2} style={styles.moduleTitle}>
-                    {module.title}
-                  </Text>
-                  {module.summary ? <Text style={styles.moduleSummary}>{module.summary}</Text> : null}
-                </View>
-              </Pressable>
-            ))}
-          </View>
+                  <View
+                    style={[
+                      styles.iconWrapper,
+                      {
+                        width: iconWrapperSize,
+                        height: iconWrapperSize,
+                        borderRadius: iconWrapperSize * 0.4,
+                      },
+                    ]}
+                  >
+                    <Icon width={iconSize} height={iconSize} fill={colors.accent} stroke={colors.accent} />
+                  </View>
+                  <View style={styles.moduleInfo}>
+                    <Text numberOfLines={2} style={styles.moduleTitle}>
+                      {module.title}
+                    </Text>
+                    {module.summary ? <Text style={styles.moduleSummary}>{module.summary}</Text> : null}
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
       <BottomNavigation

@@ -38,8 +38,9 @@ import RegisterScreen from './src/screens/login/RegisterScreen';
 import LiterasikScreen from './src/screens/literasik/LiterasikScreen';
 import ProfileScreen from './src/screens/profile/ProfileScreen';
 import EditProfileScreen from './src/screens/profile/EditProfileScreen';
+import MateriViewerScreen from './src/screens/materi/MateriViewerScreen';
 import type { CategoryIconKey } from './src/data/digidawData';
-import type { MateriIconKey } from './src/data/materiContent';
+import type { MateriIconKey, MateriModule } from './src/data/materiContent';
 import type { ExamId } from './src/data/examContent';
 
 type ExamRouteParams = {
@@ -70,6 +71,9 @@ export type RootStackParamList = {
     subjectId: string;
     subjectTitle: string;
     iconKey: MateriIconKey;
+  };
+  MateriViewer: {
+    module: MateriModule;
   };
   Tryout: undefined;
   Digidaw: undefined;
@@ -202,6 +206,7 @@ const AppContent = () => {
             <Stack.Screen name="Materi" component={MateriScreen} />
             <Stack.Screen name="MateriCategory" component={MateriCategoriesScreen} />
             <Stack.Screen name="MateriDetail" component={MateriDetailScreen} />
+            <Stack.Screen name="MateriViewer" component={MateriViewerScreen} />
             <Stack.Screen name="Tryout" component={TryoutScreen} />
             <Stack.Screen name="Digidaw" component={DigidawScreen} />
             <Stack.Screen name="DigidawCategories" component={DigidawCategoriesScreen} />

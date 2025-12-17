@@ -14,24 +14,21 @@ export const materiIconComponents = learningIconComponents;
 
 export type MateriIconKey = LearningIconKey;
 
-export type MateriModule = LearningModule;
+export type MateriLinkType = 'pdf' | 'youtube' | 'google-drive' | 'website';
 
-const fallbackModules = (subjectId: string, subjectTitle: string): MateriModule[] =>
-  Array.from({ length: 6 }).map((_, index) => ({
-    id: `${subjectId}-materi-${index + 1}`,
-    title: `${subjectTitle} Materi ${index + 1}`,
-  }));
-
-export const getMateriModules = (subjectId: string, subjectTitle: string): MateriModule[] => {
-  const normalizedId = normalizeSubjectId(subjectId);
-  const modules = findLearningModules(subjectId);
-
-  if (modules) {
-    return modules;
-  }
-
-  return fallbackModules(normalizedId, subjectTitle);
-};
+export interface MateriModule {
+  id: string;
+  moduleId: string;
+  title: string;
+  summary: string | null;
+  code: string | null;
+  status: 'active' | 'inactive';
+  link: string | null;
+  linkType: MateriLinkType;
+  orderIndex: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export const getMateriIconComponent = (iconKey: MateriIconKey): FC<SvgProps> =>
   getLearningIconComponent(iconKey);
