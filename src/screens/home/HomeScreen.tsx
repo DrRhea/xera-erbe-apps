@@ -37,6 +37,7 @@ import type { RootStackParamList } from '../../../App';
 import { useAuth } from '../../contexts/AuthContext';
 import { bankSoalService } from '../../services/bankSoalService';
 import { literasikService, type Article } from '../../services/literasikService';
+import { promotionService, type Promotion } from '../../services/promotionService';
 import { API_URL } from '../../services/api';
 import { AVATARS } from '../../constants/avatars';
 
@@ -151,8 +152,6 @@ const LIFE_CONTAINER_HORIZONTAL_PADDING = 13;
 const LIFE_CARD_HEIGHT_RATIO = 107 / 82;
 const LIFE_CARD_IMAGE_RATIO = 64 / 82;
 const LIFE_CARD_TITLE_MARGIN_RATIO = 10 / 82;
-const RECOMMENDATION_TOTAL_SLIDES = 4;
-const ACTIVE_RECOMMENDATION_INDEX = 1;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -666,12 +665,12 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgres
   );
 };
 
-const RecommendationCarouselIndicators: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
+const RecommendationCarouselIndicators: FC<{ layout: ResponsiveLayout; total: number; activeIndex: number }> = ({ layout, total, activeIndex }) => (
   <View style={[styles.recommendationDots, { columnGap: layout.recommendationDotsGap, gap: layout.recommendationDotsGap }]}>
-    {Array.from({ length: RECOMMENDATION_TOTAL_SLIDES }).map((_, index) => (
+    {Array.from({ length: total }).map((_, index) => (
       <View
         key={`recommendation-dot-${index}`}
-        style={[styles.recommendationDot, index === ACTIVE_RECOMMENDATION_INDEX && styles.recommendationDotActive]}
+        style={[styles.recommendationDot, index === activeIndex && styles.recommendationDotActive]}
       />
     ))}
   </View>
@@ -808,22 +807,36 @@ const HomeScreen: FC = () => {
   const { user } = useAuth();
   const [progress, setProgress] = React.useState<any>(null);
   const [articles, setArticles] = React.useState<Article[]>([]);
+  const [promotions, setPromotions] = React.useState<Promotion[]>([]);
+  const [activePromoIndex, setActivePromoIndex] = React.useState(0);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [progressData, articlesData] = await Promise.all([
+        const [progressData, articlesData, promotionsData] = await Promise.all([
           bankSoalService.getMyProgress(),
           literasikService.getArticles({ limit: 2, published: true }),
+          promotionService.getPromotions(true),
         ]);
         setProgress(progressData);
         setArticles(articlesData.data);
+        setPromotions(promotionsData.slice(0, 4)); // Max 4 promotions
       } catch (e) {
         console.error(e);
       }
     };
     fetchData();
   }, []);
+
+  React.useEffect(() => {
+    if (promotions.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setActivePromoIndex((prev) => (prev + 1) % promotions.length);
+    }, 5000); // Rotate every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [promotions.length]);
 
   const dynamicProgressData: ProgressCardProps[] = React.useMemo(() => {
       if (!progress) return [
@@ -894,20 +907,40 @@ const HomeScreen: FC = () => {
             onPress={() => navigation.navigate('Promotion')}
           />
           
-          <PromotionBanner
-            layout={{
-              screenWidth: layout.screenWidth,
-              horizontalPadding: layout.horizontalPadding,
-              recommendationPaddingHorizontal: layout.recommendationPaddingHorizontal,
-              recommendationPaddingVertical: layout.recommendationPaddingVertical,
-            }}
-            badgeText={`SUPER\nPTN!`}
-            discountText="30%"
-            suffixText="off"
-            promoCode="SUPERPTN"
-            codeLabel={`KODE\nPROMO`}
-          />
-          <RecommendationCarouselIndicators layout={layout} />
+          {promotions.length > 0 ? (
+            <>
+              <PromotionBanner
+                layout={{
+                  screenWidth: layout.screenWidth,
+                  horizontalPadding: layout.horizontalPadding,
+                  recommendationPaddingHorizontal: layout.recommendationPaddingHorizontal,
+                  recommendationPaddingVertical: layout.recommendationPaddingVertical,
+                }}
+                badgeText={promotions[activePromoIndex].badgeText || 'PROMO'}
+                discountText={
+                  promotions[activePromoIndex].discountType === 'percentage'
+                    ? `${Math.round(Number(promotions[activePromoIndex].discountValue))}%`
+                    : `Rp ${Number(promotions[activePromoIndex].discountValue) / 1000}k`
+                }
+                suffixText={promotions[activePromoIndex].discountType === 'percentage' ? 'off' : undefined}
+                promoCode={promotions[activePromoIndex].code}
+                codeLabel={`KODE\nPROMO`}
+              />
+              {promotions.length > 1 && (
+                <RecommendationCarouselIndicators
+                  layout={layout}
+                  total={promotions.length}
+                  activeIndex={activePromoIndex}
+                />
+              )}
+            </>
+          ) : (
+            <View style={{ padding: 20, alignItems: 'center' }}>
+              <Text style={{ fontFamily: fontFamilies.medium, color: colors.textSecondary }}>
+                Belum ada promo saat ini.
+              </Text>
+            </View>
+          )}
         </View>
         <View
           style={[

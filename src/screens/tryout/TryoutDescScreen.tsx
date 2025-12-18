@@ -55,29 +55,31 @@ const TryoutDescScreen: FC = () => {
 	const [subtests, setSubtests] = useState<TryoutSubtest[]>([]);
 	const [bestPromotion, setBestPromotion] = useState<Promotion | null>(null);
 	const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
+	const [pkg, setPkg] = useState<any>(null);
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const [subtestsData, pkg, promotions] = await Promise.all([
+				const [subtestsData, pkgData, promotions] = await Promise.all([
 					tryoutService.getSubtests(tryoutId),
 					tryoutService.getPackage(tryoutId),
 					promotionService.getPromotions(true),
 				]);
 				setSubtests(subtestsData);
+				setPkg(pkgData);
 
-				if (pkg.price) {
+				if (pkgData.price) {
 					// Find best promotion
 					const applicablePromotions = promotions.filter((p) =>
 						p.packageLinks?.some((link) => link.packageId === tryoutId),
 					);
 
 					let bestPromo: Promotion | null = null;
-					let bestPrice = pkg.price;
+					let bestPrice = pkgData.price;
 
 					for (const promo of applicablePromotions) {
-						const discount = promotionService.calculateDiscount(pkg.price, promo);
-						const finalPrice = pkg.price - discount;
+						const discount = promotionService.calculateDiscount(pkgData.price, promo);
+						const finalPrice = pkgData.price - discount;
 						if (finalPrice < bestPrice) {
 							bestPrice = finalPrice;
 							bestPromo = promo;
@@ -177,10 +179,11 @@ const TryoutDescScreen: FC = () => {
 			title,
 			dateLabel,
 			priceLabel: statusLabel,
+			price: pkg.price, // Pass the numeric price
 			promotion: bestPromotion ?? undefined,
 			discountedPrice: discountedPrice ?? undefined,
 		});
-	}, [dateLabel, navigation, statusLabel, statusVariant, title, tryoutId, bestPromotion, discountedPrice]);
+	}, [dateLabel, navigation, statusLabel, statusVariant, title, tryoutId, bestPromotion, discountedPrice, pkg]);
 
 	return (
 		<SafeAreaView style={styles.safeArea}>

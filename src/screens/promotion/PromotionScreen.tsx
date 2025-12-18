@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState, useEffect } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -8,6 +8,10 @@ import {
   View,
   Pressable,
   Image,
+  ActivityIndicator,
+  Modal,
+  FlatList,
+  TouchableOpacity,
 } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 
@@ -21,11 +25,10 @@ import UserIcon from '../../../assets/icons/user.svg';
 import { colors, fontFamilies } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
-import { getUpcomingTryouts, type TryoutItem } from '../../data/promotionData';
+import { promotionService, type Promotion } from '../../services/promotionService';
+import { tryoutService, type TryoutPackage } from '../../services/tryoutService';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
-
-const upcomingTryouts: TryoutItem[] = getUpcomingTryouts();
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -39,6 +42,33 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 const PromotionScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const layout = useResponsiveLayout();
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [tryouts, setTryouts] = useState<TryoutPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Modal state
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedPromo, setSelectedPromo] = useState<Promotion | null>(null);
+  const [linkedTryouts, setLinkedTryouts] = useState<TryoutPackage[]>([]);
+  const [loadingTryouts, setLoadingTryouts] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [promosData, tryoutsData] = await Promise.all([
+          promotionService.getPromotions(true),
+          tryoutService.getPackages(true),
+        ]);
+        setPromotions(promosData);
+        setTryouts(tryoutsData);
+      } catch (error) {
+        console.error('Failed to fetch data', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleNotificationPress = useCallback(() => {
     navigation.navigate('Notification');
@@ -56,6 +86,41 @@ const PromotionScreen: FC = () => {
     },
     [navigation]
   );
+
+  const handlePromoPress = async (promo: Promotion) => {
+    setSelectedPromo(promo);
+    setModalVisible(true);
+    setLoadingTryouts(true);
+    setLinkedTryouts([]);
+
+    if (promo.packageLinks && promo.packageLinks.length > 0) {
+      try {
+        const promises = promo.packageLinks.map((link) => tryoutService.getPackage(link.packageId));
+        const results = await Promise.all(promises);
+        setLinkedTryouts(results);
+      } catch (e) {
+        console.error('Failed to fetch linked tryouts', e);
+      }
+    }
+    setLoadingTryouts(false);
+  };
+
+  const handleLinkedTryoutPress = (pkg: TryoutPackage) => {
+    setModalVisible(false);
+    // Map TryoutPackage to params expected by TryoutDesc
+    // Assuming simple mapping for now
+    const statusVariant = pkg.enrollmentType === 'paid' ? 'paid' : 'free';
+    const statusLabel = pkg.enrollmentType === 'paid' ? 'Berbayar' : 'Gratis';
+    const dateLabel = new Date(pkg.startsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+
+    navigation.navigate('TryoutDesc', {
+      tryoutId: pkg.id,
+      title: pkg.title,
+      dateLabel: dateLabel,
+      statusLabel: statusLabel,
+      statusVariant: statusVariant,
+    });
+  };
 
   const iconWrapperSize = useMemo(() => clamp(layout.horizontalPadding * 2.4, 46, 58), [layout.horizontalPadding]);
   const iconImageSize = useMemo(() => clamp(iconWrapperSize * 0.85, 36, 50), [iconWrapperSize]);
@@ -116,94 +181,118 @@ const PromotionScreen: FC = () => {
         >
           <Text style={styles.sectionTitle}>Promosi Terbaru</Text>
 
-          <PromotionBanner
-            layout={{
-              screenWidth: layout.screenWidth,
-              horizontalPadding: layout.horizontalPadding,
-              recommendationPaddingHorizontal: layout.recommendationPaddingHorizontal,
-              recommendationPaddingVertical: layout.recommendationPaddingVertical,
-            }}
-            badgeText={`SUPER\nPTN!`}
-            discountText="30%"
-            suffixText="off"
-            promoCode="SUPERPTN"
-            codeLabel={`KODE\nPROMO`}
-          />
-
-          <PromotionBanner
-            layout={{
-              screenWidth: layout.screenWidth,
-              horizontalPadding: layout.horizontalPadding,
-              recommendationPaddingHorizontal: layout.recommendationPaddingHorizontal,
-              recommendationPaddingVertical: layout.recommendationPaddingVertical,
-            }}
-            badgeText={`DISKON\n50%!`}
-            discountText="50%"
-            suffixText="off"
-            promoCode="DISKON50"
-            codeLabel={`KODE\nPROMO`}
-          />
+          {loading ? (
+            <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
+          ) : promotions.length > 0 ? (
+            promotions.map((promo) => (
+              <Pressable key={promo.id} onPress={() => handlePromoPress(promo)}>
+                <PromotionBanner
+                  layout={{
+                    screenWidth: layout.screenWidth,
+                    horizontalPadding: layout.horizontalPadding,
+                    recommendationPaddingHorizontal: layout.recommendationPaddingHorizontal,
+                    recommendationPaddingVertical: layout.recommendationPaddingVertical,
+                  }}
+                  badgeText={promo.badgeText || 'PROMO'}
+                  discountText={
+                    promo.discountType === 'percentage'
+                      ? `${Math.round(Number(promo.discountValue))}%`
+                      : `Rp ${Number(promo.discountValue) / 1000}k`
+                  }
+                  suffixText={promo.discountType === 'percentage' ? 'off' : undefined}
+                  promoCode={promo.code}
+                  codeLabel={`KODE\nPROMO`}
+                  containerStyle={{ marginBottom: 8 }}
+                />
+                <Text style={styles.seeMoreText}>Selengkapnya &gt;</Text>
+              </Pressable>
+            ))
+          ) : (
+            <Text style={{ fontFamily: fontFamilies.medium, color: colors.textSecondary, marginTop: 10 }}>
+              Belum ada promosi yang tersedia.
+            </Text>
+          )}
 
           {/* ==== Tambahan: List Try Out SNBT ==== */}
-          <View style={{ marginTop: layout.sectionSpacing }}>
-            <Text style={styles.sectionTitle}>Try Out SNBT</Text>
-            <View style={{ rowGap: upcomingCardGap }}>
-              {upcomingTryouts.map((tryout) => (
-                <Pressable
-                  key={tryout.id}
-                  onPress={() => handleUpcomingCardPress(tryout)}
-                  style={[styles.upcomingCard, { padding: upcomingCardPadding }]}
-                >
-                  <View
-                    style={[
-                      styles.upcomingIconWrapper,
-                      { width: iconWrapperSize + 6, height: iconWrapperSize + 6 },
-                    ]}
-                  >
-                    <Image
-                      source={tryoutCardImage}
-                      style={{ width: iconImageSize + 8, height: iconImageSize + 8 }}
-                      resizeMode="contain"
-                    />
-                  </View>
-                  <View style={styles.upcomingMeta}>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        tryout.statusVariant === 'free' ? styles.statusBadgeFree : styles.statusBadgePaid,
-                        {
-                          paddingHorizontal: upcomingBadgePaddingHorizontal,
-                          paddingVertical: upcomingBadgePaddingVertical,
-                        },
-                      ]}
+          {tryouts.length > 0 && (
+            <View style={{ marginTop: layout.sectionSpacing }}>
+              <Text style={styles.sectionTitle}>Try Out SNBT</Text>
+              <View style={{ rowGap: upcomingCardGap }}>
+                {tryouts.map((tryout) => {
+                  const isPaid = tryout.enrollmentType === 'paid';
+                  const statusVariant = isPaid ? 'paid' : 'free';
+                  const statusLabel = isPaid ? 'Berbayar' : 'Gratis';
+                  const dateLabel = new Date(tryout.startsAt).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                  });
+
+                  return (
+                    <Pressable
+                      key={tryout.id}
+                      onPress={() =>
+                        handleUpcomingCardPress({
+                          id: tryout.id,
+                          title: tryout.title,
+                          dateLabel,
+                          statusLabel,
+                          statusVariant,
+                        })
+                      }
+                      style={[styles.upcomingCard, { padding: upcomingCardPadding }]}
                     >
-                      <Text
+                      <View
                         style={[
-                          styles.statusBadgeText,
-                          tryout.statusVariant === 'free' ? styles.statusBadgeTextFree : styles.statusBadgeTextPaid,
+                          styles.upcomingIconWrapper,
+                          { width: iconWrapperSize + 6, height: iconWrapperSize + 6 },
                         ]}
                       >
-                        {tryout.statusLabel}
-                      </Text>
-                    </View>
-                    <Text style={styles.upcomingTitle}>{tryout.title}</Text>
-                    <Text style={styles.upcomingDate}>{tryout.dateLabel}</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.upcomingCta,
-                      {
-                        paddingHorizontal: actionBadgePaddingHorizontal,
-                        paddingVertical: actionBadgePaddingVertical,
-                      },
-                    ]}
-                  >
-                    <Text style={styles.upcomingCtaLabel}>Daftar Sekarang</Text>
-                  </View>
-                </Pressable>
-              ))}
+                        <Image
+                          source={tryoutCardImage}
+                          style={{ width: iconImageSize + 8, height: iconImageSize + 8 }}
+                          resizeMode="contain"
+                        />
+                      </View>
+                      <View style={styles.upcomingMeta}>
+                        <View
+                          style={[
+                            styles.statusBadge,
+                            statusVariant === 'free' ? styles.statusBadgeFree : styles.statusBadgePaid,
+                            {
+                              paddingHorizontal: upcomingBadgePaddingHorizontal,
+                              paddingVertical: upcomingBadgePaddingVertical,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.statusBadgeText,
+                              statusVariant === 'free' ? styles.statusBadgeTextFree : styles.statusBadgeTextPaid,
+                            ]}
+                          >
+                            {statusLabel}
+                          </Text>
+                        </View>
+                        <Text style={styles.upcomingTitle}>{tryout.title}</Text>
+                        <Text style={styles.upcomingDate}>{dateLabel}</Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.upcomingCta,
+                          {
+                            paddingHorizontal: actionBadgePaddingHorizontal,
+                            paddingVertical: actionBadgePaddingVertical,
+                          },
+                        ]}
+                      >
+                        <Text style={styles.upcomingCtaLabel}>Daftar Sekarang</Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
-          </View>
+          )}
           {/* ===================================== */}
         </View>
       </ScrollView>
@@ -216,6 +305,47 @@ const PromotionScreen: FC = () => {
         inactiveColor="#617283"
         style={styles.bottomNav}
       />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Paket Tryout Terkait</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Text style={styles.closeButton}>Tutup</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {loadingTryouts ? (
+              <ActivityIndicator size="large" color={colors.primary} style={{ marginVertical: 20 }} />
+            ) : linkedTryouts.length > 0 ? (
+              <FlatList
+                data={linkedTryouts}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity 
+                    style={styles.linkedTryoutItem}
+                    onPress={() => handleLinkedTryoutPress(item)}
+                  >
+                    <Text style={styles.linkedTryoutTitle}>{item.title}</Text>
+                    <Text style={styles.linkedTryoutSubtitle}>
+                      {item.enrollmentType === 'paid' ? 'Berbayar' : 'Gratis'} • {new Date(item.startsAt).toLocaleDateString('id-ID')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+            ) : (
+              <Text style={styles.emptyText}>Tidak ada paket tryout yang terhubung.</Text>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -224,6 +354,67 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '60%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: fontFamilies.bold,
+    color: colors.textPrimary,
+  },
+  closeButton: {
+    fontSize: 14,
+    fontFamily: fontFamilies.medium,
+    color: colors.primary,
+  },
+  linkedTryoutItem: {
+    paddingVertical: 12,
+  },
+  linkedTryoutTitle: {
+    fontSize: 16,
+    fontFamily: fontFamilies.semiBold,
+    color: colors.textPrimary,
+  },
+  linkedTryoutSubtitle: {
+    fontSize: 14,
+    fontFamily: fontFamilies.regular,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#EEEEEE',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: colors.textSecondary,
+    marginTop: 20,
+    fontFamily: fontFamilies.medium,
+  },
+  seeMoreText: {
+    textAlign: 'right',
+    color: colors.primary,
+    fontFamily: fontFamilies.medium,
+    fontSize: 12,
+    marginTop: -4,
+    marginBottom: 12,
+    marginRight: 8,
   },
   scrollView: {
     flex: 1,

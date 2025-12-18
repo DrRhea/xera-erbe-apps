@@ -65,7 +65,7 @@ const paymentUploadHelper = 'Upload di sini';
 
 const TryoutRegistrationPaidScreen: FC = () => {
 	const {
-		params: { tryoutId, title, dateLabel, priceLabel, promotion, discountedPrice },
+		params: { tryoutId, title, dateLabel, priceLabel, price, promotion, discountedPrice },
 	} = useRoute<TryoutRegistrationPaidRouteProp>();
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const layout = useResponsiveLayout();
@@ -298,7 +298,7 @@ const TryoutRegistrationPaidScreen: FC = () => {
 												{ textDecorationLine: 'line-through', fontSize: 12, opacity: 0.7 },
 											]}
 										>
-											Biaya: {priceLabel}
+											Biaya: {price ? `Rp ${price.toLocaleString('id-ID')}` : priceLabel}
 										</Text>
 										<Text style={[styles.heroPrice, { color: colors.accent }]}>
 											Bayar: Rp {discountedPrice.toLocaleString('id-ID')}
@@ -318,7 +318,9 @@ const TryoutRegistrationPaidScreen: FC = () => {
 										</View>
 									</View>
 								) : (
-									<Text style={styles.heroPrice}>Biaya: {priceLabel}</Text>
+									<Text style={styles.heroPrice}>
+										Biaya: {price ? `Rp ${price.toLocaleString('id-ID')}` : priceLabel}
+									</Text>
 								)}
 							</View>
 						</View>

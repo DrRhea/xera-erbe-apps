@@ -134,6 +134,7 @@ export type RootStackParamList = {
     title: string;
     dateLabel: string;
     priceLabel: string;
+    price?: number;
     promotion?: Promotion;
     discountedPrice?: number;
   };
