@@ -348,6 +348,7 @@ const TryoutScreen: FC = () => {
 					<SearchBar
 						placeholder="Mau belajar apa nih?"
 						style={[styles.searchBar, { marginBottom: clamp(sectionSpacing * 0.35, 12, 20) }]}
+						onPress={() => navigation.navigate('Search', { initialCategory: 'tryout' })}
 					/>
 
 					{activeTryouts.length > 0 && (

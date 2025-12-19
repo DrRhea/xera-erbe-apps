@@ -157,7 +157,9 @@ export type RootStackParamList = {
   Leaderboard: undefined;
   Promotion: undefined;
   Notification: undefined;
-  Search: undefined;
+  Search: {
+    initialCategory?: 'tryout' | 'materi' | 'digidaw' | 'snackbt' | 'poke' | 'imeng' | 'literasik';
+  };
   Wallet: undefined;
   Profile: undefined;
   EditProfile: undefined;

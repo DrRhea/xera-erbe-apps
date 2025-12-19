@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Image, ImageSourcePropType, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
@@ -555,6 +556,7 @@ const AdminCard: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
 
 const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgressData: ProgressCardProps[] }> = ({ layout, user, dynamicProgressData }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
   const quickActionMinWidth = quickActions.length
     ? Math.max(
         (layout.innerContentWidth - layout.quickActionGap * Math.max(quickActions.length - 1, 0)) /
@@ -590,13 +592,13 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgres
           styles.heroContainer,
           {
             paddingHorizontal: layout.horizontalPadding,
-            paddingTop: layout.heroPaddingTop,
+            paddingTop: layout.heroPaddingTop + insets.top,
             paddingBottom: layout.heroPaddingBottom,
           },
         ]}
       >
         <View style={styles.searchRow}>
-          <Pressable style={styles.searchBarWrapper} onPress={() => navigation.navigate('Search')}>
+          <Pressable style={styles.searchBarWrapper} onPress={() => navigation.navigate('Search', {})}>
             <SearchBar placeholder="Mau belajar apa nih?" />
           </Pressable>
           <Pressable style={styles.notificationButton} onPress={() => navigation.navigate('Notification')}>

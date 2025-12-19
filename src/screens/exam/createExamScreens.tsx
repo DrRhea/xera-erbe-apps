@@ -232,7 +232,10 @@ export const createExamCatalogScreen = ({
               },
             ]}
           >
-            <SearchBar placeholder={definition.searchPlaceholder} />
+            <SearchBar
+              placeholder={definition.searchPlaceholder}
+              onPress={() => navigate('Search', { initialCategory: examId })}
+            />
             <Text style={sharedStyles.sectionTitle}>{definition.sectionTitle}</Text>
             <View style={{ flexDirection: 'column', rowGap: listGap, gap: listGap }}>
               {definition.subjects.map((subject: ExamSubjectDefinition) => (
@@ -381,7 +384,10 @@ export const createExamModulesScreen = ({
             ]}
           >
             <Text style={styles.breadcrumb}>{`${examTitle} ・ ${subjectTitle}`}</Text>
-            <SearchBar placeholder={definition.searchPlaceholder} />
+            <SearchBar
+              placeholder={definition.searchPlaceholder}
+              onPress={() => navigate('Search', { initialCategory: examId })}
+            />
             <Text style={styles.moduleHeading}>{subjectTitle}</Text>
             <View style={{ flexDirection: 'column', rowGap: moduleGap, gap: moduleGap }}>
               {modules.map((module) => (

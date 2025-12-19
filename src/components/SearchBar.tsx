@@ -1,5 +1,5 @@
 import React, { FC, memo } from 'react';
-import { StyleProp, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, Text, TextInput, View, ViewStyle, Pressable } from 'react-native';
 
 import SearchIcon from '../../assets/icons/search.svg';
 import { colors, fontFamilies } from '../constants/theme';
@@ -29,10 +29,10 @@ const SearchBar: FC<SearchBarProps> = ({ placeholder, style, onPress, value, onC
 	}
 
 	return (
-		<View style={[styles.container, style]}>
+		<Pressable onPress={onPress} style={[styles.container, style]}>
 			<Text style={styles.placeholder}>{placeholder}</Text>
 			<SearchIcon width={18} height={18} />
-		</View>
+		</Pressable>
 	);
 };
 

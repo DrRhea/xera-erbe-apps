@@ -122,7 +122,10 @@ const DigidawCategoriesDetailScreen: FC = () => {
 					]}
 				>
 					<Text style={styles.sectionBreadcrumb}>{`${categoryTitle} ・ ${subjectTitle}`}</Text>
-					<SearchBar placeholder="Mau belajar apa nih?" />
+					<SearchBar
+						placeholder="Mau belajar apa nih?"
+						onPress={() => navigation.navigate('Search', { initialCategory: 'digidaw' })}
+					/>
 					<Text style={styles.sectionHeading}>{subjectTitle}</Text>
 								<View style={[styles.moduleList, { rowGap: moduleGap, gap: moduleGap }]}> 
 						{modules.map((module) => (

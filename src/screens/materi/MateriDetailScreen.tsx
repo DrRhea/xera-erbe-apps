@@ -120,7 +120,10 @@ const MateriDetailScreen: FC = () => {
           ]}
         >
           <Text style={styles.sectionBreadcrumb}>{`${categoryTitle} ・ ${subjectTitle}`}</Text>
-          <SearchBar placeholder="Mau belajar apa nih?" />
+          <SearchBar
+            placeholder="Mau belajar apa nih?"
+            onPress={() => navigation.navigate('Search', { initialCategory: 'materi' })}
+          />
           <Text style={styles.sectionHeading}>{subjectTitle}</Text>
           {isLoading ? (
             <ActivityIndicator size="large" color={colors.primary} />
