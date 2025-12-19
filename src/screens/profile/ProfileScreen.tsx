@@ -32,12 +32,7 @@ import ArrowIcon from '../../../assets/icons/rightpointer.svg';
 
 import AvatarPlaceholder from '../../../assets/images/Ava2.png';
 
-const navItems: BottomNavigationItem[] = [
-  { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
-  { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
-  { key: 'leaderboard', label: 'Leaderboard', Icon: TagIcon, routeName: 'Leaderboard' },
-  { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
-];
+import { NAV_ITEMS } from '../../constants/navigation';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -194,7 +189,7 @@ const ProfileScreen = () => {
         </View>
       </Modal>
 
-      <BottomNavigation items={navItems} activeKey="profile" />
+      <BottomNavigation items={NAV_ITEMS} activeKey="profile" />
     </View>
   );
 };

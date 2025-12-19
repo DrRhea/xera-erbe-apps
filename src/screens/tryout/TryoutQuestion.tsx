@@ -504,7 +504,9 @@ const TryoutQuestionScreen: FC = () => {
 							title="Tryout"
 							contentHorizontalPadding={contentHorizontalPadding}
 							onNotificationPress={handleNotificationPress}
-							showBackButton={isReviewMode}
+							showBackButton={true}
+							backButtonDisabled={!isReviewMode}
+							notificationButtonDisabled={!isReviewMode}
 						/>
 					</View>
 

@@ -19,6 +19,8 @@ export type AppHeaderProps = {
   showLogo?: boolean; // 👈 Tambahan baru
   customContent?: React.ReactNode;
   compactRightGroup?: boolean;
+  backButtonDisabled?: boolean;
+  notificationButtonDisabled?: boolean;
 };
 
 const AppHeader: FC<AppHeaderProps> = ({
@@ -31,11 +33,14 @@ const AppHeader: FC<AppHeaderProps> = ({
   showLogo = true, // 👈 Default: logo tampil
   customContent,
   compactRightGroup = false,
+  backButtonDisabled = false,
+  notificationButtonDisabled = false,
 }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
 
   const handleBackPress = useCallback(() => {
+    if (backButtonDisabled) return;
     if (onBackPress) {
       onBackPress();
       return;
@@ -43,7 +48,7 @@ const AppHeader: FC<AppHeaderProps> = ({
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
-  }, [navigation, onBackPress]);
+  }, [navigation, onBackPress, backButtonDisabled]);
 
   const shouldShowBackButton = showBackButton && (onBackPress || navigation.canGoBack());
 
@@ -64,10 +69,11 @@ const AppHeader: FC<AppHeaderProps> = ({
             {shouldShowBackButton && (
               <Pressable
                 onPress={handleBackPress}
+                disabled={backButtonDisabled}
                 hitSlop={12}
                 accessibilityRole="button"
                 accessibilityLabel="Go back"
-                style={styles.backButton}
+                style={[styles.backButton, backButtonDisabled && { opacity: 0.5 }]}
               >
                 <BackArrowIcon width={20} height={20} />
               </Pressable>
@@ -95,8 +101,9 @@ const AppHeader: FC<AppHeaderProps> = ({
                 accessibilityRole="button"
                 accessibilityLabel="Open notifications"
                 hitSlop={12}
-                onPress={onNotificationPress}
-                style={[styles.notificationButton, compactRightGroup && { marginLeft: -4 }]}
+                onPress={notificationButtonDisabled ? undefined : onNotificationPress}
+                disabled={notificationButtonDisabled}
+                style={[styles.notificationButton, compactRightGroup && { marginLeft: -4 }, notificationButtonDisabled && { opacity: 0.5 }]}
               >
                 <NotifIcon style={styles.notificationIcon} />
               </Pressable>

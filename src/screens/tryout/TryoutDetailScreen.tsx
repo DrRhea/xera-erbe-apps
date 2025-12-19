@@ -34,12 +34,7 @@ import { DEFAULT_SUBTEST_DURATION_MINUTES } from '../../data/tryoutContent';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
 
-const navItems: BottomNavigationItem[] = [
-  { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
-  { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
-  { key: 'leaderboard', label: 'Leaderboard', Icon: TagIcon, routeName: 'Leaderboard' },
-  { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
-];
+import { NAV_ITEMS } from '../../constants/navigation';
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 const minutesLabel = (minutes: number) => `${minutes} menit`;
@@ -391,12 +386,13 @@ const TryoutDetailScreen: FC = () => {
         </View>
       </ScrollView>
       <BottomNavigation
-        items={navItems}
+        items={NAV_ITEMS}
         activeKey="home"
         backgroundColor={colors.white}
         activeColor={colors.primary}
         inactiveColor="#617283"
         style={styles.bottomNav}
+        disabled={!isReview}
       />
     </SafeAreaView>
   );

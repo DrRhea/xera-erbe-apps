@@ -34,12 +34,7 @@ import { QuestionViewer } from '../../components/QuestionViewer';
 
 const poweredByLogo = require('../../../assets/images/logoutuhijo.png');
 
-const navItems: BottomNavigationItem[] = [
-  { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
-  { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
-  { key: 'leaderboard', label: 'Leaderboard', Icon: TagIcon, routeName: 'Leaderboard' },
-  { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
-];
+import { NAV_ITEMS } from '../../constants/navigation';
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -275,7 +270,7 @@ export const createExamCatalogScreen = ({
           </View>
         </ScrollView>
         <BottomNavigation
-          items={navItems}
+          items={NAV_ITEMS}
           activeKey="home"
           backgroundColor={colors.white}
           activeColor={colors.primary}
@@ -432,7 +427,7 @@ export const createExamModulesScreen = ({
           </View>
         </ScrollView>
         <BottomNavigation
-          items={navItems}
+          items={NAV_ITEMS}
           activeKey="home"
           backgroundColor={colors.white}
           activeColor={colors.primary}

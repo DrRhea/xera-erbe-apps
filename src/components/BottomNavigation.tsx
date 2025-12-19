@@ -21,6 +21,7 @@ export type BottomNavigationProps = {
   activeColor?: string;
   inactiveColor?: string;
   backgroundColor?: string;
+  disabled?: boolean;
 };
 
 const BottomNavigation: FC<BottomNavigationProps> = ({
@@ -31,12 +32,14 @@ const BottomNavigation: FC<BottomNavigationProps> = ({
   activeColor = themeColors.primary,
   inactiveColor = themeColors.navInactive,
   backgroundColor = themeColors.surface,
+  disabled = false,
 }) => {
   const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const insets = useSafeAreaInsets();
 
   const handlePress = useCallback(
     (item: BottomNavigationItem) => {
+      if (disabled) return;
       onSelect?.(item.key);
       const targetRoute = item.routeName ?? item.key;
       if (!targetRoute) {

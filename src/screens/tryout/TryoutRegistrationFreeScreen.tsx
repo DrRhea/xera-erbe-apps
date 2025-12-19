@@ -32,12 +32,7 @@ import { tryoutService, type TryoutSubtest } from '../../services/tryoutService'
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
 
-const navItems: BottomNavigationItem[] = [
-	{ key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
-	{ key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Analysis' },
-	{ key: 'leaderboard', label: 'Leaderboard', Icon: TagIcon, routeName: 'Leaderboard' },
-	{ key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
-];
+import { NAV_ITEMS } from '../../constants/navigation';
 
 type TryoutRegistrationRouteProp = RouteProp<RootStackParamList, 'TryoutRegistrationFree'>;
 
@@ -411,7 +406,7 @@ const TryoutRegistrationFreeScreen: FC = () => {
 				</ScrollView>
 			</KeyboardAvoidingView>
 			<BottomNavigation
-				items={navItems}
+				items={NAV_ITEMS}
 				activeKey="home"
 				backgroundColor={colors.white}
 				activeColor={colors.primary}

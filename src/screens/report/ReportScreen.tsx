@@ -217,16 +217,7 @@ const LatestTryoutCard: FC<{ tryout: LatestTryout; onPress: () => void }> = ({ t
   );
 };
 
-// ============================================================================
-// NAVIGATION ITEMS
-// ============================================================================
-
-const bottomNavItems: BottomNavigationItem[] = [
-  { key: 'Home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
-  { key: 'Analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
-  { key: 'Leaderboard', label: 'Leaderboard', Icon: TagIcon, routeName: 'Leaderboard' },
-  { key: 'Profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
-];
+import { NAV_ITEMS } from '../../constants/navigation';
 
 // ============================================================================
 // MAIN COMPONENT
@@ -235,7 +226,7 @@ const bottomNavItems: BottomNavigationItem[] = [
 const ReportScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const layout = useResponsiveLayout();
-  const [activeNavKey, setActiveNavKey] = useState('Analysis');
+  const [activeNavKey, setActiveNavKey] = useState('analysis');
   const [loading, setLoading] = useState(true);
   const [reportData, setReportData] = useState<{
     stats: ReportStats;
@@ -403,7 +394,7 @@ const ReportScreen: FC = () => {
       </ScrollView>
 
       <BottomNavigation
-        items={bottomNavItems}
+        items={NAV_ITEMS}
         activeKey={activeNavKey}
         onSelect={handleNavSelect}
         style={styles.bottomNav}

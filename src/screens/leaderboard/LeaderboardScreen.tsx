@@ -38,12 +38,7 @@ import { tryoutService } from '../../services/tryoutService';
 import { API_URL } from '../../services/api';
 import { resolveAvatar } from '../../constants/avatars';
 
-const navItems: BottomNavigationItem[] = [
-  { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
-  { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
-  { key: 'leaderboard', label: 'Leaderboard', Icon: TagIcon, routeName: 'Leaderboard' },
-  { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
-];
+import { NAV_ITEMS } from '../../constants/navigation';
 
 // const leaderboardData: LeaderboardEntry[] = getLeaderboardData();
 
@@ -460,7 +455,7 @@ const LeaderboardScreen: FC = () => {
       </ScrollView>
 
       <BottomNavigation
-        items={navItems}
+        items={NAV_ITEMS}
         activeKey="leaderboard"
         backgroundColor={colors.white}
         activeColor={colors.primary}

@@ -43,14 +43,9 @@ import { getLeaderboardSummary } from '../../services/leaderboardService';
 import { API_URL } from '../../services/api';
 import { AVATARS, resolveAvatar } from '../../constants/avatars';
 
-const leaderboardGradients = gradients.leaderboard;
+import { NAV_ITEMS } from '../../constants/navigation';
 
-const navItems: BottomNavigationItem[] = [
-  { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
-  { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
-  { key: 'leaderboard', label: 'Leaderboard', Icon: TagIcon, routeName: 'Leaderboard' },
-  { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
-];
+const leaderboardGradients = gradients.leaderboard;
 
 type PercentString = `${number}%`;
 
@@ -1037,7 +1032,7 @@ const HomeScreen: FC = () => {
         </View>
       </ScrollView>
       <BottomNavigation
-        items={navItems}
+        items={NAV_ITEMS}
         activeKey="home"
         backgroundColor={colors.white}
         activeColor={colors.primary}
