@@ -619,7 +619,7 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgres
               ]}
             >
               <Text style={[styles.profileBadgeText, { fontSize: layout.heroBadgeFontSize }]}>
-                {user?.badge_label || 'Idaman UI'}
+                {user?.badgeLabel || 'Idaman UI'}
               </Text>
             </View>
           </View>

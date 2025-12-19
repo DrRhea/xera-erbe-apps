@@ -7,7 +7,11 @@ import {
   Pressable,
   ScrollView,
   Alert,
+  Modal,
+  TouchableOpacity,
+  FlatList,
 } from 'react-native';
+import AppHeader from '../../components/AppHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -37,7 +41,24 @@ const navItems: BottomNavigationItem[] = [
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
+  const [gradeModalVisible, setGradeModalVisible] = React.useState(false);
+
+  const grades = [
+    '7 SMP', '8 SMP', '9 SMP',
+    '10 SMA', '11 SMA', '12 SMA',
+    'SNBT', 'Kedinasan', 'Alumni'
+  ];
+
+  const handleUpdateGrade = async (grade: string) => {
+    try {
+      await updateProfile({ grade });
+      setGradeModalVisible(false);
+    } catch (error) {
+      console.error('Failed to update grade', error);
+      Alert.alert('Error', 'Failed to update grade');
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -58,15 +79,9 @@ const ProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={gradients.header} style={styles.headerBackground} />
-      <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profil Saya</Text>
-          <Text style={styles.headerBrand}>erbe</Text> 
-          {/* Note: The brand logo in image is an icon + text. Using text for now. */}
-        </View>
+      <AppHeader title="Profil Saya" showBackButton={true} />
 
-        <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatarWrapper}>
@@ -100,10 +115,13 @@ const ProfileScreen = () => {
               </View>
               <View style={styles.divider} />
               
-              <View style={styles.infoRow}>
+              <Pressable style={styles.infoRow} onPress={() => setGradeModalVisible(true)}>
                 <Text style={styles.infoLabel}>Jenjang</Text>
-                <Text style={styles.infoValue}>{user?.grade || '-'}</Text>
-              </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={[styles.infoValue, { marginRight: 8 }]}>{user?.grade || '-'}</Text>
+                  <ArrowIcon width={12} height={12} color={colors.textSecondary} style={{ transform: [{ rotate: '90deg' }] }} />
+                </View>
+              </Pressable>
               <View style={styles.divider} />
 
               <View style={styles.infoRow}>
@@ -136,7 +154,46 @@ const ProfileScreen = () => {
           </Pressable>
 
         </ScrollView>
-      </SafeAreaView>
+
+      <Modal
+        visible={gradeModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setGradeModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Pilih Jenjang</Text>
+            <FlatList
+              data={grades}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.gradeItem}
+                  onPress={() => handleUpdateGrade(item)}
+                >
+                  <Text style={[
+                    styles.gradeText,
+                    user?.grade === item && styles.selectedGradeText
+                  ]}>
+                    {item}
+                  </Text>
+                  {user?.grade === item && (
+                    <View style={styles.selectedIndicator} />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setGradeModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Batal</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <BottomNavigation items={navItems} activeKey="profile" />
     </View>
   );
@@ -147,41 +204,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  headerBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 250, // Covers top part
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  headerTitle: {
-    fontFamily: fontFamilies.bold,
-    fontSize: 20,
-    color: colors.white,
-  },
-  headerBrand: {
-    fontFamily: fontFamilies.hero,
-    fontSize: 20,
-    color: colors.white,
-  },
   content: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,
   },
   profileCard: {
-    backgroundColor: colors.surface, // Or transparent? The image shows the card is white but the top part is transparent/gradient.
-    // Actually the card with info starts below the avatar.
-    // Let's make a card for the info section.
+    backgroundColor: colors.surface,
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
@@ -274,6 +302,59 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.sectionTitle,
     marginLeft: spacing.md,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: radii.xl,
+    borderTopRightRadius: radii.xl,
+    padding: spacing.xl,
+    maxHeight: '50%',
+  },
+  modalTitle: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 18,
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  gradeItem: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  gradeText: {
+    fontFamily: fontFamilies.medium,
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
+  selectedGradeText: {
+    color: colors.primary,
+    fontFamily: fontFamilies.bold,
+  },
+  selectedIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.primary,
+  },
+  closeButton: {
+    marginTop: spacing.lg,
+    padding: spacing.md,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+  },
+  closeButtonText: {
+    fontFamily: fontFamilies.bold,
+    color: colors.textSecondary,
   },
 });
 

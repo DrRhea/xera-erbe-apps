@@ -9,6 +9,9 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Modal,
+  TouchableOpacity,
+  FlatList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fontFamilies, gradients, spacing, radii } from '../../constants/theme';
 import { useAuth } from '../../contexts/AuthContext';
 import BackArrowIcon from '../../../assets/icons/backarrow.svg';
+import ArrowIcon from '../../../assets/icons/rightpointer.svg';
 import { AVATARS, AVATAR_KEYS, resolveAvatar } from '../../constants/avatars';
 import { API_URL } from '../../services/api';
 
@@ -23,6 +27,13 @@ const EditProfileScreen = () => {
   const navigation = useNavigation();
   const { user, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [gradeModalVisible, setGradeModalVisible] = useState(false);
+
+  const grades = [
+    '7 SMP', '8 SMP', '9 SMP',
+    '10 SMA', '11 SMA', '12 SMA',
+    'SNBT', 'Kedinasan', 'Alumni'
+  ];
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -168,12 +179,20 @@ const EditProfileScreen = () => {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Jenjang</Text>
-              <TextInput
-                style={styles.input}
-                value={formData.grade}
-                onChangeText={(text) => handleChange('grade', text)}
-                placeholder="Kelas"
-              />
+              <Pressable
+                style={[styles.input, styles.dropdownTrigger]}
+                onPress={() => setGradeModalVisible(true)}
+              >
+                <Text style={[styles.inputText, !formData.grade && styles.placeholderText]}>
+                  {formData.grade || 'Pilih Jenjang'}
+                </Text>
+                <ArrowIcon 
+                  width={16} 
+                  height={16} 
+                  color={colors.textSecondary} 
+                  style={{ transform: [{ rotate: '90deg' }] }} 
+                />
+              </Pressable>
             </View>
 
             <View style={styles.inputGroup}>
@@ -188,6 +207,48 @@ const EditProfileScreen = () => {
             </View>
           </View>
         </ScrollView>
+
+        <Modal
+          visible={gradeModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setGradeModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Pilih Jenjang</Text>
+              <FlatList
+                data={grades}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.gradeItem}
+                    onPress={() => {
+                      handleChange('grade', item);
+                      setGradeModalVisible(false);
+                    }}
+                  >
+                    <Text style={[
+                      styles.gradeText,
+                      formData.grade === item && styles.selectedGradeText
+                    ]}>
+                      {item}
+                    </Text>
+                    {formData.grade === item && (
+                      <View style={styles.selectedIndicator} />
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setGradeModalVisible(false)}
+              >
+                <Text style={styles.closeButtonText}>Batal</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     </View>
   );
@@ -313,6 +374,72 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
+  },
+  dropdownTrigger: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  inputText: {
+    fontFamily: fontFamilies.medium,
+    fontSize: 14,
+    color: colors.textPrimary,
+  },
+  placeholderText: {
+    color: '#C7C7CD', // Default placeholder color
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: radii.xl,
+    borderTopRightRadius: radii.xl,
+    padding: spacing.xl,
+    maxHeight: '50%',
+  },
+  modalTitle: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 18,
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  gradeItem: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  gradeText: {
+    fontFamily: fontFamilies.medium,
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
+  selectedGradeText: {
+    color: colors.primary,
+    fontFamily: fontFamilies.bold,
+  },
+  selectedIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.primary,
+  },
+  closeButton: {
+    marginTop: spacing.lg,
+    padding: spacing.md,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+  },
+  closeButtonText: {
+    fontFamily: fontFamilies.bold,
+    color: colors.textSecondary,
   },
 });
 
