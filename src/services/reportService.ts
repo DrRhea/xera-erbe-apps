@@ -22,6 +22,8 @@ export type LatestTryout = {
   dateLabel: string;
   score: number;
   enrollmentStatus: string;
+  discussionStartsAt?: string;
+  discussionEndsAt?: string;
 };
 
 export type MonthlyReport = {

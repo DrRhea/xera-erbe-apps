@@ -7,6 +7,7 @@ import {
   Text,
   View,
   Pressable,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
@@ -276,6 +277,32 @@ const ReportScreen: FC = () => {
   };
 
   const handleTryoutPress = (tryout: LatestTryout) => {
+    const now = new Date();
+    const start = tryout.discussionStartsAt ? new Date(tryout.discussionStartsAt) : null;
+    const end = tryout.discussionEndsAt ? new Date(tryout.discussionEndsAt) : null;
+
+    if (start && now < start) {
+      Alert.alert(
+        'Pembahasan Belum Tersedia',
+        `Pembahasan baru dapat diakses pada ${start.toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}`
+      );
+      return;
+    }
+
+    if (end && now > end) {
+      Alert.alert(
+        'Pembahasan Berakhir',
+        'Masa akses pembahasan untuk tryout ini telah berakhir.'
+      );
+      return;
+    }
+
     navigation.navigate('TryoutDetail', {
       tryoutId: tryout.id,
       title: tryout.title,
