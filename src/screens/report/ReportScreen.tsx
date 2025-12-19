@@ -190,7 +190,7 @@ const StatItem: FC<{ label: string; value: string }> = ({ label, value }) => (
 const bottomNavItems: BottomNavigationItem[] = [
   { key: 'Home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
   { key: 'Analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
-  { key: 'Wallet', label: 'Wallet', Icon: TagIcon, routeName: 'Wallet' },
+  { key: 'Leaderboard', label: 'Leaderboard', Icon: TagIcon, routeName: 'Leaderboard' },
   { key: 'Profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
 ];
 

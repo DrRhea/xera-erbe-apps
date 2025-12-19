@@ -1,4 +1,4 @@
-import React, { FC, useCallback } from 'react';
+import React, { FC, useCallback, useState, useEffect } from 'react';
 import {
   Image,
   SafeAreaView,
@@ -18,19 +18,26 @@ import HomeIcon from '../../../assets/icons/home-2.svg';
 import GraphIcon from '../../../assets/icons/graph.svg';
 import TagIcon from '../../../assets/icons/tag.svg';
 import UserIcon from '../../../assets/icons/user.svg';
+import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
+import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
+import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
+import Ava1 from '../../../assets/images/Ava1.png';
+
 import { colors, fontFamilies, gradients, radii, spacing } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 
 import { getLeaderboardData, type LeaderboardEntry } from '../../data/leaderboardData';
+import { getLeaderboardSummary } from '../../services/leaderboardService';
+import { API_URL } from '../../services/api';
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
   { key: 'analysis', label: 'Analysis', Icon: GraphIcon, routeName: 'Report' },
-  { key: 'wallet', label: 'Wallet', Icon: TagIcon, routeName: 'Wallet' },
+  { key: 'leaderboard', label: 'Leaderboard', Icon: TagIcon, routeName: 'Leaderboard' },
   { key: 'profile', label: 'Profile', Icon: UserIcon, routeName: 'Profile' },
 ];
 
-const leaderboardData: LeaderboardEntry[] = getLeaderboardData();
+// const leaderboardData: LeaderboardEntry[] = getLeaderboardData();
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -309,6 +316,75 @@ const LeaderboardListItem: FC<LeaderboardEntry & { layout: ReturnType<typeof use
 const LeaderboardScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const layout = useResponsiveLayout();
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { leaderboard, currentUser } = await getLeaderboardSummary();
+        const mapped = leaderboard.map((entry, index) => {
+          const rank = index + 1;
+          let Badge = null;
+          let scoreColor: string = colors.primary;
+          if (rank === 1) {
+            Badge = RedBadgeIcon;
+            scoreColor = '#EF0F0F';
+          } else if (rank === 2) {
+            Badge = OrangeBadgeIcon;
+            scoreColor = '#FD7600';
+          } else if (rank === 3) {
+            Badge = BlueBadgeIcon;
+            scoreColor = colors.primary;
+          }
+
+          const avatarSource = entry.user.avatarPath
+            ? {
+                uri: entry.user.avatarPath.startsWith('http')
+                  ? entry.user.avatarPath
+                  : `${API_URL}/${entry.user.avatarPath}`,
+              }
+            : Ava1;
+
+          return {
+            rank,
+            name: entry.user.name,
+            grade: entry.user.grade || 'N/A',
+            score: parseFloat(entry.totalScore),
+            avatar: avatarSource,
+            Badge,
+            scoreColor,
+            isCurrentUser: entry.userId === currentUser?.userId,
+          };
+        });
+
+        if (currentUser && !mapped.find((e) => e.isCurrentUser)) {
+          const avatarSource = currentUser.user.avatarPath
+            ? {
+                uri: currentUser.user.avatarPath.startsWith('http')
+                  ? currentUser.user.avatarPath
+                  : `${API_URL}/${currentUser.user.avatarPath}`,
+              }
+            : Ava1;
+
+          mapped.push({
+            rank: currentUser.rank || 0,
+            name: currentUser.user.name,
+            grade: currentUser.user.grade || 'N/A',
+            score: parseFloat(currentUser.totalScore),
+            avatar: avatarSource,
+            Badge: null,
+            scoreColor: colors.primary,
+            isCurrentUser: true,
+          });
+        }
+
+        setLeaderboardData(mapped);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleNotificationPress = useCallback(() => {
     navigation.navigate('Notification');
@@ -376,7 +452,7 @@ const LeaderboardScreen: FC = () => {
 
       <BottomNavigation
         items={navItems}
-        activeKey="home"
+        activeKey="leaderboard"
         backgroundColor={colors.white}
         activeColor={colors.primary}
         inactiveColor="#617283"
