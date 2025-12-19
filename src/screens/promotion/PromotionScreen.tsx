@@ -27,6 +27,7 @@ import type { RootStackParamList } from '../../../App';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import { promotionService, type Promotion } from '../../services/promotionService';
 import { tryoutService, type TryoutPackage } from '../../services/tryoutService';
+import { formatDiscount } from '../../utils/format';
 
 const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
 
@@ -194,12 +195,8 @@ const PromotionScreen: FC = () => {
                     recommendationPaddingVertical: layout.recommendationPaddingVertical,
                   }}
                   badgeText={promo.badgeText || 'PROMO'}
-                  discountText={
-                    promo.discountType === 'percentage'
-                      ? `${Math.round(Number(promo.discountValue))}%`
-                      : `Rp ${Number(promo.discountValue) / 1000}k`
-                  }
-                  suffixText={promo.discountType === 'percentage' ? 'off' : undefined}
+                  discountText={formatDiscount(promo.discountType, promo.discountValue).text}
+                  suffixText={formatDiscount(promo.discountType, promo.discountValue).suffix}
                   promoCode={promo.code}
                   codeLabel={`KODE\nPROMO`}
                   containerStyle={{ marginBottom: 8 }}

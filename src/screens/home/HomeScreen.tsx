@@ -44,6 +44,7 @@ import { API_URL } from '../../services/api';
 import { AVATARS, resolveAvatar } from '../../constants/avatars';
 
 import { NAV_ITEMS } from '../../constants/navigation';
+import { formatDiscount } from '../../utils/format';
 
 const leaderboardGradients = gradients.leaderboard;
 
@@ -949,12 +950,8 @@ const HomeScreen: FC = () => {
                   recommendationPaddingVertical: layout.recommendationPaddingVertical,
                 }}
                 badgeText={promotions[activePromoIndex].badgeText || 'PROMO'}
-                discountText={
-                  promotions[activePromoIndex].discountType === 'percentage'
-                    ? `${Math.round(Number(promotions[activePromoIndex].discountValue))}%`
-                    : `Rp ${Number(promotions[activePromoIndex].discountValue) / 1000}k`
-                }
-                suffixText={promotions[activePromoIndex].discountType === 'percentage' ? 'off' : undefined}
+                discountText={formatDiscount(promotions[activePromoIndex].discountType, promotions[activePromoIndex].discountValue).text}
+                suffixText={formatDiscount(promotions[activePromoIndex].discountType, promotions[activePromoIndex].discountValue).suffix}
                 promoCode={promotions[activePromoIndex].code}
                 codeLabel={`KODE\nPROMO`}
               />
