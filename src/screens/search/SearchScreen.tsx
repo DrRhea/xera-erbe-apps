@@ -54,7 +54,7 @@ const SearchScreen: FC = () => {
 
       switch (activeCategory) {
         case 'tryout': {
-          const res = await api.get('/tryout', { params });
+          const res = await api.get('/tryout/packages', { params });
           data = res.data.map((item: any) => ({
             id: item.id,
             title: item.title,
@@ -206,20 +206,20 @@ const SearchScreen: FC = () => {
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       <View style={[styles.headerWrapper, { width }]}>
         <AppHeader
-          title=""
+          title="Search"
           contentHorizontalPadding={spacing.xl}
           showLogo={false}
           onNotificationPress={handleNotificationPress}
           showBackButton={true}
-          customContent={
-            <SearchBar
-              placeholder={`Cari ${activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}`}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              style={styles.searchBar}
-            />
-          }
         />
+        <View style={{ paddingHorizontal: spacing.xl, paddingBottom: 20 }}>
+          <SearchBar
+            placeholder={`Cari ${activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}`}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={styles.searchBar}
+          />
+        </View>
       </View>
 
       <View style={styles.contentContainer}>

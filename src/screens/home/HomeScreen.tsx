@@ -598,9 +598,11 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgres
         ]}
       >
         <View style={styles.searchRow}>
-          <Pressable style={styles.searchBarWrapper} onPress={() => navigation.navigate('Search', {})}>
-            <SearchBar placeholder="Mau belajar apa nih?" />
-          </Pressable>
+          <SearchBar 
+            placeholder="Mau belajar apa nih?" 
+            style={styles.searchBarWrapper} 
+            onPress={() => navigation.navigate('Search', {})} 
+          />
           <Pressable style={styles.notificationButton} onPress={() => navigation.navigate('Notification')}>
             <NotificationIcon style={styles.notificationIcon} />
           </Pressable>
