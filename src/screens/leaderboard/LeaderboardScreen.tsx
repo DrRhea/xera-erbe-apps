@@ -25,6 +25,7 @@ import Ava1 from '../../../assets/images/Ava1.png';
 
 import { colors, fontFamilies, gradients, radii, spacing } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
+import { useAuth } from '../../contexts/AuthContext';
 
 import { getLeaderboardData, type LeaderboardEntry } from '../../data/leaderboardData';
 import { getLeaderboardSummary } from '../../services/leaderboardService';
@@ -206,6 +207,7 @@ const LeaderboardListItem: FC<LeaderboardEntry & { layout: ReturnType<typeof use
   name,
   grade,
   score,
+  accuracy,
   avatar,
   scoreColor,
   isCurrentUser,
@@ -216,7 +218,7 @@ const LeaderboardListItem: FC<LeaderboardEntry & { layout: ReturnType<typeof use
       style={[
         styles.listItem,
         {
-          height: layout.listItemHeight,
+          height: layout.listItemHeight + 10, // Increased height for pills
           paddingHorizontal: layout.listItemPaddingHorizontal,
           paddingVertical: layout.listItemPaddingVertical,
           backgroundColor: isCurrentUser ? '#FFAE6C' : colors.white, 
@@ -286,29 +288,18 @@ const LeaderboardListItem: FC<LeaderboardEntry & { layout: ReturnType<typeof use
         >
           {name}
         </Text>
-        <Text
-          style={[
-            styles.listGrade,
-            {
-              fontSize: clamp(layout.listItemHeight * 0.2, 12, 14),
-            },
-          ]}
-        >
-          {grade}
-        </Text>
+        <View style={styles.listPillsRow}>
+          <View style={[styles.pill, isCurrentUser && styles.pillCurrentUser]}>
+            <Text style={[styles.pillText, isCurrentUser && styles.pillTextCurrentUser]}>{grade}</Text>
+          </View>
+          <View style={[styles.pill, isCurrentUser && styles.pillCurrentUser]}>
+            <Text style={[styles.pillText, isCurrentUser && styles.pillTextCurrentUser]}>{accuracy}</Text>
+          </View>
+          <View style={[styles.pill, isCurrentUser && styles.pillCurrentUser]}>
+            <Text style={[styles.pillText, isCurrentUser && styles.pillTextCurrentUser]}>{score}</Text>
+          </View>
+        </View>
       </View>
-
-      <Text
-        style={[
-          styles.listScore,
-          {
-            color: scoreColor,
-            fontSize: clamp(layout.listItemHeight * 0.3, 16, 18),
-          },
-        ]}
-      >
-        {score}
-      </Text>
     </View>
   );
 };
@@ -316,13 +307,14 @@ const LeaderboardListItem: FC<LeaderboardEntry & { layout: ReturnType<typeof use
 const LeaderboardScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const layout = useResponsiveLayout();
+  const { user } = useAuth();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const { leaderboard, currentUser } = await getLeaderboardSummary();
-        const mapped = leaderboard.map((entry, index) => {
+        const mapped: LeaderboardEntry[] = leaderboard.map((entry, index) => {
           const rank = index + 1;
           let Badge = null;
           let scoreColor: string = colors.primary;
@@ -350,6 +342,7 @@ const LeaderboardScreen: FC = () => {
             name: entry.user.name,
             grade: entry.user.grade || 'N/A',
             score: parseFloat(entry.totalScore),
+            accuracy: `${parseFloat(entry.averageAccuracy).toFixed(1)}%`,
             avatar: avatarSource,
             Badge,
             scoreColor,
@@ -366,11 +359,35 @@ const LeaderboardScreen: FC = () => {
               }
             : Ava1;
 
+          const hasScore = parseFloat(currentUser.totalScore) > 0 || currentUser.totalTryouts > 0;
+
           mapped.push({
             rank: currentUser.rank || 0,
             name: currentUser.user.name,
             grade: currentUser.user.grade || 'N/A',
-            score: parseFloat(currentUser.totalScore),
+            score: hasScore ? parseFloat(currentUser.totalScore) : '-',
+            accuracy: `${parseFloat(currentUser.averageAccuracy).toFixed(1)}%`,
+            avatar: avatarSource,
+            Badge: null,
+            scoreColor: colors.primary,
+            isCurrentUser: true,
+          });
+        } else if (!currentUser && user) {
+          // Handle case where user has no leaderboard entry yet
+          const avatarSource = user.avatarPath
+            ? {
+                uri: user.avatarPath.startsWith('http')
+                  ? user.avatarPath
+                  : `${API_URL}/${user.avatarPath}`,
+              }
+            : Ava1;
+
+          mapped.push({
+            rank: 0, // Or some indicator for unranked
+            name: user.name,
+            grade: user.grade || 'N/A',
+            score: '-',
+            accuracy: '0.0%',
             avatar: avatarSource,
             Badge: null,
             scoreColor: colors.primary,
@@ -384,7 +401,7 @@ const LeaderboardScreen: FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [user]);
 
   const handleNotificationPress = useCallback(() => {
     navigation.navigate('Notification');
@@ -607,6 +624,28 @@ const styles = StyleSheet.create({
   },
   listName: {
     fontFamily: fontFamilies.bold,
+  },
+  listPillsRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 4,
+  },
+  pill: {
+    backgroundColor: '#FD7600',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  pillCurrentUser: {
+    backgroundColor: colors.white,
+  },
+  pillText: {
+    color: 'white',
+    fontSize: 10,
+    fontFamily: fontFamilies.bold,
+  },
+  pillTextCurrentUser: {
+    color: colors.primary,
   },
   listGrade: {
     fontFamily: fontFamilies.medium,

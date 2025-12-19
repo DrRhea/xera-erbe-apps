@@ -14,10 +14,13 @@ export type LeaderboardEntry = {
   rank: number;
   name: string;
   grade: string;
-  score: number;
+  score: number | string;
+  accuracy: string;
   avatar: ImageSourcePropType;
   Badge: any | null;
   scoreColor: string;
+  isCurrentUser?: boolean;
+};
   isCurrentUser?: boolean;
 };
 
