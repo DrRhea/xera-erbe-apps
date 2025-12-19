@@ -28,7 +28,8 @@ import BottomNavigation, { BottomNavigationItem } from '../../components/BottomN
 import SearchBar from '../../components/SearchBar';
 import HomeIcon from '../../../assets/icons/home-2.svg';
 import ArrowIcon from '../../../assets/icons/vector.svg';
-import NotificationIcon from '../../../assets/icons/notifdot.svg';
+import NotifIcon from '../../../assets/icons/notif.svg';
+import NotifDotIcon from '../../../assets/icons/notifdot.svg';
 import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
 import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
 import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
@@ -36,6 +37,7 @@ import { colors, fontFamilies, gradients } from '../../constants/theme';
 import PromotionBanner from '../../components/PromotionBanner';
 import type { RootStackParamList } from '../../../App';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { bankSoalService } from '../../services/bankSoalService';
 import { literasikService, type Article } from '../../services/literasikService';
 import { promotionService, type Promotion } from '../../services/promotionService';
@@ -543,6 +545,7 @@ const AdminCard: FC<{ layout: ResponsiveLayout }> = ({ layout }) => (
 
 const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgressData: ProgressCardProps[] }> = ({ layout, user, dynamicProgressData }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { unreadCount } = useNotifications();
   const insets = useSafeAreaInsets();
   const quickActionMinWidth = quickActions.length
     ? Math.max(
@@ -591,7 +594,11 @@ const HomescreenHeader: FC<{ layout: ResponsiveLayout; user: any; dynamicProgres
             onPress={() => navigation.navigate('Search', {})} 
           />
           <Pressable style={styles.notificationButton} onPress={() => navigation.navigate('Notification')}>
-            <NotificationIcon style={styles.notificationIcon} />
+            {unreadCount > 0 ? (
+              <NotifDotIcon style={styles.notificationIcon} />
+            ) : (
+              <NotifIcon style={styles.notificationIcon} />
+            )}
           </Pressable>
         </View>
         <View style={[styles.profileRow, { marginTop: profileMarginTop }]}>

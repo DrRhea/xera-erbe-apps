@@ -7,6 +7,7 @@ interface NotificationContextType {
   unreadCount: number;
   refreshNotifications: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -44,6 +45,23 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const markAllAsRead = async () => {
+    if (unreadCount === 0) return;
+
+    // Optimistic update: clear badge immediately
+    setUnreadCount(0);
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+
+    // Background sync: mark all unread as read on backend
+    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
+    try {
+        await Promise.all(unreadIds.map(id => notificationService.markAsRead(id)));
+    } catch (error) {
+        console.error('Failed to mark all as read', error);
+        // We don't revert here to keep the UI responsive, but next refresh will correct it if failed
+    }
+  };
+
   useEffect(() => {
     refreshNotifications();
     const interval = setInterval(refreshNotifications, 60000);
@@ -51,7 +69,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }, [refreshNotifications]);
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, refreshNotifications, markAsRead }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, refreshNotifications, markAsRead, markAllAsRead }}>
       {children}
     </NotificationContext.Provider>
   );

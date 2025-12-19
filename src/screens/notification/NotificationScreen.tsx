@@ -117,16 +117,17 @@ const NotificationCard: FC<NotificationCardProps> = ({ item, layout }) => {
 const NotificationScreen: FC = () => {
   const layout = useResponsiveLayout();
   const navigation = useNavigation<any>();
-  const { notifications, markAsRead, refreshNotifications } = useNotifications();
+  const { notifications, markAsRead, refreshNotifications, markAllAsRead } = useNotifications();
 
   useEffect(() => {
     refreshNotifications();
-  }, [refreshNotifications]);
+    markAllAsRead(); // Mark all as read immediately when screen opens
+  }, [refreshNotifications, markAllAsRead]);
 
   const mappedNotifications: NotificationItem[] = notifications.map((n) => ({
     id: n.id,
     title: n.title,
-    image: n.imagePath ? { uri: n.imagePath } : DigidawImage,
+    image: n.imagePath === 'digidaw' ? DigidawImage : (n.imagePath ? { uri: n.imagePath } : DigidawImage),
     buttonText: n.ctaLabel,
     isUnread: !n.isRead,
     onButtonPress: async () => {
