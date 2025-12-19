@@ -38,6 +38,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { bankSoalService } from '../../services/bankSoalService';
 import { literasikService, type Article } from '../../services/literasikService';
 import { promotionService, type Promotion } from '../../services/promotionService';
+import { getLeaderboardSummary } from '../../services/leaderboardService';
 import { API_URL } from '../../services/api';
 import { AVATARS } from '../../constants/avatars';
 
@@ -99,36 +100,37 @@ type LeaderboardEntry = {
   grade: string;
   score: number;
   rank: number;
-  avatar: ImageSourcePropType | string;
-  Badge: FC<SvgProps>;
+  avatar: ImageSourcePropType | { uri: string };
+  Badge: FC<SvgProps> | null;
   scoreColor: string;
 };
 
-const leaderboardEntries: LeaderboardEntry[] = [
+// Placeholder for initial render
+const initialLeaderboardEntries: LeaderboardEntry[] = [
   {
-    name: 'Gitaak',
-    grade: '9 SMP',
-    score: 981,
+    name: 'Loading...',
+    grade: '...',
+    score: 0,
     rank: 1,
-    avatar: AvatarGita,
+    avatar: HeroAvatar,
     Badge: RedBadgeIcon,
     scoreColor: '#EF0F0F',
   },
   {
-    name: 'Fikri',
-    grade: '9 SMP',
-    score: 865,
+    name: 'Loading...',
+    grade: '...',
+    score: 0,
     rank: 2,
-    avatar: AvatarFikri,
+    avatar: HeroAvatar,
     Badge: OrangeBadgeIcon,
     scoreColor: '#FD7600',
   },
   {
-    name: 'Aldo',
-    grade: '9 SMP',
-    score: 812,
+    name: 'Loading...',
+    grade: '...',
+    score: 0,
     rank: 3,
-    avatar: AvatarAldo,
+    avatar: HeroAvatar,
     Badge: BlueBadgeIcon,
     scoreColor: colors.primary,
   },
@@ -355,7 +357,9 @@ const resolveAvatar = (avatar: ImageSourcePropType | string) => {
   return avatar;
 };
 
-const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
+type LeaderboardColumnProps = LeaderboardEntry & { layout: ResponsiveLayout };
+
+const FirstPlaceColumn: FC<LeaderboardColumnProps> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
     colors={[...leaderboardGradients[1]]}
@@ -364,7 +368,7 @@ const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
       style={[styles.leaderboardGradient, styles.leaderboardGradientFirst]}
     >
       <View style={styles.leaderboardMedal}>
-        <Badge width={68} height={75} />
+        {Badge && <Badge width={68} height={75} />}
         <Image source={resolveAvatar(avatar)} style={styles.leaderboardAvatar} resizeMode="contain" />
         <View style={styles.leaderboardRankBadgeFirst}>
           <Text style={styles.leaderboardRankText}>1</Text>
@@ -379,7 +383,7 @@ const FirstPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
   </View>
 );
 
-const SecondPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
+const SecondPlaceColumn: FC<LeaderboardColumnProps> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
     colors={[...leaderboardGradients[2]]}
@@ -388,7 +392,7 @@ const SecondPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, B
       style={[styles.leaderboardGradient, styles.leaderboardGradientSecond]}
     >
       <View style={styles.leaderboardMedal}>
-        <Badge width={68} height={75} />
+        {Badge && <Badge width={68} height={75} />}
         <Image source={resolveAvatar(avatar)} style={styles.leaderboardAvatar} resizeMode="contain" />
         <View style={styles.leaderboardRankBadgeSecond}>
           <Text style={styles.leaderboardRankText}>2</Text>
@@ -403,7 +407,7 @@ const SecondPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, B
   </View>
 );
 
-const ThirdPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
+const ThirdPlaceColumn: FC<LeaderboardColumnProps> = ({ name, grade, score, avatar, Badge, scoreColor }) => (
   <View style={styles.leaderboardColumn}>
     <LinearGradient
     colors={[...leaderboardGradients[3]]}
@@ -412,7 +416,7 @@ const ThirdPlaceColumn: FC<LeaderboardEntry> = ({ name, grade, score, avatar, Ba
       style={[styles.leaderboardGradient, styles.leaderboardGradientThird]}
     >
       <View style={styles.leaderboardMedal}>
-        <Badge width={68} height={75} />
+        {Badge && <Badge width={68} height={75} />}
         <Image source={resolveAvatar(avatar)} style={styles.leaderboardAvatar} resizeMode="contain" />
         <View style={styles.leaderboardRankBadgeThird}>
           <Text style={styles.leaderboardRankText}>3</Text>
@@ -687,11 +691,11 @@ const SectionHeader: FC<{ title: string; cta?: string; centered?: boolean; onPre
   </View>
 );
 
-const LeaderboardSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
+const LeaderboardSection: FC<{ layout: ResponsiveLayout; entries: LeaderboardEntry[] }> = ({ layout, entries }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const firstPlace = leaderboardEntries.find((entry) => entry.rank === 1)!;
-  const secondPlace = leaderboardEntries.find((entry) => entry.rank === 2)!;
-  const thirdPlace = leaderboardEntries.find((entry) => entry.rank === 3)!;
+  const firstPlace = entries.find((entry) => entry.rank === 1) || initialLeaderboardEntries[0];
+  const secondPlace = entries.find((entry) => entry.rank === 2) || initialLeaderboardEntries[1];
+  const thirdPlace = entries.find((entry) => entry.rank === 3) || initialLeaderboardEntries[2];
 
   const handleLeaderboardPress = useCallback(() => {
     navigation.navigate('Leaderboard');
@@ -708,9 +712,9 @@ const LeaderboardSection: FC<{ layout: ResponsiveLayout }> = ({ layout }) => {
       ]}
     >
       <View style={[styles.leaderboardColumns, { columnGap: layout.progressGap, gap: layout.progressGap }]}>
-        <SecondPlaceColumn {...secondPlace} />
-        <FirstPlaceColumn {...firstPlace} />
-        <ThirdPlaceColumn {...thirdPlace} />
+        <SecondPlaceColumn {...secondPlace} layout={layout} />
+        <FirstPlaceColumn {...firstPlace} layout={layout} />
+        <ThirdPlaceColumn {...thirdPlace} layout={layout} />
       </View>
       <Pressable
         style={[
@@ -808,19 +812,57 @@ const HomeScreen: FC = () => {
   const [progress, setProgress] = React.useState<any>(null);
   const [articles, setArticles] = React.useState<Article[]>([]);
   const [promotions, setPromotions] = React.useState<Promotion[]>([]);
+  const [leaderboardData, setLeaderboardData] = React.useState<LeaderboardEntry[]>(initialLeaderboardEntries);
   const [activePromoIndex, setActivePromoIndex] = React.useState(0);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [progressData, articlesData, promotionsData] = await Promise.all([
+        const [progressData, articlesData, promotionsData, leaderboardSummary] = await Promise.all([
           bankSoalService.getMyProgress(),
           literasikService.getArticles({ limit: 2, published: true }),
           promotionService.getPromotions(true),
+          getLeaderboardSummary(3),
         ]);
         setProgress(progressData);
         setArticles(articlesData.data);
         setPromotions(promotionsData.slice(0, 4)); // Max 4 promotions
+
+        const mappedLeaderboard = leaderboardSummary.leaderboard.map((entry, index) => {
+          const rank = index + 1;
+          let Badge = null;
+          let scoreColor: string = colors.primary;
+          if (rank === 1) {
+            Badge = RedBadgeIcon;
+            scoreColor = '#EF0F0F';
+          } else if (rank === 2) {
+            Badge = OrangeBadgeIcon;
+            scoreColor = '#FD7600';
+          } else if (rank === 3) {
+            Badge = BlueBadgeIcon;
+            scoreColor = colors.primary;
+          }
+
+          const avatarSource = entry.user.avatarPath
+            ? {
+                uri: entry.user.avatarPath.startsWith('http')
+                  ? entry.user.avatarPath
+                  : `${API_URL}/${entry.user.avatarPath}`,
+              }
+            : HeroAvatar;
+
+          return {
+            rank,
+            name: entry.user.name,
+            grade: entry.user.grade || 'N/A',
+            score: parseFloat(entry.totalScore),
+            avatar: avatarSource,
+            Badge,
+            scoreColor,
+          };
+        });
+        setLeaderboardData(mappedLeaderboard);
+
       } catch (e) {
         console.error(e);
       }
@@ -953,7 +995,7 @@ const HomeScreen: FC = () => {
           ]}
         >
           <SectionHeader title="Leaderboard" centered />
-          <LeaderboardSection layout={layout} />
+          <LeaderboardSection layout={layout} entries={leaderboardData} />
         </View>
         <View
           style={[
