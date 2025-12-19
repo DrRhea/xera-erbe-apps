@@ -16,7 +16,9 @@ const SearchBar: FC<SearchBarProps> = ({ placeholder, style, onPress, value, onC
 	if (onChangeText) {
 		return (
 			<View style={[styles.container, style]}>
+				<View style={{ marginRight: 8 }}>
 				<SearchIcon width={18} height={18} />
+				</View>
 				<TextInput
 					style={styles.input}
 					placeholder={placeholder}
