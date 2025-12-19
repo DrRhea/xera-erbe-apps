@@ -29,6 +29,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 import { getLeaderboardData, type LeaderboardEntry } from '../../data/leaderboardData';
 import { getLeaderboardSummary } from '../../services/leaderboardService';
+import { tryoutService } from '../../services/tryoutService';
 import { API_URL } from '../../services/api';
 
 const navItems: BottomNavigationItem[] = [
@@ -313,6 +314,9 @@ const LeaderboardScreen: FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (user) {
+          await tryoutService.syncLeaderboard();
+        }
         const { leaderboard, currentUser } = await getLeaderboardSummary();
         const mapped: LeaderboardEntry[] = leaderboard.map((entry, index) => {
           const rank = index + 1;
