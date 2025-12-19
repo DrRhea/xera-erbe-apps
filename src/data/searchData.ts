@@ -3,6 +3,7 @@ export type SearchItem = {
   title: string;
   date: string;
   free: boolean;
+  statusLabel?: string;
   routeName: string;
   routeParams: Record<string, any>;
 };

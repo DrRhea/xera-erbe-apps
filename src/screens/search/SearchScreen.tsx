@@ -19,11 +19,17 @@ import { colors, fontFamilies, spacing } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
 import { type SearchCategory, type SearchItem } from '../../data/searchData';
 import api from '../../services/api';
+import { snackbtService } from '../../services/snackbtService';
+import { pokeService } from '../../services/pokeService';
+import { imengService } from '../../services/imengService';
 
 // Assets
-import TryoutImage from '../../../assets/images/tryout.png';
+import TryoutImage from '../../../assets/images/tryoutimage.png';
 import MateriImage from '../../../assets/images/materi.png';
 import DigidawImage from '../../../assets/images/digidaw.png';
+import SnackbtImage from '../../../assets/images/snackbt.png';
+import PokeImage from '../../../assets/images/poke.png';
+import ImengImage from '../../../assets/images/imeng.png';
 
 const SearchScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -55,20 +61,34 @@ const SearchScreen: FC = () => {
       switch (activeCategory) {
         case 'tryout': {
           const res = await api.get('/tryout/packages', { params });
-          data = res.data.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            date: new Date(item.startsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
-            free: item.enrollmentType === 'open',
-            routeName: 'TryoutDesc',
-            routeParams: {
-              tryoutId: item.id,
+          data = res.data.map((item: any) => {
+            let statusLabel = 'Berbayar';
+            let statusVariant = 'paid';
+            
+            if (item.enrollmentType === 'open') {
+                statusLabel = 'Gratis';
+                statusVariant = 'free';
+            } else if (item.enrollmentType === 'free_with_proof') {
+                statusLabel = 'Gratis (Syarat)';
+                statusVariant = 'free';
+            }
+
+            return {
+              id: item.id,
               title: item.title,
-              dateLabel: new Date(item.startsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
-              statusLabel: item.enrollmentType === 'open' ? 'Gratis' : 'Berbayar',
-              statusVariant: item.enrollmentType === 'open' ? 'free' : 'paid',
-            },
-          }));
+              date: new Date(item.startsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+              free: statusVariant === 'free',
+              statusLabel,
+              routeName: 'TryoutDesc',
+              routeParams: {
+                tryoutId: item.id,
+                title: item.title,
+                dateLabel: new Date(item.startsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+                statusLabel: statusLabel,
+                statusVariant: statusVariant,
+              },
+            };
+          });
           break;
         }
         case 'materi': {
@@ -110,13 +130,13 @@ const SearchScreen: FC = () => {
            const res = await api.get('/snackbt', { params });
            data = res.data.map((item: any) => ({
              id: item.id,
-             title: item.name,
+             title: item.title,
              date: 'Created: ' + new Date(item.createdAt).toLocaleDateString('id-ID'),
              free: true,
              routeName: 'SnackbtQuestion',
              routeParams: {
                moduleId: item.id,
-               moduleTitle: item.name,
+               moduleTitle: item.title,
                session: null, 
              },
            }));
@@ -126,13 +146,13 @@ const SearchScreen: FC = () => {
            const res = await api.get('/poke', { params });
            data = res.data.map((item: any) => ({
              id: item.id,
-             title: item.name,
+             title: item.title,
              date: 'Created: ' + new Date(item.createdAt).toLocaleDateString('id-ID'),
              free: true,
              routeName: 'PokeQuestion',
              routeParams: {
                moduleId: item.id,
-               moduleTitle: item.name,
+               moduleTitle: item.title,
                session: null,
              },
            }));
@@ -142,13 +162,13 @@ const SearchScreen: FC = () => {
            const res = await api.get('/imeng', { params });
            data = res.data.map((item: any) => ({
              id: item.id,
-             title: item.name,
+             title: item.title,
              date: 'Created: ' + new Date(item.createdAt).toLocaleDateString('id-ID'),
              free: true,
              routeName: 'ImEngQuestion',
              routeParams: {
                moduleId: item.id,
-               moduleTitle: item.name,
+               moduleTitle: item.title,
                session: null,
              },
            }));
@@ -182,6 +202,12 @@ const SearchScreen: FC = () => {
         return MateriImage;
       case 'digidaw':
         return DigidawImage;
+      case 'snackbt':
+        return SnackbtImage;
+      case 'poke':
+        return PokeImage;
+      case 'imeng':
+        return ImengImage;
       default:
         return TryoutImage;
     }
@@ -194,10 +220,39 @@ const SearchScreen: FC = () => {
     (navigation.navigate as any)(routeName, params);
   }, [navigation]);
 
-  const handlePress = (item: SearchItem) => {
+  const handlePress = async (item: SearchItem) => {
     if (!item?.routeName) {
       return;
     }
+
+    try {
+      if (activeCategory === 'snackbt') {
+        setLoading(true);
+        const session = await snackbtService.startSession(item.id);
+        setLoading(false);
+        safeNavigate('SnackbtQuestion', { ...item.routeParams, session });
+        return;
+      }
+      if (activeCategory === 'poke') {
+        setLoading(true);
+        const session = await pokeService.startSession(item.id);
+        setLoading(false);
+        safeNavigate('PokeQuestion', { ...item.routeParams, session });
+        return;
+      }
+      if (activeCategory === 'imeng') {
+        setLoading(true);
+        const session = await imengService.startSession(item.id);
+        setLoading(false);
+        safeNavigate('ImEngQuestion', { ...item.routeParams, session });
+        return;
+      }
+    } catch (error) {
+      console.error('Failed to start session:', error);
+      setLoading(false);
+      return;
+    }
+
     safeNavigate(item.routeName as keyof RootStackParamList, item.routeParams);
   };
 
@@ -212,7 +267,7 @@ const SearchScreen: FC = () => {
           onNotificationPress={handleNotificationPress}
           showBackButton={true}
         />
-        <View style={{ paddingHorizontal: spacing.xl, paddingBottom: 20 }}>
+        <View style={{ paddingHorizontal: spacing.xl, paddingBottom: 20, paddingTop: 20 }}>
           <SearchBar
             placeholder={`Cari ${activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}`}
             value={searchQuery}
@@ -252,12 +307,16 @@ const SearchScreen: FC = () => {
                 <Image source={getImageSource(activeCategory)} style={styles.resultImage} />
                 <View style={styles.resultInfo}>
                   <Text style={styles.resultTitle}>{item.title}</Text>
-                  <Text style={styles.resultDate}>{item.date}</Text>
-                  <View style={[styles.badge, item.free ? styles.freeBadge : styles.paidBadge]}>
-                    <Text style={[styles.badgeText, item.free ? styles.freeBadgeText : styles.paidBadgeText]}>
-                      {item.free ? 'Gratis' : 'Berbayar'}
-                    </Text>
-                  </View>
+                  {activeCategory === 'tryout' && (
+                    <>
+                      <Text style={styles.resultDate}>{item.date}</Text>
+                      <View style={[styles.badge, item.free ? styles.freeBadge : styles.paidBadge]}>
+                        <Text style={[styles.badgeText, item.free ? styles.freeBadgeText : styles.paidBadgeText]}>
+                          {item.statusLabel || (item.free ? 'Gratis' : 'Berbayar')}
+                        </Text>
+                      </View>
+                    </>
+                  )}
                 </View>
               </TouchableOpacity>
             ))
@@ -279,14 +338,12 @@ const styles = StyleSheet.create({
   },
   headerWrapper: {
     zIndex: 10,
-    backgroundColor: '#227C9D',
     paddingBottom: 20,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
   searchBar: {
-    flex: 1,
-    marginLeft: 10,
+    width: '100%',
   },
   contentContainer: {
     flex: 1,

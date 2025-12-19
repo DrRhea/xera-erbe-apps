@@ -20,7 +20,7 @@ const SearchBar: FC<SearchBarProps> = ({ placeholder, style, onPress, value, onC
 				<TextInput
 					style={styles.input}
 					placeholder={placeholder}
-					placeholderTextColor="rgba(0,0,0,0.8)"
+					placeholderTextColor={colors.textSecondary}
 					value={value}
 					onChangeText={onChangeText}
 				/>
@@ -54,13 +54,14 @@ const styles = StyleSheet.create({
 	placeholder: {
 		flex: 1,
 		fontSize: 13,
-		color: 'rgba(0,0,0,0.8)',
+		color: colors.textSecondary,
 		fontFamily: fontFamilies.medium,
 	},
 	input: {
 		flex: 1,
 		fontSize: 13,
-		color: 'rgba(0,0,0,0.8)',
+		color: colors.textPrimary,
 		fontFamily: fontFamilies.medium,
+		padding: 0, // Fix for Android text vertical alignment
 	},
 });
