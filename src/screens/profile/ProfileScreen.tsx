@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { colors, fontFamilies, gradients, spacing, radii } from '../../constants/theme';
 import { useAuth } from '../../contexts/AuthContext';
 import BottomNavigation, { BottomNavigationItem } from '../../components/BottomNavigation';
-import { AVATARS } from '../../constants/avatars';
+import { AVATARS, resolveAvatar } from '../../constants/avatars';
 import { API_URL } from '../../services/api';
 
 // Icons
@@ -54,11 +54,7 @@ const ProfileScreen = () => {
     console.log('Contact Us clicked');
   };
 
-  const avatarSource = user?.avatarPath && AVATARS[user.avatarPath]
-    ? AVATARS[user.avatarPath]
-    : user?.avatarPath
-      ? { uri: user.avatarPath.startsWith('http') ? user.avatarPath : `${API_URL}${user.avatarPath.startsWith('/') ? '' : '/'}${user.avatarPath}` }
-      : AvatarPlaceholder;
+  const avatarSource = resolveAvatar(user?.avatarPath, AvatarPlaceholder);
 
   return (
     <View style={styles.container}>

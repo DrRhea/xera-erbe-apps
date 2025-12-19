@@ -22,6 +22,11 @@ import RedBadgeIcon from '../../../assets/icons/redbordersvg.svg';
 import OrangeBadgeIcon from '../../../assets/icons/orangeborder.svg';
 import BlueBadgeIcon from '../../../assets/icons/blueborder.svg';
 import Ava1 from '../../../assets/images/Ava1.png';
+import Ava2 from '../../../assets/images/Ava2.png';
+import Ava3 from '../../../assets/images/Ava3.png';
+import Ava4 from '../../../assets/images/Ava4.png';
+import Ava5 from '../../../assets/images/Ava5.png';
+import Ava6 from '../../../assets/images/Ava6.png';
 
 import { colors, fontFamilies, gradients, radii, spacing } from '../../constants/theme';
 import type { RootStackParamList } from '../../../App';
@@ -31,6 +36,7 @@ import { getLeaderboardData, type LeaderboardEntry } from '../../data/leaderboar
 import { getLeaderboardSummary } from '../../services/leaderboardService';
 import { tryoutService } from '../../services/tryoutService';
 import { API_URL } from '../../services/api';
+import { resolveAvatar } from '../../constants/avatars';
 
 const navItems: BottomNavigationItem[] = [
   { key: 'home', label: 'Home', Icon: HomeIcon, routeName: 'Home' },
@@ -333,13 +339,7 @@ const LeaderboardScreen: FC = () => {
             scoreColor = colors.primary;
           }
 
-          const avatarSource = entry.user.avatarPath
-            ? {
-                uri: entry.user.avatarPath.startsWith('http')
-                  ? entry.user.avatarPath
-                  : `${API_URL}/${entry.user.avatarPath}`,
-              }
-            : Ava1;
+          const avatarSource = resolveAvatar(entry.user.avatarPath, Ava1);
 
           return {
             rank,
@@ -355,13 +355,7 @@ const LeaderboardScreen: FC = () => {
         });
 
         if (currentUser && !mapped.find((e) => e.isCurrentUser)) {
-          const avatarSource = currentUser.user.avatarPath
-            ? {
-                uri: currentUser.user.avatarPath.startsWith('http')
-                  ? currentUser.user.avatarPath
-                  : `${API_URL}/${currentUser.user.avatarPath}`,
-              }
-            : Ava1;
+          const avatarSource = resolveAvatar(currentUser.user.avatarPath, Ava1);
 
           const hasScore = parseFloat(currentUser.totalScore) > 0 || currentUser.totalTryouts > 0;
 
@@ -378,13 +372,7 @@ const LeaderboardScreen: FC = () => {
           });
         } else if (!currentUser && user) {
           // Handle case where user has no leaderboard entry yet
-          const avatarSource = user.avatarPath
-            ? {
-                uri: user.avatarPath.startsWith('http')
-                  ? user.avatarPath
-                  : `${API_URL}/${user.avatarPath}`,
-              }
-            : Ava1;
+          const avatarSource = resolveAvatar(user.avatarPath, Ava1);
 
           mapped.push({
             rank: 0, // Or some indicator for unranked

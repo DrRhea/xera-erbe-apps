@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fontFamilies, gradients, spacing, radii } from '../../constants/theme';
 import { useAuth } from '../../contexts/AuthContext';
 import BackArrowIcon from '../../../assets/icons/backarrow.svg';
-import { AVATARS, AVATAR_KEYS } from '../../constants/avatars';
+import { AVATARS, AVATAR_KEYS, resolveAvatar } from '../../constants/avatars';
 import { API_URL } from '../../services/api';
 
 const EditProfileScreen = () => {
@@ -69,11 +69,7 @@ const EditProfileScreen = () => {
     }
   };
 
-  const currentAvatarSource = formData.avatarPath && AVATARS[formData.avatarPath]
-    ? AVATARS[formData.avatarPath]
-    : formData.avatarPath
-      ? { uri: formData.avatarPath.startsWith('http') ? formData.avatarPath : `${API_URL}${formData.avatarPath.startsWith('/') ? '' : '/'}${formData.avatarPath}` }
-      : AVATARS['Ava1.png'];
+  const currentAvatarSource = resolveAvatar(formData.avatarPath, AVATARS['Ava1.png']);
 
   return (
     <View style={styles.container}>

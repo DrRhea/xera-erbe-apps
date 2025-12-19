@@ -41,7 +41,7 @@ import { literasikService, type Article } from '../../services/literasikService'
 import { promotionService, type Promotion } from '../../services/promotionService';
 import { getLeaderboardSummary } from '../../services/leaderboardService';
 import { API_URL } from '../../services/api';
-import { AVATARS } from '../../constants/avatars';
+import { AVATARS, resolveAvatar } from '../../constants/avatars';
 
 const leaderboardGradients = gradients.leaderboard;
 
@@ -348,15 +348,6 @@ const QuickActionCard: FC<QuickActionCardProps> = ({
     <Text style={[styles.quickActionLabel, { fontSize: labelFontSize }]}>{title}</Text>
   </Pressable>
 );
-
-const resolveAvatar = (avatar: ImageSourcePropType | string) => {
-  if (typeof avatar === 'string') {
-    if (AVATARS[avatar]) return AVATARS[avatar];
-    if (avatar.startsWith('http')) return { uri: avatar };
-    return { uri: `${API_URL}${avatar.startsWith('/') ? '' : '/'}${avatar}` };
-  }
-  return avatar;
-};
 
 type LeaderboardColumnProps = LeaderboardEntry & { layout: ResponsiveLayout };
 
