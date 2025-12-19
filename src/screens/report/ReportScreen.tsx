@@ -150,7 +150,13 @@ const ReportTable: FC<{ data: ReportTableRow[] }> = ({ data }) => {
         <React.Fragment key={`row-${index}`}>
           <View style={tableStyles.dataRow}>
             <View style={[tableStyles.cell, tableStyles.subjectCell]}>
-              <Text style={tableStyles.dataText}>{row.subject}</Text>
+              <Text 
+                style={tableStyles.dataText} 
+                numberOfLines={2} 
+                ellipsizeMode="tail"
+              >
+                {row.subject}
+              </Text>
             </View>
             <View style={tableStyles.divider} />
             <View style={[tableStyles.cell, tableStyles.scoreCell]}>
