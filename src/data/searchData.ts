@@ -4,6 +4,7 @@ export type SearchItem = {
   date: string;
   free: boolean;
   statusLabel?: string;
+  statusVariant?: string;
   routeName: string;
   routeParams: Record<string, any>;
 };

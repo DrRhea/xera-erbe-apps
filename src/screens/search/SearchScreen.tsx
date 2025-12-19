@@ -22,6 +22,8 @@ import api from '../../services/api';
 import { snackbtService } from '../../services/snackbtService';
 import { pokeService } from '../../services/pokeService';
 import { imengService } from '../../services/imengService';
+import { tryoutService } from '../../services/tryoutService';
+import { authService } from '../../services/authService';
 
 // Assets
 import TryoutImage from '../../../assets/images/tryoutimage.png';
@@ -61,17 +63,84 @@ const SearchScreen: FC = () => {
       switch (activeCategory) {
         case 'tryout': {
           const res = await api.get('/tryout/packages', { params });
-          data = res.data.map((item: any) => {
+          const user = await authService.getUser();
+          const now = new Date();
+
+          data = await Promise.all(res.data.map(async (item: any) => {
             let statusLabel = 'Berbayar';
             let statusVariant = 'paid';
-            
-            if (item.enrollmentType === 'open') {
-                statusLabel = 'Gratis';
-                statusVariant = 'free';
-            } else if (item.enrollmentType === 'free_with_proof') {
-                statusLabel = 'Gratis (Syarat)';
-                statusVariant = 'free';
+            let routeName = 'TryoutDesc';
+            let routeParams: any = {
+                tryoutId: item.id,
+                title: item.title,
+                dateLabel: new Date(item.startsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+            };
+
+            // Check enrollment
+            let enrollmentStatus: 'pending' | 'approved' | 'rejected' | undefined;
+            let sessions: any[] = [];
+            try {
+                if (user) {
+                    const enrollments = await tryoutService.getMyEnrollments(item.id);
+                    const myEnrollment = enrollments.find((e: any) => e.userId === user.id);
+                    if (myEnrollment) {
+                        enrollmentStatus = myEnrollment.status;
+                        sessions = myEnrollment.sessions || [];
+                    }
+                }
+            } catch (e) {
+                console.log('Error fetching enrollment for search', e);
             }
+
+            const endsAt = new Date(item.endsAt);
+            const isExpired = endsAt < now;
+
+            if (enrollmentStatus === 'approved') {
+                let isFullyCompleted = false;
+                try {
+                    const subtests = await tryoutService.getSubtests(item.id);
+                    const completedSessions = sessions.filter((s: any) => s.status === 'completed');
+                    if (subtests.length > 0 && completedSessions.length === subtests.length) {
+                        isFullyCompleted = true;
+                    }
+                } catch (e) {}
+
+                if (isExpired || isFullyCompleted) {
+                    const discussionStart = item.discussionStartsAt ? new Date(item.discussionStartsAt) : null;
+                    if (discussionStart && now >= discussionStart) {
+                        statusLabel = 'Lihat Pembahasan';
+                        statusVariant = 'info';
+                        routeName = 'TryoutDetail';
+                        routeParams.isReview = true;
+                    } else {
+                        statusLabel = 'Selesai';
+                        statusVariant = 'success';
+                        routeName = 'TryoutDetail';
+                        routeParams.isReview = true;
+                    }
+                } else {
+                    statusLabel = 'Kerjakan';
+                    statusVariant = 'primary';
+                    routeName = 'TryoutDetail';
+                }
+            } else if (enrollmentStatus === 'pending') {
+                statusLabel = 'Menunggu';
+                statusVariant = 'pending';
+            } else if (enrollmentStatus === 'rejected') {
+                statusLabel = 'Ditolak';
+                statusVariant = 'rejected';
+            } else {
+                if (item.enrollmentType === 'open') {
+                    statusLabel = 'Gratis';
+                    statusVariant = 'free';
+                } else if (item.enrollmentType === 'free_with_proof') {
+                    statusLabel = 'Gratis (Syarat)';
+                    statusVariant = 'free';
+                }
+            }
+
+            routeParams.statusLabel = statusLabel;
+            routeParams.statusVariant = statusVariant;
 
             return {
               id: item.id,
@@ -79,16 +148,11 @@ const SearchScreen: FC = () => {
               date: new Date(item.startsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
               free: statusVariant === 'free',
               statusLabel,
-              routeName: 'TryoutDesc',
-              routeParams: {
-                tryoutId: item.id,
-                title: item.title,
-                dateLabel: new Date(item.startsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
-                statusLabel: statusLabel,
-                statusVariant: statusVariant,
-              },
+              statusVariant,
+              routeName,
+              routeParams,
             };
-          });
+          }));
           break;
         }
         case 'materi': {
@@ -256,6 +320,32 @@ const SearchScreen: FC = () => {
     safeNavigate(item.routeName as keyof RootStackParamList, item.routeParams);
   };
 
+  const getBadgeStyle = (variant?: string) => {
+    switch (variant) {
+      case 'free': return styles.freeBadge;
+      case 'paid': return styles.paidBadge;
+      case 'pending': return styles.pendingBadge;
+      case 'rejected': return styles.rejectedBadge;
+      case 'info': return styles.infoBadge;
+      case 'success': return styles.successBadge;
+      case 'primary': return styles.primaryBadge;
+      default: return styles.paidBadge;
+    }
+  };
+
+  const getBadgeTextStyle = (variant?: string) => {
+    switch (variant) {
+      case 'free': return styles.freeBadgeText;
+      case 'paid': return styles.paidBadgeText;
+      case 'pending': return styles.pendingBadgeText;
+      case 'rejected': return styles.rejectedBadgeText;
+      case 'info': return styles.infoBadgeText;
+      case 'success': return styles.successBadgeText;
+      case 'primary': return styles.primaryBadgeText;
+      default: return styles.paidBadgeText;
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -263,7 +353,7 @@ const SearchScreen: FC = () => {
         <AppHeader
           title="Search"
           contentHorizontalPadding={spacing.xl}
-          showLogo={false}
+          showLogo={true}
           onNotificationPress={handleNotificationPress}
           showBackButton={true}
         />
@@ -310,8 +400,8 @@ const SearchScreen: FC = () => {
                   {activeCategory === 'tryout' && (
                     <>
                       <Text style={styles.resultDate}>{item.date}</Text>
-                      <View style={[styles.badge, item.free ? styles.freeBadge : styles.paidBadge]}>
-                        <Text style={[styles.badgeText, item.free ? styles.freeBadgeText : styles.paidBadgeText]}>
+                      <View style={[styles.badge, getBadgeStyle(item.statusVariant)]}>
+                        <Text style={[styles.badgeText, getBadgeTextStyle(item.statusVariant)]}>
                           {item.statusLabel || (item.free ? 'Gratis' : 'Berbayar')}
                         </Text>
                       </View>
@@ -431,6 +521,16 @@ const styles = StyleSheet.create({
   paidBadgeText: {
     color: '#C62828',
   },
+  pendingBadge: { backgroundColor: '#FFF3E0' },
+  pendingBadgeText: { color: '#EF6C00' },
+  rejectedBadge: { backgroundColor: '#FFEBEE' },
+  rejectedBadgeText: { color: '#C62828' },
+  infoBadge: { backgroundColor: '#E3F2FD' },
+  infoBadgeText: { color: '#1565C0' },
+  successBadge: { backgroundColor: '#E8F5E9' },
+  successBadgeText: { color: '#2E7D32' },
+  primaryBadge: { backgroundColor: colors.primary },
+  primaryBadgeText: { color: '#FFFFFF' },
   noResultsText: {
     textAlign: 'center',
     fontFamily: fontFamilies.medium,
