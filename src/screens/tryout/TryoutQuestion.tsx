@@ -560,6 +560,14 @@ const TryoutQuestionScreen: FC = () => {
 									resizeMode="contain"
 								/>
 							) : null}
+							<View style={styles.optionTextContainer}>
+								{currentQuestion.options.map((option) => (
+									<View key={option.id} style={styles.optionTextRow}>
+										<Text style={styles.optionTextLabel}>{option.label}.</Text>
+										<Text style={styles.optionTextBody}>{option.text}</Text>
+									</View>
+								))}
+							</View>
 						</View>
 
 						<View style={styles.optionsGrid}>
@@ -1096,6 +1104,28 @@ const styles = StyleSheet.create({
 		fontFamily: fontFamilies.extraBold,
 		fontSize: 15,
 		color: colors.white,
+	},
+	optionTextContainer: {
+		marginTop: 12,
+		gap: 8,
+	},
+	optionTextRow: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		gap: 8,
+	},
+	optionTextLabel: {
+		fontFamily: fontFamilies.bold,
+		fontSize: 13,
+		color: colors.primaryDark,
+		minWidth: 20,
+	},
+	optionTextBody: {
+		flex: 1,
+		fontFamily: fontFamilies.medium,
+		fontSize: 13,
+		color: colors.primaryDark,
+		lineHeight: 20,
 	},
 	questionBadgeBase: {
 		borderWidth: 0,
