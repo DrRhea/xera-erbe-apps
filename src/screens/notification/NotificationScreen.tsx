@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect } from 'react';
 import {
   Image,
   Pressable,
@@ -10,11 +10,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
 
 import AppHeader from '../../components/AppHeader';
 import { colors, fontFamilies, spacing, radii } from '../../constants/theme';
 import DigidawImage from '../../../assets/images/digidaw.png';
-import { getNotificationData, type NotificationItem } from '../../data/notificationData';
+import { type NotificationItem } from '../../data/notificationData';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 
 const clamp = (value: number, min: number, max: number) =>
@@ -114,7 +116,26 @@ const NotificationCard: FC<NotificationCardProps> = ({ item, layout }) => {
 
 const NotificationScreen: FC = () => {
   const layout = useResponsiveLayout();
-  const [notifications] = useState<NotificationItem[]>(getNotificationData());
+  const navigation = useNavigation<any>();
+  const { notifications, markAsRead, refreshNotifications } = useNotifications();
+
+  useEffect(() => {
+    refreshNotifications();
+  }, [refreshNotifications]);
+
+  const mappedNotifications: NotificationItem[] = notifications.map((n) => ({
+    id: n.id,
+    title: n.title,
+    image: n.imagePath ? { uri: n.imagePath } : DigidawImage,
+    buttonText: n.ctaLabel,
+    isUnread: !n.isRead,
+    onButtonPress: async () => {
+      await markAsRead(n.id);
+      if (n.ctaPayload && n.ctaPayload.screen) {
+        navigation.navigate(n.ctaPayload.screen, n.ctaPayload);
+      }
+    },
+  }));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -129,7 +150,7 @@ const NotificationScreen: FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.notificationList, { gap: layout.cardGap }]}>
-          {notifications.map((item) => (
+          {mappedNotifications.map((item) => (
             <NotificationCard key={item.id} item={item} layout={layout} />
           ))}
         </View>

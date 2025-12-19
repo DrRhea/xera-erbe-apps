@@ -5,9 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import BackArrowIcon from '../../assets/icons/backarrow.svg';
-import NotifIcon from '../../assets/icons/notifdot.svg';
+import NotifIcon from '../../assets/icons/notif.svg';
+import NotifDotIcon from '../../assets/icons/notifdot.svg';
 import ErboLogo from '../../assets/images/logoutuhputih.png';
 import { colors, fontFamilies, gradients, radii, spacing } from '../constants/theme';
+import { useNotifications } from '../contexts/NotificationContext';
 
 export type AppHeaderProps = {
   title: string;
@@ -38,6 +40,7 @@ const AppHeader: FC<AppHeaderProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<Record<string, object | undefined>>>();
+  const { unreadCount } = useNotifications();
 
   const handleBackPress = useCallback(() => {
     if (backButtonDisabled) return;
@@ -105,7 +108,11 @@ const AppHeader: FC<AppHeaderProps> = ({
                 disabled={notificationButtonDisabled}
                 style={[styles.notificationButton, compactRightGroup && { marginLeft: -4 }, notificationButtonDisabled && { opacity: 0.5 }]}
               >
-                <NotifIcon style={styles.notificationIcon} />
+                {unreadCount > 0 ? (
+                  <NotifDotIcon style={styles.notificationIcon} />
+                ) : (
+                  <NotifIcon style={styles.notificationIcon} />
+                )}
               </Pressable>
             )}
           </View>

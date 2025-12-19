@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { NotificationProvider } from './src/contexts/NotificationContext';
 import { fontFamilies } from './src/constants/theme';
 import { type Promotion } from './src/services/promotionService';
 import HomeScreen from './src/screens/home/HomeScreen';
@@ -253,9 +254,11 @@ const AppContent = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <SafeAreaProvider>
-        <AppContent />
-      </SafeAreaProvider>
+      <NotificationProvider>
+        <SafeAreaProvider>
+          <AppContent />
+        </SafeAreaProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
