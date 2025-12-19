@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useCallback, useState, useEffect } from 'react';
 import {
   Image,
   ScrollView,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
@@ -21,7 +22,7 @@ import ErboLogo from '../../../assets/images/logoutuhijo.png';
 import { colors, fontFamilies } from '../../constants/theme';
 import { useResponsiveLayout } from '../home/HomeScreen';
 import type { RootStackParamList } from '../../../App';
-import { sampleReportData, type ReportTableRow } from '../../data/reportData';
+import { reportService, type ReportTableRow, type ReportStats, type LatestTryout } from '../../services/reportService';
 
 // ============================================================================
 // INTERNAL COMPONENTS
@@ -183,6 +184,32 @@ const StatItem: FC<{ label: string; value: string }> = ({ label, value }) => (
   </View>
 );
 
+// Latest Tryout Card Component
+const LatestTryoutCard: FC<{ tryout: LatestTryout; onPress: () => void }> = ({ tryout, onPress }) => {
+  const tryoutCardImage = require('../../../assets/images/tryoutimage.png');
+  
+  return (
+    <Pressable style={latestStyles.card} onPress={onPress}>
+      <View style={latestStyles.iconWrapper}>
+        <Image source={tryoutCardImage} style={latestStyles.iconImage} resizeMode="contain" />
+      </View>
+      <View style={latestStyles.content}>
+        <View style={latestStyles.header}>
+          <Text style={latestStyles.title}>{tryout.title}</Text>
+          <View style={latestStyles.badge}>
+            <Text style={latestStyles.badgeText}>Selesai</Text>
+          </View>
+        </View>
+        <Text style={latestStyles.date}>{tryout.dateLabel}</Text>
+        <View style={latestStyles.scoreContainer}>
+          <Text style={latestStyles.scoreLabel}>Nilai:</Text>
+          <Text style={latestStyles.scoreValue}>{tryout.score.toFixed(0)}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+};
+
 // ============================================================================
 // NAVIGATION ITEMS
 // ============================================================================
@@ -202,10 +229,42 @@ const ReportScreen: FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const layout = useResponsiveLayout();
   const [activeNavKey, setActiveNavKey] = useState('Analysis');
+  const [loading, setLoading] = useState(true);
+  const [reportData, setReportData] = useState<{
+    stats: ReportStats;
+    table: ReportTableRow[];
+    latestTryouts: LatestTryout[];
+    monthName: string;
+  } | null>(null);
 
   const contentWidth = layout.contentWidth;
   const contentHorizontalPadding = layout.horizontalPadding;
   const sectionSpacing = layout.sectionSpacing;
+
+  const fetchReport = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await reportService.getMonthlyReport();
+      const monthNames = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      setReportData({
+        stats: data.stats,
+        table: data.table,
+        latestTryouts: data.latestTryouts,
+        monthName: monthNames[data.month - 1] || '',
+      });
+    } catch (error) {
+      console.error('Failed to fetch report:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchReport();
+  }, [fetchReport]);
 
   const handleNotificationPress = useCallback(() => {
     navigation.navigate('Notification');
@@ -214,6 +273,14 @@ const ReportScreen: FC = () => {
   const handleNavSelect = (key: string) => {
     setActiveNavKey(key);
     // Navigation akan otomatis ditangani oleh BottomNavigation component
+  };
+
+  const handleTryoutPress = (tryout: LatestTryout) => {
+    navigation.navigate('TryoutDetail', {
+      tryoutId: tryout.id,
+      title: tryout.title,
+      isReview: true,
+    });
   };
 
   return (
@@ -245,7 +312,7 @@ const ReportScreen: FC = () => {
             },
           ]}
         >
-          <Text style={styles.sectionTitle}>Report Oktober</Text>
+          <Text style={styles.sectionTitle}>Report {reportData?.monthName || 'Loading...'}</Text>
 
           {/* First row - Progress cards (identical size) */}
           <View style={styles.statRow}>
@@ -253,31 +320,47 @@ const ReportScreen: FC = () => {
               <Text style={styles.progressCardTitle}>Persentase Kelas Offline</Text>
               <View style={styles.progressBarContainer}>
                 <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: '78%' }]} />
-                  <Text style={styles.progressBarText}>78%</Text>
+                  <View style={[styles.progressFill, { width: `${Math.min(reportData?.stats.offlineClass ? (reportData.stats.offlineClass / 10) * 100 : 0, 100)}%` }]} />
+                  <Text style={styles.progressBarText}>{reportData?.stats.offlineClass || 0} Hadir</Text>
                 </View>
               </View>
             </View>
             <View style={styles.progressCard}>
               <Text style={styles.progressCardTitle}>Moshi-Moshi</Text>
-              <Text style={styles.progressCardValue}>3 kali</Text>
+              <Text style={styles.progressCardValue}>{reportData?.stats.moshiMoshi || 0} kali</Text>
             </View>
           </View>
 
           {/* Second row - Vertical stats list */}
           <View style={styles.statsListCard}>
-            <StatItem label="Ranking" value="8" />
+            <StatItem label="Ranking" value={reportData?.stats.ranking?.toString() || '-'} />
             <View style={styles.statDivider} />
-            <StatItem label="Total Soal" value="445" />
+            <StatItem label="Total Soal" value={reportData?.stats.totalQuestions?.toString() || '0'} />
             <View style={styles.statDivider} />
-            <StatItem label="Skor" value="546" />
+            <StatItem label="Skor" value={reportData?.stats.score?.toString() || '0'} />
             <View style={styles.statDivider} />
-            <StatItem label="ACR" value="94,5%" />
+            <StatItem label="ACR" value={`${(reportData?.stats.acr || 0).toFixed(1)}%`} />
           </View>
 
-          <Text style={styles.tableTitle}>Tabel Progress Oktober</Text>
+          <Text style={styles.tableTitle}>Tabel Progress {reportData?.monthName || ''}</Text>
 
-          <ReportTable data={sampleReportData} />
+          <ReportTable data={reportData?.table || []} />
+
+          {/* Latest Tryouts Section */}
+          {reportData?.latestTryouts && reportData.latestTryouts.length > 0 && (
+            <>
+              <Text style={styles.tableTitle}>Tryout Terakhir</Text>
+              <View style={latestStyles.list}>
+                {reportData.latestTryouts.map((tryout) => (
+                  <LatestTryoutCard 
+                    key={tryout.id} 
+                    tryout={tryout} 
+                    onPress={() => handleTryoutPress(tryout)} 
+                  />
+                ))}
+              </View>
+            </>
+          )}
 
           <View style={styles.poweredByContainer}>
             <Text style={styles.poweredByText}>Powered by</Text>
@@ -508,6 +591,85 @@ const tableStyles = StyleSheet.create({
     fontFamily: fontFamilies.medium,
     fontSize: 12.32,
     color: '#222222',
+  },
+});
+
+const latestStyles = StyleSheet.create({
+  list: {
+    gap: 12,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    shadowColor: colors.primaryDark,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+    padding: 12,
+  },
+  iconWrapper: {
+    width: 48,
+    height: 48,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  iconImage: {
+    width: 32,
+    height: 32,
+  },
+  content: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  title: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 13,
+    color: colors.textPrimary,
+    flex: 1,
+    marginRight: 8,
+  },
+  badge: {
+    backgroundColor: '#C2FFCF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  badgeText: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 9,
+    color: '#065900',
+  },
+  date: {
+    fontFamily: fontFamilies.medium,
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  scoreLabel: {
+    fontFamily: fontFamilies.medium,
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginRight: 4,
+  },
+  scoreValue: {
+    fontFamily: fontFamilies.bold,
+    fontSize: 11,
+    color: colors.primary,
   },
 });
 
